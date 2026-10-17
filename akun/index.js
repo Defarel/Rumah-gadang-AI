@@ -15,7 +15,7 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
 
 <div id="loginPage" class="w-full max-w-sm bg-zinc-900 p-6 rounded-2xl border border-zinc-800">
   <h1 class="text-2xl font-bold text-center mb-6">Rumah Gadang AI</h1>
-  <input id="email" type="email" placeholder="Email Bos" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 mb-3 text-white" />
+  <input id="email" type="email" placeholder="Email" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 mb-3 text-white" />
   <input id="pass" type="password" placeholder="Password Bos" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 mb-4 text-white" />
   <button onclick="doLogin()" class="w-full bg-white text-black p-3 rounded-xl font-bold">LOGIN</button>
 </div>
@@ -58,8 +58,8 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
       <button id="followBtn" onclick="toggleFollow()" class="bg-[#2a2a2a] p-3 rounded-xl font-semibold text-sm">Ikuti</button>
     </div>
 
-    <button onclick="doLogout()" class="w-full bg-red-600 p-3 rounded-xl font-bold mt-3">LOGOUT BOS</button>
-    <a href="/" class="block text-center mt-3 text-zinc-500 text-sm">← Kembali ke Home Bos</a>
+    <button onclick="doLogout()" class="w-full bg-red-600 p-3 rounded-xl font-bold mt-3">LOGOUT</button>
+    <a href="/" class="block text-center mt-3 text-zinc-500 text-sm">← Kembali ke halaman depan</a>
   </div>
 </div>
 

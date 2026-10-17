@@ -45,7 +45,7 @@ async fetch(req, env) {
     await env.DB.prepare("CREATE TABLE IF NOT EXISTS fotos (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT, caption TEXT, user_email TEXT, time INTEGER)").run();
     await env.DB.prepare("CREATE TABLE IF NOT EXISTS foto_likes (foto_id INTEGER, user_email TEXT, PRIMARY KEY (foto_id, user_email))").run();
     await env.DB.prepare("CREATE TABLE IF NOT EXISTS profiles (email TEXT PRIMARY KEY, username TEXT, name TEXT, bio TEXT, picture TEXT)").run();
-    await env.DB.prepare("CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, username TEXT, name TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)").run();
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, username TEXT, name TEXT, created_at INTEGER)").run();
    }
   }catch(e){}
 
@@ -56,14 +56,14 @@ async fetch(req, env) {
   const adminEmail = req.headers.get("X-Admin-Email") || url.searchParams.get("admin") || "";
   const isAdminUser = isAdmin(adminEmail);
 
-// --- API REGISTER & CARI TEMAN BARU VERSI IG ---
+// --- API REGISTER & CARI TEMAN - AUTO SIMPAN KE D1 KAYAK FOTO ---
 if (url.pathname === "/api/register-user" && req.method === "POST") {
   try{
     const { email, name } = await req.json();
     if(!email) return new Response(JSON.stringify({error:"email required"}),{headers:cors, status:400});
     let username = email.split('@')[0].toLowerCase().replace(/[^a-z0-9._]/g,'');
     let displayName = name || username;
-    await env.DB.prepare(`INSERT OR REPLACE INTO users (email, username, name) VALUES (?, ?, ?)`).bind(email.toLowerCase(), username, displayName).run();
+    await env.DB.prepare(`INSERT OR REPLACE INTO users (email, username, name, created_at) VALUES (?, ?, ?, ?)`).bind(email.toLowerCase(), username, displayName, Date.now()).run();
     await env.DB.prepare(`INSERT OR REPLACE INTO profiles (email, username, name) VALUES (?, ?, ?)`).bind(email.toLowerCase(), username, displayName).run();
     return new Response(JSON.stringify({ok:true, username}), {headers:cors});
   }catch(e){ return new Response(JSON.stringify({error:e.message}),{headers:cors, status:500}); }
@@ -84,19 +84,19 @@ if (url.pathname.startsWith("/api/search-users/")) {
 if (url.pathname.startsWith("/api/user/")) {
   try{
     const username = decodeURIComponent(url.pathname.split('/').pop()).toLowerCase();
-    const { results } = await env.DB.prepare(`SELECT * FROM users WHERE lower(username) = ? LIMIT 1`).bind(username).all();
-    if(results && results[0]) return new Response(JSON.stringify(results[0]), {headers:cors});
+    const user = await env.DB.prepare(`SELECT * FROM users WHERE lower(username) = ? LIMIT 1`).bind(username).first();
+    if(user) return new Response(JSON.stringify(user), {headers:cors});
     return new Response(JSON.stringify({error:"not found"}),{headers:cors, status:404});
   }catch(e){ return new Response(JSON.stringify({error:e.message}),{headers:cors, status:500}); }
 }
 
-  // === API FOLLOW - KAYAK IG ===
+  // === API FOLLOW ===
   if(url.pathname==="/api/follow" && req.method==="POST"){
     try{
       let j=await req.json();
       if(j.follower_id.toLowerCase() === j.following_id.toLowerCase()) return new Response(JSON.stringify({error:"Ga bisa follow diri sendiri bos!"}),{status:400, headers:cors});
       await env.DB.prepare("INSERT OR IGNORE INTO follows (follower_id, following_id) VALUES (?, ?)").bind(j.follower_id.toLowerCase(), j.following_id.toLowerCase()).run();
-      return new Response(JSON.stringify({ok:true, message:"Follow berhasil bos!"}),{headers:cors});
+      return new Response(JSON.stringify({ok:true}),{headers:cors});
     }catch(e){ return new Response(JSON.stringify({error:e.message}),{status:500, headers:cors}); }
   }
   if(url.pathname==="/api/unfollow" && req.method==="POST"){
@@ -201,18 +201,16 @@ if (url.pathname.startsWith("/api/user/")) {
     }catch(e){ return new Response(JSON.stringify({reply:"Error Bos"}),{headers:cors}); }
   }
 
-  // === ROUTING IG STYLE - /username kayak instagram.com/nama ===
+  // === ROUTING IG STYLE - FIX: HAPUS "/" DARI STATIC ===
   let path = url.pathname;
-  const STATIC_ROUTES = ["/", "/akun", "/foto", "/video", "/ai", "/kantor", "/tulis", "/api", "/sitemap", "/robots", "/favicon"];
-  
-  // Jika path kayak /naura, /admin, /amanda dan bukan file statis
+  const STATIC_ROUTES = ["/akun", "/foto", "/video", "/ai", "/kantor", "/tulis", "/api", "/sitemap", "/robots", "/favicon", "/a"];
+
   if(path.length > 1 && !STATIC_ROUTES.some(r => path.startsWith(r)) && !path.includes(".") && !path.startsWith("/u/")){
     let potentialUsername = path.replace("/", "").split("/")[0].toLowerCase();
-    if(potentialUsername){
+    if(potentialUsername && potentialUsername.length >= 2){
       try{
         let user = await env.DB.prepare("SELECT * FROM users WHERE lower(username) = ? LIMIT 1").bind(potentialUsername).first();
         if(user){
-          // Ketemu username, tampilkan halaman akun dengan user tersebut
           return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
         }
       }catch(e){}

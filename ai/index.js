@@ -54,8 +54,13 @@ body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;ov
   </div>
 </div>
 
-<div id="bottomNav">
-  <span>🏠</span><span>🖼️</span><span>📊</span><span>🎥</span><span>👤</span>
+<div class="bot">
+<a href="/">🏠<br><span>Home</span></a>
+<a href="/foto">🖼️<br><span>Foto</span></a>
+<a href="/video">🎬<br><span>Video</span></a>
+<a href="/kantor">🏢<br><span>Kantor</span></a>
+<a href="/ai" class="on">🤖<br><span>AI</span></a>
+<a href="/akun">👤<br><span>Akun</span></a>
 </div>
 
 <script>

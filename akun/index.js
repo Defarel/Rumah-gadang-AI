@@ -17,7 +17,7 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
   <h1 class="text-2xl font-bold text-center mb-6">Rumah Gadang AI</h1>
   <input id="email" type="email" placeholder="Email Bos" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 mb-3 text-white" />
   <input id="pass" type="password" placeholder="Password Bos" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 mb-4 text-white" />
-  <button onclick="doLogin()" class="w-full bg-white text-black p-3 rounded-xl font-bold">LOGIN BOS</button>
+  <button onclick="doLogin()" class="w-full bg-white text-black p-3 rounded-xl font-bold">LOGIN</button>
 </div>
 
 <div id="profilePage" style="display:none" class="w-full max-w-[420px]">
@@ -28,12 +28,12 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
         <img id="avatarImg" src="https://i.pravatar.cc/150?u=naura" class="w-20 h-20 rounded-full object-cover neon-avatar" />
         <button onclick="document.getElementById('fileInput').click()" class="absolute -bottom-1 -right-1 w-7 h-7 bg-white text-black rounded-full font-bold flex items-center justify-center border-2 border-black">+</button>
         <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="changeAvatar(event)" />
-        <div class="absolute -top-8 -left-2 bg-[#2a2a2a] text-zinc-300 text-xs px-3 py-1.5 rounded-2xl">Cuma kepo aja...</div>
+        <div class="absolute -top-8 -left-2 bg-[#2a2a2a] text-zinc-300 text-xs px-3 py-1.5 rounded-2xl"></div>
       </div>
       
       <div class="flex-1">
         <div class="flex items-center gap-2">
-          <h2 id="displayName" class="text-xl font-bold">Farel</h2>
+          <h2 id="displayName" class="text-xl font-bold">Dunsanak</h2>
           <button onclick="editName()" class="text-zinc-500 text-xs">✏️</button>
         </div>
         <p id="displayEmail" class="text-zinc-500 text-xs mb-3 truncate">naura@rumahgadang-ai.my.id</p>
@@ -134,12 +134,12 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
   }
 
   function editName(){
-    let newName = prompt("Ganti nama Bos:", data.name);
+    let newName = prompt("Ganti nama:", data.name);
     if(newName){ data.name = newName; save(); document.getElementById("displayName").innerText = newName; }
   }
 
   function editProfile(){
-    let newName = prompt("Edit nama profil Bos:", data.name);
+    let newName = prompt("Edit nama profil:", data.name);
     if(newName) data.name = newName;
     let newFollowers = prompt("Edit pengikut Bos (angka):", data.followers);
     if(newFollowers) data.followers = parseInt(newFollowers)||data.followers;

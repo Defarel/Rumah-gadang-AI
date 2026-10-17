@@ -1,5 +1,14 @@
-name = "rumah-gadang-ai"
+name = "purple-firefly-d778"
 main = "worker.js"
 compatibility_date = "2024-01-01"
+
 [assets]
 directory = "./"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rumah-gadang-db"
+database_id = "isi-id-d1-bos-di-dashboard-d1"
+
+[vars]
+LOGO_FALLBACK = "https://i.ibb.co/r2gL8YJB/1791014451654.jpg"

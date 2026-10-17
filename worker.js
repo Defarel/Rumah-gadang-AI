@@ -55,6 +55,23 @@ async fetch(req, env) {
   const adminEmail = req.headers.get("X-Admin-Email") || url.searchParams.get("admin") || "";
   const isAdminUser = isAdmin(adminEmail);
 
+// --- API REGISTER & CARI TEMAN BARU ---
+if (url.pathname === "/api/register-user" && req.method === "POST") {
+  const { email, name } = await req.json();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`).run();
+  await env.DB.prepare(`INSERT OR IGNORE INTO users (email, name) VALUES (?, ?)`).bind(email.toLowerCase(), name || email.split('@')[0]).run();
+  return new Response(JSON.stringify({ok:true}), {headers:{"Content-Type":"application/json"}});
+}
+if (url.pathname === "/api/users") {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`).run();
+  const { results } = await env.DB.prepare(`SELECT * FROM users ORDER BY created_at DESC LIMIT 50`).all();
+  return new Response(JSON.stringify(results), {headers:{"Content-Type":"application/json"}});
+}
+if (url.pathname.startsWith("/api/search-users/")) {
+  const q = decodeURIComponent(url.pathname.split('/').pop()).toLowerCase();
+  const { results } = await env.DB.prepare(`SELECT * FROM users WHERE lower(email) LIKE ? OR lower(name) LIKE ? LIMIT 20`).bind(`%${q}%`, `%${q}%`).all();
+  return new Response(JSON.stringify(results), {headers:{"Content-Type":"application/json"}});
+}
   // === API FOLLOW - KAYAK IG AKUN A FOLLOW B, B FOLLOW A ===
   if(url.pathname==="/api/follow" && req.method==="POST"){
     try{

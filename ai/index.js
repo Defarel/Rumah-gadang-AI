@@ -1,69 +1,113 @@
 export const AI_HTML = `<!DOCTYPE html>
-<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Rumah Gadang AI</title>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RUMAH GADANG AI</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{color:#fff;font-family:sans-serif;height:100vh;display:flex;flex-direction:column;background:#000}
-.bg{position:fixed;top:0;left:0;width:100vw;height:100vh;background:url('./RumahGadangAI.jpg') center/cover no-repeat;z-index:-1}
-#top{position:fixed;top:14px;left:18px;z-index:50;text-align:left;pointer-events:none}
-#top h1{font-size:19px;font-weight:900;text-shadow:0 2px 10px #000}
-#top span{color:#22c55e}
-.container{max-width:800px;margin:0 auto;width:100%;padding-top:22px;background:transparent!important}
-#chat{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;background:transparent!important;padding:12px;padding-top:60px;padding-bottom:240px;justify-content:flex-start}
-.msg{padding:11px 14px;border-radius:14px;max-width:85%;line-height:1.6;font-size:14px;white-space:pre-wrap}
-.msg.user{align-self:flex-end;background:#166534;color:#fff}
-.msg.ai{align-self:flex-start;background:#2d333b;color:#e6edf3;border:1px solid #444c56}
-.msg.ai img{width:100%;max-width:380px;border-radius:12px;margin-top:8px;display:block}
-.bar{position:fixed;bottom:95px;left:50%;transform:translateX(-50%);width:92%;max-width:760px;display:flex;gap:8px;background:rgba(0,0,0,0.85);border:1px solid #333;padding:8px;border-radius:14px;z-index:98}
-#inp{flex:1;background:#111;color:#fff;border:1px solid #333;border-radius:10px;height:52px;padding:0 16px;outline:none;font-size:16px}
-#send{background:#22c55e;color:#000;font-weight:900;border:none;height:52px;padding:0 22px;border-radius:10px;cursor:pointer}
-.topBtns{position:fixed;top:10px;right:10px;z-index:999999!important;display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:auto!important}
-.topBtns button{pointer-events:auto!important;background:rgba(0,0,0,0.8);border:1px solid #22c55e;color:#22c55e;padding:10px 16px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:700;min-width:130px}
-#musicBtn{background:#22c55e!important;color:#000!important;border:1px solid #22c55e!important}
+body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;overflow:hidden}
+.bg{position:fixed;inset:0;background:url('/ai/RumahGadangAI1.jpg') center/cover no-repeat;filter:brightness(0.55);z-index:-2}
+.overlay{position:fixed;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.85));z-index:-1}
+#header{position:fixed;top:0;left:0;right:0;height:54px;display:flex;align-items:center;gap:10px;padding:0 14px;background:rgba(0,0,0,0.7);border-bottom:1px solid #222;z-index:10}
+#header img{width:32px;height:32px;border-radius:50%}
+#header b{font-size:14px}
+#chat{position:absolute;top:54px;bottom:148px;left:0;right:0;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.bubble{max-width:82%;padding:11px 14px;border-radius:16px;font-size:14px;line-height:1.5;white-space:pre-wrap}
+.user{align-self:flex-end;background:#22c55e;color:#000;font-weight:600;border-bottom-right-radius:4px}
+.ai{align-self:flex-start;background:rgba(40,40,40,0.9);border:1px solid #333;border-bottom-left-radius:4px}
+#inputBar{position:fixed;bottom:60px;left:0;right:0;padding:10px 12px;background:rgba(0,0,0,0.9);border-top:1px solid #222;display:flex;flex-direction:column;gap:8px;z-index:20}
+#row{display:flex;gap:8px}
+#inp{flex:1;background:#111;color:#fff;border:1px solid #333;border-radius:24px;height:46px;padding:0 16px;outline:none;font-size:15px}
+#send{background:#22c55e;color:#000;font-weight:900;border:none;height:46px;padding:0 20px;border-radius:24px;cursor:pointer;min-width:80px}
+#musicBar{position:fixed;top:60px;right:10px;z-index:30;display:flex;gap:6px}
+.miniBtn{background:rgba(0,0,0,0.8);border:1px solid #22c55e;color:#22c55e;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700}
+.miniBtn.on{background:#22c55e;color:#000}
+#bottomNav{position:fixed;bottom:0;left:0;right:0;height:56px;background:#000;border-top:1px solid #222;display:flex;justify-content:space-around;align-items:center;z-index:40}
+#bottomNav span{font-size:20px}
 </style>
 </head>
 <body>
 <div class="bg"></div>
-<div id="top"><h1>Rumah Gadang <span>AI</span></h1></div>
-<div class="topBtns">
-  <button id="musicBtn">🔊 RG Musik</button>
+<div class="overlay"></div>
+
+<div id="header">
+  <img src="/ai/RumahGadangAI1.jpg">
+  <b>RUMAH GADANG AI</b>
 </div>
-<audio id="bgMusic" loop playsinline><source src="./RumahGadangV1.m4a" type="audio/mp4"></audio>
-<div class="container"><div id="chat"><div class="msg ai">Halo Dunsanak Bos! Tanya soal Rumah Gadang, adat Minang, musik masih ON Bos!</div></div></div>
-<div class="bar"><input id="inp" placeholder="Tanya Rumah Gadang AI..."><button id="send">KIRIM →</button></div>
+
+<div id="musicBar">
+  <button id="musicBtn" class="miniBtn">🔊 RG Musik</button>
+  <button class="miniBtn" onclick="location.href='/'">🏠 Home</button>
+</div>
+
+<audio id="bgMusic" loop preload="auto"><source src="/ai/RumahGadangV1.m4a" type="audio/mp4"></audio>
+
+<div id="chat">
+  <div class="bubble ai">Halo Dunsanak Bos! 👋 Saya Rumah Gadang AI. Tanyo seputar adat Minang, Rumah Gadang, atau apo se Bos. Musik adat lah aktif Bos!</div>
+</div>
+
+<div id="inputBar">
+  <div id="row">
+    <input id="inp" placeholder="Tulis sesuatu...">
+    <button id="send">KIRIM</button>
+  </div>
+</div>
+
+<div id="bottomNav">
+  <span>🏠</span><span>🖼️</span><span>📊</span><span>🎥</span><span>👤</span>
+</div>
+
 <script>
-let m=document.getElementById('bgMusic'); m.volume=0.5;
-document.getElementById('musicBtn').addEventListener('click',()=>{
-  if(m.paused){ m.play(); document.getElementById('musicBtn').innerText='🔊 Musik ON'; }
-  else{ m.pause(); document.getElementById('musicBtn').innerText='🔇 Musik OFF'; }
-});
-document.getElementById('send').addEventListener('click',kirim);
-document.getElementById('inp').addEventListener('keydown',e=>{ if(e.key==='Enter') kirim(); });
-let img=new Image(); img.src='./RumahGadangAI.jpg';
-img.onerror=()=>{
-  let img2=new Image(); img2.src='./RumahGadangAI1.jpg';
-  img2.onload=()=>{ document.querySelector('.bg').style.backgroundImage="url('./RumahGadangAI1.jpg')"; };
-  img2.onerror=()=>{ document.querySelector('.bg').style.backgroundImage="url('https://images.unsplash.com/photo-1555400038-63f5ba517a47?q=80&w=2000')"; };
+const chat = document.getElementById('chat');
+const inp = document.getElementById('inp');
+const sendBtn = document.getElementById('send');
+const music = document.getElementById('bgMusic');
+const musicBtn = document.getElementById('musicBtn');
+music.volume = 0.6;
+
+function addBubble(type, text){
+  const d = document.createElement('div');
+  d.className = 'bubble ' + type;
+  d.innerText = text;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+musicBtn.onclick = () => {
+  if(music.paused){
+    music.play().then(()=>{ musicBtn.innerText='🔊 Musik ON'; musicBtn.classList.add('on'); }).catch(()=>{ addBubble('ai','Bos klik sekali lagi buat aktifin musik Bos, browser blokir autoplay Bos!'); });
+  } else {
+    music.pause(); musicBtn.innerText='🔇 Musik OFF'; musicBtn.classList.remove('on');
+  }
 };
-function addMsg(who,text){
-  let c=document.getElementById('chat');
-  let d=document.createElement('div');
-  d.className='msg '+who;
-  d.innerText=text;
-  c.appendChild(d);
-  c.scrollTop=c.scrollHeight;
-}
+
 async function kirim(){
-  let inp=document.getElementById('inp');
-  let p=inp.value.trim();
-  if(!p) return;
-  addMsg('user', p);
-  inp.value='';
+  const prompt = inp.value.trim();
+  if(!prompt) return;
+  addBubble('user', prompt);
+  inp.value = '';
+  addBubble('ai','Rumah Gadang AI mikir dulu Bos...');
   try{
-    let r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p})});
-    let j=await r.json();
-    addMsg('ai', j.reply||'Error Bos');
-  }catch(e){ addMsg('ai','Error koneksi Bos'); }
+    const r = await fetch('/api/ai',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({prompt})
+    });
+    const j = await r.json();
+    chat.lastChild.remove();
+    addBubble('ai', j.reply || 'Maaf Bos, AI error');
+  }catch(e){
+    chat.lastChild.remove();
+    addBubble('ai','Error koneksi Bos: ' + e.message);
+  }
 }
-<\/script>
-</body></html>`;
+
+sendBtn.onclick = kirim;
+inp.onkeydown = e => { if(e.key==='Enter') kirim(); };
+
+// Auto coba putar musik setelah interaksi pertama
+document.body.addEventListener('click',()=>{ if(music.paused && !musicBtn.classList.contains('on')){ music.play().catch(()=>{}); } },{once:true});
+</script>
+</body>
+</html>`;

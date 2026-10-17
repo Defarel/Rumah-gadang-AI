@@ -75,7 +75,37 @@ document.getElementById('cam').addEventListener('click',()=>{camYaw+=90;});docum
 document.getElementById('run').addEventListener('touchstart',()=>{run=true},{passive:false});document.getElementById('run').addEventListener('touchend',()=>{run=false});
 window.closeNPC=()=>{document.getElementById('npcPanel').style.display='none';activeNPC=null;};let activeNPC=null;
 function openNPC(n){activeNPC=n;document.getElementById('npcName').textContent=n.emoji+' '+n.nama;document.getElementById('npcRole').textContent=n.role;document.getElementById('npcChat').innerHTML='<div style="color:#0f0">Halo Bos! Saya '+n.nama+'</div>';document.getElementById('npcPanel').style.display='block';document.getElementById('inter').style.display='none';}
-window.openNPC=openNPC;async function tanyaNPC(){let inp=document.getElementById('npcInput');let q=inp.value.trim();if(!q||!activeNPC)return;let chat=document.getElementById('npcChat');chat.innerHTML+='<div style="text-align:right;color:#FFD700">Bos: '+q+'</div>';inp.value='';}
+window.openNPC=openNPC;async function tanyaNPC(){
+  let inp=document.getElementById('npcInput');
+  let q=inp.value.trim();
+  if(!q||!activeNPC) return;
+  let chat=document.getElementById('npcChat');
+  chat.innerHTML+='<div style="text-align:right;color:#FFD700;margin:6px 0;padding:6px 10px;background:#222;border-radius:12px">Bos: '+q+'</div>';
+  inp.value='';
+  chat.innerHTML+='<div id="loadingAI" style="color:#888;font-size:12px">Pak Kasir ngetik Bos...</div>';
+  chat.scrollTop = chat.scrollHeight;
+
+  try{
+    let prompt = "Kamu adalah "+activeNPC.nama+", peran kamu "+activeNPC.role+" di Kantor Rumah Gadang AI di Padang. Jawab sebagai "+activeNPC.nama+" dengan gaya Minang santai pakai kata Bos. User tanya: "+q;
+    // kalau Uni Excel, Uda Video, dll kasih kepribadian Bos!
+    if(activeNPC.nama.includes("Kasir")) prompt = "Kamu Pak Kasir, kasir Toko 2 Lynk.id Annrisel di Rumah Gadang AI, jualan template. Jawab ramah pakai kata Bos. User tanya: "+q;
+    if(activeNPC.nama.includes("Excel")) prompt = "Kamu Uni Excel, ahli Excel dan administrasi di Rumah Gadang AI. Jawab bantu Excel pakai kata Bos. User tanya: "+q;
+    if(activeNPC.nama.includes("Video")) prompt = "Kamu Uda Video, ahli edit video di Rumah Gadang AI. Jawab tentang video pakai kata Bos. User tanya: "+q;
+    if(activeNPC.nama.includes("Naura")) prompt = "Kamu Naura, admin cantik Rumah Gadang AI, ramah dan ceria. Jawab pakai kata Bos. User tanya: "+q;
+    if(activeNPC.nama.includes("Chatbot")) prompt = "Kamu Uda Chatbot, ahli AI dan chatbot Rumah Gadang AI. Jawab teknologi pakai kata Bos. User tanya: "+q;
+    if(activeNPC.nama.includes("Min")) prompt = "Kamu Da Min, bos besar Rumah Gadang AI di Padang. Jawab bijak pakai kata Bos. User tanya: "+q;
+
+    let r = await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt})});
+    let d = await r.json();
+    document.getElementById('loadingAI')?.remove();
+    let reply = d.reply || "Maaf Bos lagi error Bos!";
+    chat.innerHTML+='<div style="color:#00ff88;margin:6px 0;padding:6px 10px;background:#111;border:1px solid #333;border-radius:12px"><b>'+activeNPC.nama+':</b> '+reply+'</div>';
+    chat.scrollTop = chat.scrollHeight;
+  }catch(e){
+    document.getElementById('loadingAI')?.remove();
+    chat.innerHTML+='<div style="color:red">Error Bos: '+e.message+'</div>';
+  }
+}
 window.tanyaNPC=tanyaNPC;
 window.handleInteract=function(){if(nearD&&!isIn){toIn();return}if(nearD&&isIn){toOut();return}if(nearNPC){openNPC(nearNPC);return}if(nearT){if(nearT.link&&nearT.link.length>5){window.open(nearT.link,'_blank');}else{alert(nearT.nama+' DISEWAKAN 50k/bln Bos!');}}};
 function animate(){requestAnimationFrame(animate);if(!player){renderer.render(scene,camera);return}

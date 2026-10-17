@@ -44,12 +44,12 @@ body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;ov
 <audio id="bgMusic" loop preload="auto"><source src="/ai/RumahGadangV1.m4a" type="audio/mp4"></audio>
 
 <div id="chat">
-  <div class="bubble ai">Halo Dunsanak Bos! 👋 Saya Rumah Gadang AI. Tanyo seputar adat Minang, Rumah Gadang, atau apo se Bos. Musik adat lah aktif Bos!</div>
+  <div class="bubble ai">Halo Dunsanak! 👋 Saya Rumah Gadang AI. Tanya pakai bahasa indonesia dulu, masih dalam tahap pengembangan ke bahasa minang!</div>
 </div>
 
 <div id="inputBar">
   <div id="row">
-    <input id="inp" placeholder="Tulis sesuatu...">
+    <input id="inp" placeholder="Tanya ke rumah gadang AI...">
     <button id="send">KIRIM</button>
   </div>
 </div>
@@ -87,7 +87,7 @@ async function kirim(){
   if(!prompt) return;
   addBubble('user', prompt);
   inp.value = '';
-  addBubble('ai','Rumah Gadang AI mikir dulu Bos...');
+  addBubble('ai','Rumah Gadang AI mikir dulu...');
   try{
     const r = await fetch('/api/ai',{
       method:'POST',
@@ -96,7 +96,7 @@ async function kirim(){
     });
     const j = await r.json();
     chat.lastChild.remove();
-    addBubble('ai', j.reply || 'Maaf Bos, AI error');
+    addBubble('ai', j.reply || 'Maaf dunsanak, AI error');
   }catch(e){
     chat.lastChild.remove();
     addBubble('ai','Error koneksi Bos: ' + e.message);

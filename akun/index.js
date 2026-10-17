@@ -56,7 +56,7 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
 
     <!-- FOTO NAIK BOS SEJAJAR GARIS HITAM BOS - NO GAP BOS -->
     <div class="relative h-[380px] bg-black m-0 p-0">
-      <img src="/ai/rumahgadangAI1.jpg" class="w-full h-full object-cover block" />
+      <img src="https://i.ibb.co/HpVSvhYH/Rumah-Gadang-AI1.jpg" class="w-full h-full object-cover block" />
       <div class="absolute top-3 right-3 w-9 h-9 bg-white rounded-full flex items-center justify-center font-black text-black text-sm">RG</div>
     </div>
   </div>

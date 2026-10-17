@@ -54,10 +54,14 @@ async fetch(req, env) {
   const adminEmail = req.headers.get("X-Admin-Email") || url.searchParams.get("admin") || "";
   const isAdminUser = isAdmin(adminEmail);
 
-  // === API TULIS BOS ===
+    // === API TULIS BOS + FOTO BOS ===
   if(url.pathname==="/api/tulis" && req.method==="GET"){
     try{
       if(!env.DB) return new Response(JSON.stringify([]),{headers:cors});
+      // auto tambah kolom kalau belum ada Bos!
+      try{ await env.DB.prepare("ALTER TABLE tulis ADD COLUMN tulisImg TEXT").run(); }catch(e){}
+      try{ await env.DB.prepare("ALTER TABLE tulis ADD COLUMN url TEXT").run(); }catch(e){}
+      try{ await env.DB.prepare("ALTER TABLE tulis ADD COLUMN likes INTEGER DEFAULT 0").run(); }catch(e){}
       let r=await env.DB.prepare("SELECT * FROM tulis ORDER BY time DESC LIMIT 100").all();
       return new Response(JSON.stringify(r.results||[]),{headers:cors});
     }catch(e){ return new Response(JSON.stringify([]),{headers:cors}); }
@@ -65,30 +69,15 @@ async fetch(req, env) {
   if(url.pathname==="/api/tulis" && req.method==="POST"){
     try{
       let j=await req.json();
-      if(env.DB) await env.DB.prepare("INSERT INTO tulis (text,user_email,name,picture,time) VALUES (?,?,?,?,?)").bind(j.text,j.user_email||"",j.name||"",j.picture||"",Date.now()).run();
+      if(!env.DB) return new Response(JSON.stringify({ok:true}),{headers:cors});
+      try{ await env.DB.prepare("ALTER TABLE tulis ADD COLUMN tulisImg TEXT").run(); }catch(e){}
+      try{ await env.DB.prepare("ALTER TABLE tulis ADD COLUMN url TEXT").run(); }catch(e){}
+      let foto = j.tulisImg || j.url || "";
+      // potong kalau kegedean Bos > 900KB Bos!
+      if(foto.length > 900000){ foto = foto.substring(0,900000); }
+      await env.DB.prepare("INSERT INTO tulis (text,user_email,name,picture,time,tulisImg,url) VALUES (?,?,?,?,?,?,?)").bind(j.text||"",j.user_email||"",j.name||"",j.picture||"",Date.now(),foto,foto).run();
       return new Response(JSON.stringify({ok:true}),{headers:cors});
-    }catch(e){ return new Response(JSON.stringify({error:e.message}),{headers:cors}); }
-  }
-  if(url.pathname==="/api/tulis/delete"&&req.method==="POST"){
-    if(!isAdminUser) return new Response(JSON.stringify({error:"Cuma admin@rumahgadang-ai.my.id Bos!"}),{status:403,headers:cors});
-    try{ let j=await req.json(); if(env.DB) await env.DB.prepare("DELETE FROM tulis WHERE id=?").bind(j.id).run(); }catch(e){}
-    return new Response(JSON.stringify({ok:true}),{headers:cors});
-  }
-
-  // === API FOTO BOS /api/images ===
-  if(url.pathname==="/api/images" && req.method==="GET"){
-    try{
-      if(!env.DB) return new Response(JSON.stringify([]),{headers:cors});
-      let r=await env.DB.prepare("SELECT * FROM images ORDER BY time DESC LIMIT 100").all();
-      return new Response(JSON.stringify(r.results||[]),{headers:cors});
-    }catch(e){ return new Response(JSON.stringify([]),{headers:cors}); }
-  }
-  if(url.pathname==="/api/images" && req.method==="POST"){
-    try{
-      let j=await req.json();
-      if(env.DB) await env.DB.prepare("INSERT INTO images (url,user_email,time) VALUES (?,?,?)").bind(j.url,j.user_email||"",Date.now()).run();
-      return new Response(JSON.stringify({ok:true}),{headers:cors});
-    }catch(e){ return new Response(JSON.stringify({error:e.message}),{headers:cors}); }
+    }catch(e){ return new Response(JSON.stringify({error:e.message}),{status:500,headers:cors}); }
   }
   if(url.pathname==="/api/images/delete"&&req.method==="POST"){
     if(!isAdminUser) return new Response(JSON.stringify({error:"Cuma admin Bos!"}),{status:403,headers:cors});

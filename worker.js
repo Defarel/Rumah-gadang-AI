@@ -1,10 +1,10 @@
 import { LOGO, GLOBAL_VIDEOS, getId } from './config.js';
-import { homePage } from './home/index.js';
-import { fotoPage } from './foto/index.js';
-import { videoPage } from './video/index.js';
-import { aiPage } from './ai/index.js';
-import { kantorPage } from './kantor/index.js';
-import { akunPage } from './akun/index.js';
+import { home } from './home/index.js';
+import { foto } from './foto/index.js';
+import { video } from './video/index.js';
+import { ai } from './ai/index.js';
+import { kantor } from './kantor/index.js';
+import { akun } from './akun/index.js';
 
 export default {
 async fetch(req, env) {

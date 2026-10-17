@@ -10,44 +10,54 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
   border: 3px solid #00ff00;
   box-shadow: 0 0 10px #00ff00;
 }
-.book-shadow{
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+.book-neon{
+  border: 4px solid #00ff00;
+  box-shadow: 0 0 18px #00ff00, 0 0 40px #00ff0030 inset;
+  border-radius: 28px;
+  overflow: hidden;
+}
+.neon-line{
+  height: 4px;
+  background: #00ff00;
+  box-shadow: 0 0 10px #00ff00;
+}
+.neon-line-v{
+  width: 4px;
+  background: #00ff00;
+  box-shadow: 0 0 10px #00ff00;
 }
 </style></head>
 <body class="bg-black text-white min-h-screen flex items-center justify-center p-4">
 
-<!-- LOGIN PAGE BOS - KAYAK BUKU FOTO 1 BOS -->
-<div id="loginPage" class="w-full max-w-[860px] hidden">
-  <div class="bg-[#b8a6ff] md:bg-gradient-to-br from-[#c4a8ff] to-[#ff8cc8] p-4 md:p-8 rounded-[32px]">
-    <div class="book-shadow bg-white rounded-[24px] overflow-hidden flex flex-col md:flex-row">
-      <!-- KIRI BOS - FORM LOGIN BOS -->
-      <div class="w-full md:w-[52%] p-8 md:p-10 bg-white text-black flex flex-col justify-center">
-        <h1 class="text-3xl font-bold text-black">Login</h1>
-        <p class="text-sm text-zinc-500 mt-1 mb-6">Enter your credentials to get in Bos</p>
-        
-        <label class="text-xs font-semibold text-zinc-600">Email</label>
-        <input id="email" type="email" placeholder="admin@rumahgadang-ai.my.id" class="w-full p-3.5 rounded-xl bg-zinc-100 border border-zinc-200 mb-4 text-black outline-none focus:border-black" />
-        
-        <label class="text-xs font-semibold text-zinc-600">Password</label>
-        <input id="pass" type="password" placeholder="••••••" class="w-full p-3.5 rounded-xl bg-zinc-100 border border-zinc-200 mb-2 text-black outline-none focus:border-black" />
-        
-        <div class="flex items-center gap-2 mb-6 mt-1">
-          <input type="checkbox" class="rounded"><span class="text-xs text-zinc-500">Remember me</span>
-        </div>
-
-        <button onclick="doLogin()" class="w-full bg-black text-white p-3.5 rounded-xl font-bold hover:bg-zinc-800">Login</button>
-        <p class="text-center text-xs text-zinc-500 mt-4">Not a member? <b class="text-black">Create an account</b></p>
+<!-- LOGIN PAGE BOS - KAYAK BUKU FOTO 1 BOS + GARIS NEON BOS -->
+<div id="loginPage" class="w-full max-w-[420px]">
+  <div class="book-neon bg-white">
+    <!-- ATAS BOS - FORM PUTIH -->
+    <div class="bg-white p-7 text-black">
+      <h1 class="text-3xl font-black">Masuk</h1>
+      <p class="text-sm text-zinc-500 mt-1 mb-6">Masukkan kredensial Anda untuk masuk ke Bos</p>
+      <label class="text-sm font-bold">Email</label>
+      <input id="email" type="email" placeholder="admin@rumahgadang-ai.my.id" class="w-full p-4 rounded-2xl bg-zinc-100 border border-zinc-200 mt-1 mb-4 text-black outline-none" />
+      <label class="text-sm font-bold">Kata Sandi</label>
+      <input id="pass" type="password" placeholder="••••••" class="w-full p-4 rounded-2xl bg-zinc-100 border border-zinc-200 mt-1 mb-4 text-black outline-none" />
+      <div class="flex items-center gap-2 mb-6">
+        <input type="checkbox" class="w-5 h-5 rounded"><span class="text-sm text-zinc-600">Ingat saya</span>
       </div>
+      <button onclick="doLogin()" class="w-full bg-black text-white p-4 rounded-2xl font-bold text-lg">Masuk</button>
+      <p class="text-center text-sm text-zinc-500 mt-4">Belum menjadi anggota? <b class="text-black">Buat akun.</b></p>
+    </div>
 
-      <!-- KANAN BOS - GAMBAR BUKU BOS -->
-      <div class="w-full md:w-[48%] relative min-h-[320px] md:min-h-[480px] bg-black overflow-hidden">
-        <img src="https://rumahgadang-ai.my.id/rumahgadangAI1.jpg" class="absolute inset-0 w-full h-full object-cover" />
-        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-purple-500/20 to-blue-500/30"></div>
-        <div class="absolute bottom-0 left-0 p-6">
-          <h2 class="text-white text-2xl font-bold leading-tight">Be a Part of<br>Something <span class="font-black">Beautiful</span></h2>
-          <p class="text-white/70 text-xs mt-2">Rumah Gadang AI - Padang</p>
-        </div>
-        <div class="absolute top-4 right-4 w-8 h-8 bg-white rounded-full flex items-center justify-center font-bold text-xs">RG</div>
+    <!-- BATAS NEON TENGAH BOS - INI GARIS IJO BOS YANG BOS CORET BOS -->
+    <div class="neon-line"></div>
+
+    <!-- BAWAH BOS - GAMBAR -->
+    <div class="relative h-[360px] bg-[#0a0a2a] overflow-hidden">
+      <img src="https://i.ibb.co/r2gL8YJB/1791014451654.jpg" onerror="this.src='https://i.ibb.co/3FqRzXJ/rumah-gadang.jpg'" class="absolute inset-0 w-full h-full object-cover" />
+      <div class="absolute inset-0 bg-gradient-to-t from-black via-[#0a0a2a]/60 to-transparent"></div>
+      <div class="absolute top-4 right-4 w-9 h-9 bg-white rounded-full flex items-center justify-center font-black text-black">RG</div>
+      <div class="absolute bottom-0 left-0 p-6">
+        <h2 class="text-white text-[28px] font-black leading-[1.1]">Jadilah Bagian dari<br>Sesuatu yang Indah</h2>
+        <p class="text-white/70 text-sm mt-3">Rumah Gadang AI - Padang</p>
       </div>
     </div>
   </div>
@@ -98,7 +108,6 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
     let email = localStorage.getItem("user_email");
     if(!email){
       document.getElementById("loginPage").style.display="block";
-      document.getElementById("loginPage").classList.remove("hidden");
       document.getElementById("profilePage").style.display="none";
       return;
     }
@@ -160,10 +169,7 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
     save();
     checkLogin();
   }
-  function doLogout(){
-    localStorage.removeItem("user_email");
-    location.reload();
-  }
+  function doLogout(){ localStorage.removeItem("user_email"); location.reload(); }
   checkLogin();
 <\/script>
 </body></html>`;

@@ -47,7 +47,7 @@ box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 12px rgba(0,255,136,0.15)}
 <button class=btnKirim onclick="addTulis()">KIRIM</button>
 <input type=file id=fileIn accept="image/*" style="display:none">
 </div>
-<div id=homeFeed style="padding:4px 0;color:#666">Loading Bos...</div>
+<div id=homeFeed style="padding:4px 0;color:#666">Loading ⏳️⏳️⏳️...</div>
 </div>
 <div class=bot><a href="/" class=on>🏠<br><span style="font-size:10px">Home</span></a><a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a><a href="/video">🎬<br><span style="font-size:10px">Video</span></a><a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a><a href="/ai">🤖<br><span style="font-size:10px">AI</span></a><a href="/akun">👤<br><span style="font-size:10px">Akun</span></a></div>
 <script>

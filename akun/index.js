@@ -35,7 +35,7 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
     <!-- ATAS BOS - FORM PUTIH -->
         <!-- ATAS BOS - FORM HITAM BOS -->
     <div class="bg-[#121212] p-7 text-white">
-      <h1 class="text-3xl font-black text-white">Masuk Rumah Gadang AI</h1>
+      <h1 class="text-3xl font-black text-white">Rumah Gadang AI</h1>
       <p class="text-sm text-zinc-400 mt-1 mb-6">Masukkan kredensial Anda untuk masuk</p>
       <label class="text-sm font-bold text-white">Email</label>
       <input id="email" type="email" placeholder="nama@rumahgadang-ai.my.id" class="w-full p-4 rounded-2xl bg-zinc-800 border border-zinc-700 mt-1 mb-4 text-white outline-none focus:border-[#00ff00]" />

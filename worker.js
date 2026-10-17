@@ -9,12 +9,7 @@ import { AKUN_HTML } from './akun/index.js';
 export default {
 async fetch(req, env) {
   const url = new URL(req.url);
-  const ADMIN_EMAILS = ["admin@rumahgadang-ai.my.id"];
-function isAdmin(e){
-  if(!e) return false;
-  return ADMIN_EMAILS.includes(e.toLowerCase().trim());
-}
-      // === SITEMAP & ROBOTS BOS - PASTE DI SINI BOS ===
+  // === SITEMAP & ROBOTS BOS - PASTE DI SINI BOS ===
     if (url.pathname === '/sitemap.xml' || url.pathname === '/sitemap') {
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -25,6 +20,11 @@ function isAdmin(e){
   <url><loc>https://www.rumahgadang-ai.my.id/kantor</loc><lastmod>2026-10-17</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.rumahgadang-ai.my.id/akun</loc><lastmod>2026-10-17</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
 </urlset>`;
+      const ADMIN_EMAILS = ["admin@rumahgadang-ai.my.id"];
+function isAdmin(e){
+  if(!e) return false;
+  return ADMIN_EMAILS.includes(e.toLowerCase().trim());
+}
       return new Response(xml, {
         headers: {
           'Content-Type': 'application/xml; charset=utf-8',

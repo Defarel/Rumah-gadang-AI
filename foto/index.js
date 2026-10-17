@@ -26,7 +26,7 @@ input{width:100%;background:#0a0a0a;border:1px solid #333;color:#fff;padding:12p
 .slideMedia .bigPlay div{width:80px;height:80px;background:rgba(0,0,0,0.7);border-radius:50%;display:grid;place-items:center;font-size:40px;border:2px solid #fff}
 </style></head><body>
 <div id=app>
-<div class=top><b>RG FOTO</b><span style="font-size:11px;color:#00ff88">Swipe ↔ 1 Suara Bos!</span></div>
+<div class=top><b>RG FOTO</b><span style="font-size:11px;color:#00ff88"></span></div>
 <div class=grid3 id=fg></div>
 <div class=fab onclick="toggleUp()">+</div>
 </div>

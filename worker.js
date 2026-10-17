@@ -21,7 +21,7 @@ async fetch(req, env) {
    }
   }catch(e){}
 
-  if(url.pathname==="/api/tulis"){ try{ if(!env.DB) return new Response(JSON.stringify([]),{headers:cors}); let r=await env.DB.prepare("SELECT * FROM tulis ORDER BY time DESC LIMIT 50").all(); return new Response(JSON.stringify(r.results||[]),{headers:cors}); }catch(e){ return new Response(JSON.stringify([]),{headers:cors}); }
+  if(url.pathname==="/api/tulis"){ try{ if(!env.DB) return new Response(JSON.stringify([]),{headers:cors}); let r=await env.DB.prepare("SELECT * FROM tulis ORDER BY time DESC LIMIT 50").all(); return new Response(JSON.stringify(r.results||[]),{headers:cors}); }catch(e){ return new Response(JSON.stringify([]),{headers:cors}); } }
   if(url.pathname==="/api/tulis/delete"&&req.method==="POST"){ try{ let j=await req.json(); if(env.DB) await env.DB.prepare("DELETE FROM tulis WHERE id=?").bind(j.id).run(); }catch(e){} return new Response(JSON.stringify({ok:true}),{headers:cors}); }
   if(url.pathname==="/api/videos"){ let local=[]; try{ if(env.DB){ let r=await env.DB.prepare("SELECT id FROM local_videos ORDER BY created_at DESC").all(); local=r.results?.map(x=>x.id)||[]; } }catch(e){} let all=[...new Set([...local,...GLOBAL_VIDEOS])]; return new Response(JSON.stringify(all),{headers:cors}); }
   if(url.pathname==="/api/images"){ try{ if(!env.DB) return new Response(JSON.stringify([]),{headers:cors}); let r=await env.DB.prepare("SELECT * FROM images ORDER BY time DESC LIMIT 50").all(); return new Response(JSON.stringify(r.results||[]),{headers:cors}); }catch(e){ return new Response(JSON.stringify([]),{headers:cors}); } }

@@ -29,42 +29,35 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
 </style></head>
 <body class="bg-black text-white min-h-screen flex items-center justify-center p-4">
 
-<!-- LOGIN PAGE BOS - KAYAK BUKU FOTO 1 BOS + GARIS NEON BOS -->
-<div id="loginPage" class="w-full max-w-[420px]">
-  <div class="book-neon bg-white">
-    <!-- ATAS BOS - FORM PUTIH -->
-        <!-- ATAS BOS - FORM HITAM BOS -->
+<!-- LOGIN PAGE BOS - FIX HITAM FULL + FOTO NAIK SEJAJAR GARIS -->
+<div id="loginPage" class="w-full max-w-[400px]">
+  <div class="book-neon bg-[#121212]">
+    <!-- ATAS HITAM BOS -->
     <div class="bg-[#121212] p-7 text-white">
-      <h1 class="text-3xl font-black text-white">Rumah Gadang AI</h1>
-      <p class="text-sm text-zinc-400 mt-1 mb-6">Masukkan kredensial Anda untuk masuk</p>
-      <label class="text-sm font-bold text-white">Email</label>
-      <input id="email" type="email" placeholder="nama@rumahgadang-ai.my.id" class="w-full p-4 rounded-2xl bg-zinc-800 border border-zinc-700 mt-1 mb-4 text-white outline-none focus:border-[#00ff00]" />
-      <label class="text-sm font-bold text-white">Kata Sandi</label>
-      <input id="pass" type="password" placeholder="••••••" class="w-full p-4 rounded-2xl bg-zinc-800 border border-zinc-700 mt-1 mb-4 text-white outline-none focus:border-[#00ff00]" />
+      <h1 class="text-[28px] font-black leading-none">Rumah Gadang AI</h1>
+      <p class="text-sm text-zinc-400 mt-2 mb-6">Masukkan kredensial Anda untuk masuk</p>
+      
+      <label class="text-sm font-bold">Email</label>
+      <input id="email" type="email" placeholder="nama@rumahgadang-ai.my.id" class="w-full p-4 rounded-2xl bg-zinc-800 border border-zinc-700 mt-2 mb-4 text-white outline-none" />
+      
+      <label class="text-sm font-bold">Kata Sandi</label>
+      <input id="pass" type="password" placeholder="••••••" class="w-full p-4 rounded-2xl bg-zinc-800 border border-zinc-700 mt-2 mb-5 text-white outline-none" />
       
       <div class="flex items-center gap-2 mb-6">
-        <input type="checkbox" class="w-5 h-5 rounded accent-[#00ff00]"><span class="text-sm text-zinc-400">Ingat saya</span>
+        <input type="checkbox" class="w-5 h-5 rounded"><span class="text-sm text-zinc-400">Ingat saya</span>
       </div>
       
-      <button onclick="doLogin()" class="w-full bg-white text-black p-4 rounded-2xl font-bold text-lg">Masuk</button>
+      <button onclick="doLogin()" class="w-full bg-white text-black p-4 rounded-2xl font-black text-lg">Masuk</button>
       <p class="text-center text-sm text-zinc-500 mt-4">Belum menjadi anggota? <b class="text-white">Buat akun.</b></p>
     </div>
-      <button onclick="doLogin()" class="w-full bg-black text-white p-4 rounded-2xl font-bold text-lg">Masuk</button>
-      <p class="text-center text-sm text-zinc-500 mt-4">Belum menjadi anggota? <b class="text-black">Buat akun.</b></p>
-    </div>
 
-    <!-- BATAS NEON TENGAH BOS - INI GARIS IJO BOS YANG BOS CORET BOS -->
+    <!-- GARIS NEON IJO BOS - FOTO LANGSUNG NEMPEL DI SINI BOS -->
     <div class="neon-line"></div>
 
-    <!-- BAWAH BOS - GAMBAR -->
-    <div class="relative h-[360px] bg-[#0a0a2a] overflow-hidden">
-      <img src="https://i.ibb.co/r2gL8YJB/1791014451654.jpg" onerror="this.src='https://i.ibb.co/3FqRzXJ/rumah-gadang.jpg'" class="absolute inset-0 w-full h-full object-cover" />
-      <div class="absolute inset-0 bg-gradient-to-t from-black via-[#0a0a2a]/60 to-transparent"></div>
-      <div class="absolute top-4 right-4 w-9 h-9 bg-white rounded-full flex items-center justify-center font-black text-black">RG</div>
-      <div class="absolute bottom-0 left-0 p-6">
-        <h2 class="text-white text-[28px] font-black leading-[1.1]">Jadilah Bagian dari<br>Sesuatu yang Indah</h2>
-        <p class="text-white/70 text-sm mt-3">Rumah Gadang AI</p>
-      </div>
+    <!-- FOTO NAIK BOS SEJAJAR GARIS HITAM BOS - NO GAP BOS -->
+    <div class="relative h-[380px] bg-black m-0 p-0">
+      <img src="/ai/rumahgadangAI1.jpg" class="w-full h-full object-cover block" />
+      <div class="absolute top-3 right-3 w-9 h-9 bg-white rounded-full flex items-center justify-center font-black text-black text-sm">RG</div>
     </div>
   </div>
 </div>

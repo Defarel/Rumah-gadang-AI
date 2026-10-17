@@ -3,14 +3,29 @@ const RUKO_URL = "https://files.catbox.moe/cqte21.glb";
 const INTERIOR_URL = "https://files.catbox.moe/s126rl.glb";
 const ORANG_URL = "https://files.catbox.moe/fzuxip.glb";
 
-export const KANTOR_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>V7.3 PAS + ZOOM + JALAN</title>
+export const KANTOR_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>V7.3 SEWA</title>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#000;overflow:hidden;height:100vh;font-family:sans-serif;touch-action:none}#top{height:48px;background:#111;color:#FFD700;display:flex;align-items:center;justify-content:space-between;padding:0 10px;position:absolute;top:0;left:0;right:0;z-index:50;font-weight:900;font-size:12px}#joy{position:absolute;bottom:85px;left:12px;width:110px;height:110px;background:rgba(0,0,0,0.3);border-radius:50%;border:2px solid #fff;z-index:40}#stick{position:absolute;left:32px;top:32px;width:46px;height:46px;background:#fff;border-radius:50%}#right{position:absolute;bottom:80px;right:10px;display:flex;flex-direction:column;gap:5px;z-index:40;align-items:center}.btn{width:58px;height:58px;border-radius:50%;border:2px solid #fff;color:#fff;font-weight:900;font-size:10px;background:#000}#inter{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#000;padding:16px 20px;border-radius:16px;border:4px solid #000;display:none;z-index:9999;text-align:center;min-width:310px}#inter button{width:100%;background:#FFD700;color:#000;border:3px solid #000;padding:14px;border-radius:12px;font-weight:900;font-size:16px;margin-top:10px}#npcPanel{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#111;border:3px solid #FFD700;border-radius:14px;padding:14px;display:none;z-index:80;width:92%;max-width:360px;color:#fff}#npcChat{height:180px;overflow-y:auto;background:#000;border:1px solid #333;border-radius:10px;padding:8px;margin:10px 0;display:flex;flex-direction:column;gap:8px;font-size:13px}#loading{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#000;color:#FFD700;padding:12px 18px;border-radius:10px;border:2px solid #FFD700;z-index:100;font-weight:900;font-size:12px}#fade{position:absolute;top:0;left:0;right:0;bottom:0;background:#000;z-index:999;opacity:0;pointer-events:none;transition:opacity 0.8s;display:flex;align-items:center;justify-content:center;color:#FFD700;font-weight:900;font-size:20px}#gps{position:absolute;top:55px;left:10px;background:rgba(0,0,0,0.8);color:#00ff88;padding:6px 10px;border-radius:8px;font-size:10px;z-index:45;border:1px solid #00ff88}.bot{position:fixed;bottom:0;left:0;right:0;height:58px;background:#000;border-top:1px solid #333;display:flex;z-index:99}.bot a{flex:1;text-align:center;padding:7px 0;color:#888;text-decoration:none;font-size:15px}.bot a.on{color:#fff}</style></head><body>
 <div id="loading">LOADING V7.3...</div><div id="fade">MASUK...</div>
-<div id="top"><b id="topTitle">KANTOR RUMAH GADANG AI</b><span id="locStatus" style="background:#00C853;padding:3px 8px;border-radius:10px;color:#fff">LUAR</span></div>
-<div id="gps"><span id="gpsText">Loading...</span> | <span id="modeText"></span></div>
+<div id="top"><b id="topTitle">LUAR SEMPURNA</b><span id="locStatus" style="background:#00C853;padding:3px 8px;border-radius:10px;color:#fff">LUAR</span></div>
+<div id="gps"><span id="gpsText">Loading...</span> | <span id="modeText">ZOOM+WALK</span></div>
 <div id="joy"><div id="stick"></div></div><div id="right"><button id="cam" class="btn">360<br>ZOOM</button><button id="zin" class="btn">ZOOM<br>IN</button><button id="zout" class="btn">ZOOM<br>OUT</button><button id="run" class="btn">LARI</button><button id="jump" class="btn">DUDUK</button></div>
 <div id="inter"><h2 id="it">PINTU</h2><p id="idp"></p><button id="btnTap" onclick="handleInteract()">KLIK</button></div>
+<div id="sewaModal" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#000;padding:18px;border-radius:16px;border:4px solid #000;display:none;z-index:9999;text-align:left;min-width:320px;max-width:92%">
+  <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:18px">🏢 SEWA TOKO BOS!</b><button onclick="closeSewa()" style="background:#000;color:#fff;border-radius:50%;width:32px;height:32px;font-weight:900">X</button></div>
+  <div style="margin:12px 0;font-size:14px;line-height:1.6;background:#f5f5f5;padding:12px;border-radius:10px;border:2px solid #000">
+    <div>✅ <b>SEWA TOKO: 50K/BLN</b></div>
+    <div>✅ <b>URL + TOKO: 100K/BLN</b></div>
+    <div>✅ <b>PAKET LENGKAP WEB + TOKO + AI:</b></div>
+    <div>👉 KONTAK WA Bos!</div>
+  </div>
+  <div style="background:#FFD700;padding:10px;border-radius:10px;text-align:center;border:2px solid #000;margin-bottom:8px">
+    <div style="font-size:12px">HUBUNGI WA:</div>
+    <div style="font-size:20px;font-weight:900">082230439966</div>
+  </div>
+  <button onclick="chatWA()" style="width:100%;background:#25D366;color:#fff;border:3px solid #000;padding:14px;border-radius:12px;font-weight:900;font-size:16px">💬 CHAT WA SEKARANG</button>
+  <button onclick="closeSewa()" style="width:100%;background:#fff;color:#000;border:2px solid #000;padding:10px;border-radius:10px;font-weight:700;margin-top:6px">TUTUP</button>
+</div>
 <div id="npcPanel"><div style="display:flex;justify-content:space-between"><div><b id="npcName" style="color:#00ff88">NPC</b><div id="npcRole" style="font-size:10px;color:#aaa"></div></div><button onclick="closeNPC()" style="background:#333;color:#fff;border-radius:50%;width:32px;height:32px">X</button></div><div id="npcChat"></div><div style="display:flex;gap:6px"><input id="npcInput" placeholder="Tanya..." style="flex:1;background:#222;border:1px solid #333;color:#fff;padding:10px;border-radius:20px"><button onclick="tanyaNPC()" style="background:#FFD700;color:#000;border:0;padding:10px 14px;border-radius:20px;font-weight:900">KIRIM</button></div></div>
 <div class="bot"><a href="/">🏠<br><span style="font-size:10px">Home</span></a><a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a><a href="/video">🎬<br><span style="font-size:10px">Video</span></a><a href="/kantor" class="on">🏢<br><span style="font-size:10px">Kantor</span></a><a href="/ai">🤖<br><span style="font-size:10px">AI</span></a><a href="/akun">👤<br><span style="font-size:10px">Akun</span></a></div>
 <script type="module">
@@ -73,41 +88,35 @@ renderer.domElement.addEventListener('touchend',eCam);renderer.domElement.addEve
 renderer.domElement.addEventListener('wheel',e=>{camDist+=e.deltaY*0.01;camDist=Math.max(3,Math.min(25,camDist));e.preventDefault();},{passive:false});
 document.getElementById('cam').addEventListener('click',()=>{camYaw+=90;});document.getElementById('zin').addEventListener('click',()=>{camDist=Math.max(3,camDist-2);});document.getElementById('zout').addEventListener('click',()=>{camDist=Math.min(25,camDist+2);});
 document.getElementById('run').addEventListener('touchstart',()=>{run=true},{passive:false});document.getElementById('run').addEventListener('touchend',()=>{run=false});
-window.closeNPC=()=>{document.getElementById('npcPanel').style.display='none';activeNPC=null;};let activeNPC=null;
+window.closeNPC=()=>{document.getElementById('npcPanel').style.display='none';activeNPC=null;};
+window.closeSewa=()=>{document.getElementById('sewaModal').style.display='none';}
+window.chatWA=()=>{window.open('https://wa.me/6282230439966?text=Halo%20Bos%20saya%20mau%20sewa%20toko%20di%20Kantor%20Rumah%20Gadang%20AI%20Bos!','_blank');}
+let activeNPC=null;
 function openNPC(n){activeNPC=n;document.getElementById('npcName').textContent=n.emoji+' '+n.nama;document.getElementById('npcRole').textContent=n.role;document.getElementById('npcChat').innerHTML='<div style="color:#0f0">Halo Bos! Saya '+n.nama+'</div>';document.getElementById('npcPanel').style.display='block';document.getElementById('inter').style.display='none';}
-window.openNPC=openNPC;async function tanyaNPC(){
-  let inp=document.getElementById('npcInput');
-  let q=inp.value.trim();
-  if(!q||!activeNPC) return;
-  let chat=document.getElementById('npcChat');
-  chat.innerHTML+='<div style="text-align:right;color:#FFD700;margin:6px 0;padding:6px 10px;background:#222;border-radius:12px">Bos: '+q+'</div>';
-  inp.value='';
-  chat.innerHTML+='<div id="loadingAI" style="color:#888;font-size:12px">Pak Kasir ngetik Bos...</div>';
-  chat.scrollTop = chat.scrollHeight;
-
+window.openNPC=openNPC;
+async function tanyaNPC(){
+  let inp=document.getElementById('npcInput');let q=inp.value.trim();if(!q||!activeNPC)return;
+  let chat=document.getElementById('npcChat');chat.innerHTML+='<div style="text-align:right;color:#FFD700;margin:6px 0;padding:6px 10px;background:#222;border-radius:12px">Bos: '+q+'</div>';inp.value='';
+  chat.innerHTML+='<div id="loadingAI" style="color:#888;font-size:12px">Sedang mikir Bos...</div>';chat.scrollTop=chat.scrollHeight;
   try{
-    let prompt = "Kamu adalah "+activeNPC.nama+", peran kamu "+activeNPC.role+" di Kantor Rumah Gadang AI di Padang. Jawab sebagai "+activeNPC.nama+" dengan gaya Minang santai pakai kata Bos. User tanya: "+q;
-    // kalau Uni Excel, Uda Video, dll kasih kepribadian Bos!
-    if(activeNPC.nama.includes("Kasir")) prompt = "Kamu Pak Kasir, kasir Toko 2 Lynk.id Annrisel di Rumah Gadang AI, jualan template. Jawab ramah pakai kata Bos. User tanya: "+q;
-    if(activeNPC.nama.includes("Excel")) prompt = "Kamu Uni Excel, ahli Excel dan administrasi di Rumah Gadang AI. Jawab bantu Excel pakai kata Bos. User tanya: "+q;
-    if(activeNPC.nama.includes("Video")) prompt = "Kamu Uda Video, ahli edit video di Rumah Gadang AI. Jawab tentang video pakai kata Bos. User tanya: "+q;
-    if(activeNPC.nama.includes("Naura")) prompt = "Kamu Naura, admin cantik Rumah Gadang AI, ramah dan ceria. Jawab pakai kata Bos. User tanya: "+q;
-    if(activeNPC.nama.includes("Chatbot")) prompt = "Kamu Uda Chatbot, ahli AI dan chatbot Rumah Gadang AI. Jawab teknologi pakai kata Bos. User tanya: "+q;
-    if(activeNPC.nama.includes("Min")) prompt = "Kamu Da Min, bos besar Rumah Gadang AI di Padang. Jawab bijak pakai kata Bos. User tanya: "+q;
-
-    let r = await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt})});
-    let d = await r.json();
-    document.getElementById('loadingAI')?.remove();
-    let reply = d.reply || "Maaf Bos lagi error Bos!";
-    chat.innerHTML+='<div style="color:#00ff88;margin:6px 0;padding:6px 10px;background:#111;border:1px solid #333;border-radius:12px"><b>'+activeNPC.nama+':</b> '+reply+'</div>';
-    chat.scrollTop = chat.scrollHeight;
-  }catch(e){
-    document.getElementById('loadingAI')?.remove();
-    chat.innerHTML+='<div style="color:red">Error Bos: '+e.message+'</div>';
-  }
+    let prompt="Kamu adalah "+activeNPC.nama+" peran "+activeNPC.role+" di Rumah Gadang AI Padang jawab pakai kata Bos. User: "+q;
+    if(activeNPC.nama.includes("Kasir")) prompt="Kamu Pak Kasir Toko 2 Lynk.id Annrisel Rumah Gadang AI jawab ramah pakai Bos. User: "+q;
+    if(activeNPC.nama.includes("Excel")) prompt="Kamu Uni Excel ahli Excel Rumah Gadang AI jawab pakai Bos. User: "+q;
+    let r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+    let d=await r.json();document.getElementById('loadingAI')?.remove();
+    chat.innerHTML+='<div style="color:#00ff88;margin:6px 0;padding:6px 10px;background:#111;border:1px solid #333;border-radius:12px"><b>'+activeNPC.nama+':</b> '+(d.reply||'Maaf Bos error')+'</div>';chat.scrollTop=chat.scrollHeight;
+  }catch(e){document.getElementById('loadingAI')?.remove();chat.innerHTML+='<div style="color:red">Error Bos</div>';}
 }
 window.tanyaNPC=tanyaNPC;
-window.handleInteract=function(){if(nearD&&!isIn){toIn();return}if(nearD&&isIn){toOut();return}if(nearNPC){openNPC(nearNPC);return}if(nearT){if(nearT.link&&nearT.link.length>5){window.open(nearT.link,'_blank');}else{alert(nearT.nama+' DISEWAKAN 50k/bln Bos!');}}};
+window.handleInteract=function(){
+  if(nearD&&!isIn){toIn();return}
+  if(nearD&&isIn){toOut();return}
+  if(nearNPC){openNPC(nearNPC);return}
+  if(nearT){
+    if(nearT.link&&nearT.link.length>5){window.open(nearT.link,'_blank');}
+    else{document.getElementById('sewaModal').style.display='block';document.getElementById('inter').style.display='none';}
+  }
+};
 function animate(){requestAnimationFrame(animate);if(!player){renderer.render(scene,camera);return}
 let moving=Math.hypot(keys.x,keys.y)>0.15&&!isSit;if(moving){walkTime+=run?0.35:0.22;player.position.y=baseY+Math.abs(Math.sin(walkTime*2))*0.18;player.rotation.z=Math.sin(walkTime)*0.12;player.rotation.x=Math.sin(walkTime*1.5)*0.08;}else{player.position.y=THREE.MathUtils.lerp(player.position.y,baseY,0.2);player.rotation.z=THREE.MathUtils.lerp(player.rotation.z,0,0.2);player.rotation.x=THREE.MathUtils.lerp(player.rotation.x,0,0.2);}
 if(!isSit&&player){let rad=camYaw*0.01745,fw=keys.y,stt=keys.x,cs=run?rspd:spd;let mx=(Math.sin(rad)*fw+Math.cos(rad)*stt)*cs,mz=(Math.cos(rad)*fw-Math.sin(rad)*stt)*cs;let nx=player.position.x+mx,nz=player.position.z+mz;if(!hit(nx,nz)){player.position.x=nx;player.position.z=nz}if(Math.abs(mx)>0.01||Math.abs(mz)>0.01)player.rotation.y=Math.atan2(mx,mz);}
@@ -115,5 +124,16 @@ let yr=camYaw*0.01745,pr=camPitch*0.01745;if(player){let cx=player.position.x+ca
 if(pRG)pRG.rotation.z+=0.04;if(pEX)pEX.rotation.z-=0.04;nearT=null;nearNPC=null;nearD=false;let md=100,mn=100;
 if(!isIn&&player){let d=Math.hypot(player.position.x,player.position.z+78);document.getElementById('gpsText').innerText='RG:'+Math.round(d)+'m Z:'+Math.round(camDist);tokos.forEach(t=>{let dd=Math.hypot(player.position.x-t.x,player.position.z-t.z);if(dd<md&&dd<18){md=dd;nearT=t}});npcs.filter(n=>!n.inside).forEach(n=>{let dd=Math.hypot(player.position.x-n.x,player.position.z-n.z);if(dd<mn&&dd<8){mn=dd;nearNPC=n}});if(d<11)nearD=true;}
 else if(isIn&&player){document.getElementById('gpsText').innerText='Meeting 3.2X Z:'+Math.round(camDist);npcs.filter(n=>n.inside).forEach(n=>{let dd=Math.hypot(player.position.x-n.x,player.position.z-n.z);if(dd<mn&&dd<6){mn=dd;nearNPC=n}});let de=Math.hypot(player.position.x,player.position.z-10);if(de<6)nearD=true;}
-let inter=document.getElementById('inter');if(nearNPC){inter.style.display='block';document.getElementById('it').innerText=nearNPC.emoji+' '+nearNPC.nama;document.getElementById('idp').innerText=nearNPC.role;document.getElementById('btnTap').innerText='TANYA '+nearNPC.nama;}else if(nearD&&!isIn){inter.style.display='block';document.getElementById('it').innerText='MASUK MEETING';document.getElementById('idp').innerText='Pinch 2 jari zoom';document.getElementById('btnTap').innerText='MASUK!';}else if(nearD&&isIn){inter.style.display='block';document.getElementById('it').innerText='KELUAR';document.getElementById('idp').innerText='Balik luar';document.getElementById('btnTap').innerText='KELUAR';}else if(nearT){inter.style.display='block';let isToko2=nearT.nama.includes("TOKO 2");document.getElementById('it').innerText=nearT.nama;document.getElementById('idp').innerText=isToko2?'Sudah disewa':'DISEWAKAN 50k/bln';document.getElementById('btnTap').innerText=isToko2?'BUKA TOKO 2':'SEWA';}else inter.style.display='none';renderer.render(scene,camera);}animate();
+let inter=document.getElementById('inter');
+if(nearNPC){inter.style.display='block';document.getElementById('it').innerText=nearNPC.emoji+' '+nearNPC.nama;document.getElementById('idp').innerText=nearNPC.role;document.getElementById('btnTap').innerText='TANYA '+nearNPC.nama;}
+else if(nearD&&!isIn){inter.style.display='block';document.getElementById('it').innerText='MASUK MEETING';document.getElementById('idp').innerText='Pinch 2 jari zoom';document.getElementById('btnTap').innerText='MASUK!';}
+else if(nearD&&isIn){inter.style.display='block';document.getElementById('it').innerText='KELUAR';document.getElementById('idp').innerText='Balik luar';document.getElementById('btnTap').innerText='KELUAR';}
+else if(nearT){
+  inter.style.display='block';
+  let isToko2=nearT.nama.includes("TOKO 2");
+  if(isToko2){document.getElementById('it').innerText=nearT.nama;document.getElementById('idp').innerText='Sudah disewa - lynk.id/annrisel';document.getElementById('btnTap').innerText='BUKA TOKO 2';}
+  else{document.getElementById('it').innerHTML='DISEWAKAN<br><span style="font-size:12px;color:#000">WA 082230439966</span>';document.getElementById('idp').innerText='KLIK DETAIL';document.getElementById('btnTap').innerText='KLIK DETAIL';}
+}
+else inter.style.display='none';
+renderer.render(scene,camera);}animate();
 <\/script></body></html>`;

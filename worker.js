@@ -13,17 +13,18 @@ async fetch(req, env) {
 
   if(req.method==="OPTIONS") return new Response("",{headers:cors});
 
-  // === SITEMAP FULL URL BOS ===
+  // === SITEMAP FULL BOS ===
   if (url.pathname === '/sitemap.xml' || url.pathname === '/sitemap') {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://www.rumahgadang-ai.my.id/</loc><priority>1.0</priority></url>
+  <url><loc>https://www.rumahgadang-ai.my.id/tulis</loc><priority>0.9</priority></url>
   <url><loc>https://www.rumahgadang-ai.my.id/foto</loc><priority>0.9</priority></url>
   <url><loc>https://www.rumahgadang-ai.my.id/video</loc><priority>0.9</priority></url>
-  <url><loc>https://www.rumahgadang-ai.my.id/tulis</loc><priority>0.8</priority></url>
   <url><loc>https://www.rumahgadang-ai.my.id/ai</loc><priority>0.9</priority></url>
   <url><loc>https://www.rumahgadang-ai.my.id/kantor</loc><priority>0.7</priority></url>
   <url><loc>https://www.rumahgadang-ai.my.id/akun</loc><priority>0.6</priority></url>
+  <url><loc>https://www.rumahgadang-ai.my.id/a</loc><priority>0.6</priority></url>
 </urlset>`;
     return new Response(xml, { headers: {'Content-Type':'application/xml; charset=utf-8','Cache-Control':'public, max-age=86400'} });
   }
@@ -36,13 +37,13 @@ async fetch(req, env) {
   try{
    if(env.DB){
     await env.DB.prepare("CREATE TABLE IF NOT EXISTS local_videos (id TEXT PRIMARY KEY, created_at INTEGER)").run();
-    await env.DB.prepare("CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY, text TEXT, user_email TEXT, name TEXT, picture TEXT, time INTEGER)").run();
-    await env.DB.prepare("CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT, time INTEGER)").run();
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, user_email TEXT, name TEXT, picture TEXT, time INTEGER)").run();
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT, user_email TEXT, time INTEGER)").run();
     await env.DB.prepare("CREATE TABLE IF NOT EXISTS ig_curated (id INTEGER PRIMARY KEY AUTOINCREMENT, akun TEXT, img TEXT, linkIG TEXT, caption TEXT, time INTEGER)").run();
    }
   }catch(e){}
 
-  // === ADMIN CHECK - EMAIL BOS ===
+  // === ADMIN CHECK BOS ===
   function isAdmin(email){
     if(!email) return false;
     try{
@@ -53,13 +54,20 @@ async fetch(req, env) {
   const adminEmail = req.headers.get("X-Admin-Email") || url.searchParams.get("admin") || "";
   const isAdminUser = isAdmin(adminEmail);
 
-  // === API TULIS ===
-  if(url.pathname==="/api/tulis"){
+  // === API TULIS BOS ===
+  if(url.pathname==="/api/tulis" && req.method==="GET"){
     try{
       if(!env.DB) return new Response(JSON.stringify([]),{headers:cors});
-      let r=await env.DB.prepare("SELECT * FROM tulis ORDER BY time DESC LIMIT 50").all();
+      let r=await env.DB.prepare("SELECT * FROM tulis ORDER BY time DESC LIMIT 100").all();
       return new Response(JSON.stringify(r.results||[]),{headers:cors});
     }catch(e){ return new Response(JSON.stringify([]),{headers:cors}); }
+  }
+  if(url.pathname==="/api/tulis" && req.method==="POST"){
+    try{
+      let j=await req.json();
+      if(env.DB) await env.DB.prepare("INSERT INTO tulis (text,user_email,name,picture,time) VALUES (?,?,?,?,?)").bind(j.text,j.user_email||"",j.name||"",j.picture||"",Date.now()).run();
+      return new Response(JSON.stringify({ok:true}),{headers:cors});
+    }catch(e){ return new Response(JSON.stringify({error:e.message}),{headers:cors}); }
   }
   if(url.pathname==="/api/tulis/delete"&&req.method==="POST"){
     if(!isAdminUser) return new Response(JSON.stringify({error:"Cuma admin@rumahgadang-ai.my.id Bos!"}),{status:403,headers:cors});
@@ -67,30 +75,41 @@ async fetch(req, env) {
     return new Response(JSON.stringify({ok:true}),{headers:cors});
   }
 
-  // === API VIDEOS ===
-  if(url.pathname==="/api/videos"){
+  // === API FOTO BOS /api/images ===
+  if(url.pathname==="/api/images" && req.method==="GET"){
+    try{
+      if(!env.DB) return new Response(JSON.stringify([]),{headers:cors});
+      let r=await env.DB.prepare("SELECT * FROM images ORDER BY time DESC LIMIT 100").all();
+      return new Response(JSON.stringify(r.results||[]),{headers:cors});
+    }catch(e){ return new Response(JSON.stringify([]),{headers:cors}); }
+  }
+  if(url.pathname==="/api/images" && req.method==="POST"){
+    try{
+      let j=await req.json();
+      if(env.DB) await env.DB.prepare("INSERT INTO images (url,user_email,time) VALUES (?,?,?)").bind(j.url,j.user_email||"",Date.now()).run();
+      return new Response(JSON.stringify({ok:true}),{headers:cors});
+    }catch(e){ return new Response(JSON.stringify({error:e.message}),{headers:cors}); }
+  }
+  if(url.pathname==="/api/images/delete"&&req.method==="POST"){
+    if(!isAdminUser) return new Response(JSON.stringify({error:"Cuma admin Bos!"}),{status:403,headers:cors});
+    try{ let j=await req.json(); if(env.DB) await env.DB.prepare("DELETE FROM images WHERE id=?").bind(j.id).run(); }catch(e){}
+    return new Response(JSON.stringify({ok:true}),{headers:cors});
+  }
+
+  // === API VIDEO BOS ===
+  if(url.pathname==="/api/videos" && req.method==="GET"){
     let local=[];
     try{ if(env.DB){ let r=await env.DB.prepare("SELECT id FROM local_videos ORDER BY created_at DESC").all(); local=r.results?.map(x=>x.id)||[]; } }catch(e){}
     let all=[...new Set([...local,...GLOBAL_VIDEOS])];
     return new Response(JSON.stringify(all),{headers:cors});
   }
+  if(url.pathname==="/api/videos" && req.method==="POST"){
+    try{ let j=await req.json(); if(env.DB) await env.DB.prepare("INSERT OR IGNORE INTO local_videos (id,created_at) VALUES (?,?)").bind(j.id,Date.now()).run(); }catch(e){}
+    return new Response(JSON.stringify({ok:true}),{headers:cors});
+  }
   if(url.pathname==="/api/videos/delete"&&req.method==="POST"){
     if(!isAdminUser) return new Response(JSON.stringify({error:"Cuma admin Bos!"}),{status:403,headers:cors});
     try{ let j=await req.json(); if(env.DB) await env.DB.prepare("DELETE FROM local_videos WHERE id=?").bind(j.id).run(); }catch(e){}
-    return new Response(JSON.stringify({ok:true}),{headers:cors});
-  }
-
-  // === API IMAGES ===
-  if(url.pathname==="/api/images"){
-    try{
-      if(!env.DB) return new Response(JSON.stringify([]),{headers:cors});
-      let r=await env.DB.prepare("SELECT * FROM images ORDER BY time DESC LIMIT 50").all();
-      return new Response(JSON.stringify(r.results||[]),{headers:cors});
-    }catch(e){ return new Response(JSON.stringify([]),{headers:cors}); }
-  }
-  if(url.pathname==="/api/images/delete"&&req.method==="POST"){
-    if(!isAdminUser) return new Response(JSON.stringify({error:"Cuma admin Bos!"}),{status:403,headers:cors});
-    try{ let j=await req.json(); if(env.DB) await env.DB.prepare("DELETE FROM images WHERE id=?").bind(j.id).run(); }catch(e){}
     return new Response(JSON.stringify({ok:true}),{headers:cors});
   }
 
@@ -102,7 +121,7 @@ async fetch(req, env) {
     }catch(e){ return new Response(JSON.stringify([]),{headers:cors}); }
   }
 
-  // === API AI - KEY GROQ TETAP 3 MODEL BOS! ===
+  // === API AI GROQ 3 BUAH BOS TETAP BOS ===
   if(url.pathname==="/api/ai"&&req.method==="POST"){
     try{
       let j=await req.json();
@@ -137,9 +156,9 @@ async fetch(req, env) {
     }
   }
 
-  // === IF URL - ROUTING BOS ===
+  // === IF URL TULIS FOTO VIDEO BOS ===
   let path = url.pathname;
-  if(path==="/"||path.startsWith("/home")) return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
+  if(path==="/"||path.startsWith("/home")||path.startsWith("/tulis")) return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
   if(path.startsWith("/foto")) return new Response(FOTO_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
   if(path.startsWith("/video")) return new Response(VIDEO_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
   if(path.startsWith("/ai")) return new Response(AI_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});

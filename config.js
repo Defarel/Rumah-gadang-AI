@@ -1,18 +1,16 @@
-// config.js - versi aman connect ke CF Variables
-// JANGAN taruh gsk_... atau secret asli di sini lagi
+export const LOGO = "https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
+export const GLOBAL_VIDEOS = ["jNQXAC9IVRw","M7lc1UVf-VE","dQw4w9WgXcQ","9bZkp7q19f0","kJQP7kiw5Fk"];
+export const ADMIN_EMAILS = ["admin@rumahgadang-ai.my.id"];
 
-export function getConfig(env) {
-  return {
-    ADMIN_KEY: env.ADMIN_KEY || env.ADMI,
-    GOOGLE_ID: env.GOOGLE_ID || env.GOOGLE_CLIENT_ID,
-    GOOGLE_SECRET: env.GOOGLE_SECRET || env.GOOGLE_CLIENT_SECRET,
-    GROQ_API_KEY: env.GROQ || env.GROQ_API_KEY || env.GROQ_KEY,
-    DB: env.DB,
-    RG_BLOCK: env.RG_BLOCK
-  };
+export function isAdmin(e){
+  if(!e) return false;
+  return ADMIN_EMAILS.includes(e.toLowerCase().trim());
 }
-
-export const SITE = {
-  name: "Rumah Gadang AI",
-  domain: "www.rumahgadang-ai.my.id"
-};
+export function getId(u){
+  if(!u) return null;
+  u=u.trim();
+  let m=u.match(/(?:v=|youtu\.be\/|shorts\/)([^?&\/]{11})/);
+  if(m) return m[1];
+  if(/^[A-Za-z0-9_-]{11}$/.test(u)) return u;
+  return null;
+}

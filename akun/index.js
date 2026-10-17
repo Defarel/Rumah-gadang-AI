@@ -1,159 +1,47 @@
-export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Akun - Rumah Gadang AI</title>
-<script src="https://cdn.tailwindcss.com"></script>
+export default {
+async fetch(req, env) {
+const html = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0a0a">
 <style>
-.neon-box{
-  border: 4px solid #00ff00;
-  box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff0020 inset;
-  border-radius: 24px;
-}
-.neon-avatar{
-  border: 3px solid #00ff00;
-  box-shadow: 0 0 10px #00ff00;
-}
-</style></head>
-<body class="bg-black text-white min-h-screen flex items-center justify-center p-4">
-
-<div id="loginPage" class="w-full max-w-sm bg-zinc-900 p-6 rounded-2xl border border-zinc-800">
-  <h1 class="text-2xl font-bold text-center mb-6">Rumah Gadang AI</h1>
-  <input id="email" type="email" placeholder="Masukan Email" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 mb-3 text-white" />
-  <input id="pass" type="password" placeholder="Masukan Password" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 mb-4 text-white" />
-  <button onclick="doLogin()" class="w-full bg-white text-black p-3 rounded-xl font-bold">LOGIN</button>
+body{margin:0;min-height:100vh;background:#000 url('https://rumahgadang-ai.my.id/rumahgadangAI1.jpg') center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-family:sans-serif}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px)}
+.card{position:relative;width:90%;max-width:380px;background:#111;border:1px solid #00FF88;border-radius:20px;padding:28px 20px;box-shadow:0 0 20px rgba(0,255,136,0.25),0 0 60px rgba(0,255,136,0.1)}
+.card h1{text-align:center;color:#fff;margin:0 0 22px 0;font-size:24px}
+.card h1 span{color:#00FF88}
+.inp{width:100%;box-sizing:border-box;background:#222;border:1px solid #333;border-radius:14px;padding:14px 16px;color:#fff;font-size:15px;margin-bottom:14px;outline:none}
+.inp:focus{border-color:#00FF88;box-shadow:0 0 8px rgba(0,255,136,0.5)}
+.btnLogin{width:100%;background:#fff;color:#000;border:0;padding:14px;border-radius:14px;font-weight:900;font-size:16px;margin-top:6px;cursor:pointer}
+.bot2{display:flex;gap:12px;margin-top:16px}
+.bot2 button{flex:1;background:transparent;color:#fff;border:1px solid #00FF88;border-radius:14px;padding:12px;font-weight:800;font-size:13px;box-shadow:0 0 10px rgba(0,255,136,0.2);cursor:pointer}
+.bot2 button:hover{background:rgba(0,255,136,0.1)}
+.logo{width:56px;height:56px;border-radius:50%;display:block;margin:0 auto 14px auto;border:2px solid #00FF88;box-shadow:0 0 15px #00FF88}
+</style>
+</head>
+<body>
+<div class=overlay></div>
+<div class=card>
+<img src="https://rumahgadang-ai.my.id/rumahgadangAI1.jpg" class=logo>
+<h1><span>R</span>umah <span>G</span>adang <span>AI</span></h1>
+<input class=inp id=email placeholder="Email">
+<input class=inp id=pass type=password placeholder="Masukan Password">
+<button class=btnLogin onclick="doLogin()">LOGIN</button>
+<div class=bot2>
+<button onclick="location.href='/'">MASUK</button>
+<button onclick="googleLogin()">GOOGLE</button>
 </div>
-
-<div id="profilePage" style="display:none" class="w-full max-w-[420px]">
-  <div class="neon-box bg-[#121212] p-5">
-    <!-- HEADER BOS KAYAK FOTO 2 BOS -->
-    <div class="flex items-start gap-4">
-      <div class="relative">
-        <img id="avatarImg" src="https://i.pravatar.cc/150?u=naura" class="w-20 h-20 rounded-full object-cover neon-avatar" />
-        <button onclick="document.getElementById('fileInput').click()" class="absolute -bottom-1 -right-1 w-7 h-7 bg-white text-black rounded-full font-bold flex items-center justify-center border-2 border-black">+</button>
-        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="changeAvatar(event)" />
-        <div class="absolute -top-8 -left-2 bg-[#2a2a2a] text-zinc-300 text-xs px-3 py-1.5 rounded-2xl"></div>
-      </div>
-      
-      <div class="flex-1">
-        <div class="flex items-center gap-2">
-          <h2 id="displayName" class="text-xl font-bold">Dunsanak</h2>
-          <button onclick="editName()" class="text-zinc-500 text-xs">✏️</button>
-        </div>
-        <p id="displayEmail" class="text-zinc-500 text-xs mb-3 truncate">naura@rumahgadang-ai.my.id</p>
-        
-        <div class="flex gap-6">
-          <div class="text-center">
-            <p id="followersCount" class="font-bold text-lg leading-none">92</p>
-            <p class="text-sm">pengikut</p>
-          </div>
-          <div class="text-center">
-            <p id="followingCount" class="font-bold text-lg leading-none">421</p>
-            <p class="text-sm">mengikuti</p>
-          </div>
-          <div id="isAdminBadge" style="display:none" class="text-[10px] bg-green-500 text-black px-2 py-1 rounded-full font-bold h-fit">ADMIN</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- BUTTON BOS KAYAK FOTO 2 BOS -->
-    <div class="grid grid-cols-2 gap-3 mt-6">
-      <button onclick="editProfile()" class="bg-[#2a2a2a] p-3 rounded-xl font-semibold text-sm">Edit profil</button>
-      <button id="followBtn" onclick="toggleFollow()" class="bg-[#2a2a2a] p-3 rounded-xl font-semibold text-sm">Ikuti</button>
-    </div>
-
-    <button onclick="doLogout()" class="w-full bg-red-600 p-3 rounded-xl font-bold mt-3">LOGOUT</button>
-    <a href="/" class="block text-center mt-3 text-zinc-500 text-sm">← Kembali ke halaman depan</a>
-  </div>
 </div>
-
 <script>
-  const ADMIN_EMAILS = ["admin@rumahgadang-ai.my.id"];
-  function isAdmin(e){ return ADMIN_EMAILS.includes((e||"").toLowerCase().trim()); }
-
-  let data = JSON.parse(localStorage.getItem("rg_profile")||"{}");
-  if(!data.followers) data.followers = 92;
-  if(!data.following) data.following = 421;
-  if(!data.isFollowing) data.isFollowing = false;
-  if(!data.name) data.name = "Farel";
-
-  function save(){ localStorage.setItem("rg_profile", JSON.stringify(data)); }
-
-  function checkLogin(){
-    let email = localStorage.getItem("user_email");
-    if(!email){
-      document.getElementById("loginPage").style.display="block";
-      document.getElementById("profilePage").style.display="none";
-      return;
-    }
-    document.getElementById("loginPage").style.display="none";
-    document.getElementById("profilePage").style.display="block";
-    document.getElementById("displayEmail").innerText = email;
-    document.getElementById("displayName").innerText = data.name;
-    document.getElementById("followersCount").innerText = data.followers;
-    document.getElementById("followingCount").innerText = data.following;
-    if(isAdmin(email)) document.getElementById("isAdminBadge").style.display="block";
-    
-    let savedAvatar = localStorage.getItem("rg_avatar");
-    if(savedAvatar) document.getElementById("avatarImg").src = savedAvatar;
-    
-    updateFollowBtn();
-  }
-
-  function doLogin(){
-    let email = document.getElementById("email").value.trim();
-    if(!email){ alert("Isi email Bos!"); return; }
-    localStorage.setItem("user_email", email.toLowerCase());
-    checkLogin();
-  }
-
-  function toggleFollow(){
-    data.isFollowing = !data.isFollowing;
-    if(data.isFollowing){ data.followers++; } else { data.followers--; }
-    save();
-    document.getElementById("followersCount").innerText = data.followers;
-    updateFollowBtn();
-  }
-
-  function updateFollowBtn(){
-    let btn = document.getElementById("followBtn");
-    if(data.isFollowing){
-      btn.innerText = "Mengikuti ✓";
-      btn.className = "bg-white text-black p-3 rounded-xl font-semibold text-sm";
-    }else{
-      btn.innerText = "Ikuti";
-      btn.className = "bg-[#2a2a2a] p-3 rounded-xl font-semibold text-sm";
-    }
-  }
-
-  function changeAvatar(e){
-    let file = e.target.files[0];
-    if(!file) return;
-    let reader = new FileReader();
-    reader.onload = function(ev){
-      document.getElementById("avatarImg").src = ev.target.result;
-      localStorage.setItem("rg_avatar", ev.target.result);
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function editName(){
-    let newName = prompt("Ganti nama:", data.name);
-    if(newName){ data.name = newName; save(); document.getElementById("displayName").innerText = newName; }
-  }
-
-  function editProfile(){
-    let newName = prompt("Edit nama profil:", data.name);
-    if(newName) data.name = newName;
-    let newFollowers = prompt("Edit pengikut Bos (angka):", data.followers);
-    if(newFollowers) data.followers = parseInt(newFollowers)||data.followers;
-    let newFollowing = prompt("Edit mengikuti Bos (angka):", data.following);
-    if(newFollowing) data.following = parseInt(newFollowing)||data.following;
-    save();
-    checkLogin();
-  }
-
-  function doLogout(){
-    localStorage.removeItem("user_email");
-    location.reload();
-  }
-
-  checkLogin();
+function doLogin(){ const e=document.getElementById('email').value; localStorage.setItem('rg_email',e); location.href='/'; }
+function googleLogin(){ alert('Login Google Bos segera Bos!'); }
 <\/script>
-</body></html>`;
+</body>
+</html>
+`;
+return new Response(html, {headers:{'content-type':'text/html;charset=utf-8'}});
+}
+}
+`;

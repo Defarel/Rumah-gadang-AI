@@ -9,6 +9,34 @@ import { AKUN_HTML } from './akun/index.js';
 export default {
 async fetch(req, env) {
   const url = new URL(req.url);
+      // === SITEMAP & ROBOTS BOS - PASTE DI SINI BOS ===
+    if (url.pathname === '/sitemap.xml' || url.pathname === '/sitemap') {
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.rumahgadang-ai.my.id/</loc><lastmod>2026-10-17</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://www.rumahgadang-ai.my.id/foto</loc><lastmod>2026-10-17</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.rumahgadang-ai.my.id/video</loc><lastmod>2026-10-17</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.rumahgadang-ai.my.id/ai</loc><lastmod>2026-10-17</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.rumahgadang-ai.my.id/kantor</loc><lastmod>2026-10-17</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.rumahgadang-ai.my.id/akun</loc><lastmod>2026-10-17</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+</urlset>`;
+      return new Response(xml, {
+        headers: {
+          'Content-Type': 'application/xml; charset=utf-8',
+          'Cache-Control': 'public, max-age=86400'
+        }
+      });
+    }
+
+    if (url.pathname === '/robots.txt') {
+      return new Response(`User-agent: *
+Allow: /
+
+Sitemap: https://www.rumahgadang-ai.my.id/sitemap.xml`, {
+        headers: { 'Content-Type': 'text/plain' }
+      });
+    }
+    // === AKHIR SITEMAP BOS ===
   const cors = {"Content-Type":"application/json","Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET,POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type"};
   if(req.method==="OPTIONS") return new Response("",{headers:cors});
 

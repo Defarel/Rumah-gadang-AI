@@ -101,7 +101,7 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
   if(!data.followers) data.followers = 92;
   if(!data.following) data.following = 421;
   if(!data.isFollowing) data.isFollowing = false;
-  if(!data.name) data.name = "Farel";
+  if(!data.name) data.name = "Dunsanak";
   function save(){ localStorage.setItem("rg_profile", JSON.stringify(data)); }
   function checkLogin(){
     let email = localStorage.getItem("user_email");

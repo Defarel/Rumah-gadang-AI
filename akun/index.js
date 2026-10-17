@@ -70,7 +70,7 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
         <img id="avatarImg" src="https://i.pravatar.cc/150?u=naura" class="w-20 h-20 rounded-full object-cover neon-avatar" />
         <button onclick="document.getElementById('fileInput').click()" class="absolute -bottom-1 -right-1 w-7 h-7 bg-white text-black rounded-full font-bold flex items-center justify-center border-2 border-black">+</button>
         <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="changeAvatar(event)" />
-        <div class="absolute -top-8 -left-2 bg-[#2a2a2a] text-zinc-300 text-xs px-3 py-1.5 rounded-2xl">Cuma kepo aja...</div>
+        <div class="absolute -top-8 -left-2 bg-[#2a2a2a] text-zinc-300 text-xs px-3 py-1.5 rounded-2xl"></div>
       </div>
       <div class="flex-1">
         <div class="flex items-center gap-2">

@@ -34,10 +34,10 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
   <div class="book-neon bg-white">
     <!-- ATAS BOS - FORM PUTIH -->
     <div class="bg-white p-7 text-black">
-      <h1 class="text-3xl font-black">Masuk</h1>
-      <p class="text-sm text-zinc-500 mt-1 mb-6">Masukkan kredensial Anda untuk masuk ke Bos</p>
+      <h1 class="text-3xl font-black">Masuk Rumah Gadang AI</h1>
+      <p class="text-sm text-zinc-500 mt-1 mb-6">Masukkan kredensial Anda untuk masuk</p>
       <label class="text-sm font-bold">Email</label>
-      <input id="email" type="email" placeholder="admin@rumahgadang-ai.my.id" class="w-full p-4 rounded-2xl bg-zinc-100 border border-zinc-200 mt-1 mb-4 text-black outline-none" />
+      <input id="email" type="email" placeholder="nama@rumahgadang-ai.my.id" class="w-full p-4 rounded-2xl bg-zinc-100 border border-zinc-200 mt-1 mb-4 text-black outline-none" />
       <label class="text-sm font-bold">Kata Sandi</label>
       <input id="pass" type="password" placeholder="••••••" class="w-full p-4 rounded-2xl bg-zinc-100 border border-zinc-200 mt-1 mb-4 text-black outline-none" />
       <div class="flex items-center gap-2 mb-6">
@@ -57,7 +57,7 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
       <div class="absolute top-4 right-4 w-9 h-9 bg-white rounded-full flex items-center justify-center font-black text-black">RG</div>
       <div class="absolute bottom-0 left-0 p-6">
         <h2 class="text-white text-[28px] font-black leading-[1.1]">Jadilah Bagian dari<br>Sesuatu yang Indah</h2>
-        <p class="text-white/70 text-sm mt-3">Rumah Gadang AI - Padang</p>
+        <p class="text-white/70 text-sm mt-3">Rumah Gadang AI</p>
       </div>
     </div>
   </div>
@@ -90,7 +90,7 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
       <button onclick="editProfile()" class="bg-[#2a2a2a] p-3 rounded-xl font-semibold text-sm">Edit profil</button>
       <button id="followBtn" onclick="toggleFollow()" class="bg-[#2a2a2a] p-3 rounded-xl font-semibold text-sm">Ikuti</button>
     </div>
-    <button onclick="doLogout()" class="w-full bg-red-600 p-3 rounded-xl font-bold mt-3">LOGOUT BOS</button>
+    <button onclick="doLogout()" class="w-full bg-red-600 p-3 rounded-xl font-bold mt-3">LOGOUT</button>
     <a href="/" class="block text-center mt-3 text-zinc-500 text-sm">← Kembali ke Home Bos</a>
   </div>
 </div>

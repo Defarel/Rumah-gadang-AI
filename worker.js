@@ -15,11 +15,30 @@ async fetch(req, env) {
 
   // === SITEMAP FULL BOS ===
   if (url.pathname === '/sitemap.xml' || url.pathname === '/sitemap') {
-    const xml = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://www.rumahgadang-ai.my.id/</loc></url><url><loc>https://www.rumahgadang-ai.my.id/foto</loc></url><url><loc>https://www.rumahgadang-ai.my.id/video</loc></url><url><loc>https://www.rumahgadang-ai.my.id/tulis</loc></url><url><loc>https://www.rumahgadang-ai.my.id/ai</loc></url></urlset>`;
-    return new Response(xml, { headers: {'Content-Type':'application/xml'} });
+  const host = url.hostname; // auto www atau non-www Bos!
+  const origin = `https://${host}`;
+  const date = new Date().toISOString().split('T')[0];
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>${origin}/</loc><lastmod>${date}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>${origin}/foto</loc><lastmod>${date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>${origin}/video</loc><lastmod>${date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>${origin}/kantor</loc><lastmod>${date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>${origin}/ai</loc><lastmod>${date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>${origin}/akun</loc><lastmod>${date}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>${origin}/tulis</loc><lastmod>${date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+</urlset>`;
+  return new Response(sitemap, {
+    headers: { 'Content-Type': 'application/xml; charset=utf-8' }
+  });
   }
   if (url.pathname === '/robots.txt') {
-    return new Response(`User-agent: *\nAllow: /\nSitemap: https://www.rumahgadang-ai.my.id/sitemap.xml`, { headers: { 'Content-Type':'text/plain' } });
+  const origin = `https://${url.hostname}`;
+  return new Response(`User-agent: *
+Allow: /
+
+Sitemap: ${origin}/sitemap.xml
+`, { headers: { 'Content-Type': 'text/plain' } });
   }
 
   // === CREATE + MIGRASI TABEL BOS BIAR FOTO BISA MASUK BOS ===

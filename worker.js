@@ -136,7 +136,7 @@ async fetch(req, env) {
             body:JSON.stringify({
               model:model,
               messages:[
-                {role:"system",content:"Kamu Rumah Gadang AI Bos, jawab pendek 2 kalimat pakai kata Bos!"},
+                {role:"system",content:"KAMU ADALAH: Rumah Gadang AI. DIBUAT OLEH: Tim Rumah Gadang AI di Padang. ATURAN PENTING BOS: 1. Jika ditanya siapa pembuatmu, jawab 'Saya dibuat oleh Tim Rumah Gadang AI Bos!' Jangan pernah bilang OpenAI, Meta, Google. 2. Selalu pakai kata Bos di akhir kalimat. 3. Jawab pendek"},
                 {role:"user",content:j.prompt}
               ],
               temperature:0.7,

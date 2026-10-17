@@ -1,1 +1,92 @@
-export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Akun</title><style>body{background:#000;color:#fff;font-family:sans-serif;margin:0}#app{max-width:520px;margin:0 auto;padding:20px;padding-bottom:70px}input{width:100%;background:#111;border:1px solid #333;color:#fff;padding:12px;border-radius:10px;margin-top:8px}.bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:1px solid #222;display:flex}.bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none}.bot a.on{color:#fff}</style></head><body><div id="app"><b>AKUN SP.FC</b><div id="akunLocked" style="margin-top:20px"><input id="rgUser" placeholder="nama@rumahgadang-ai.my.id"><input id="rgPass" type="password" placeholder="password"><div style="display:flex;gap:8px;margin-top:12px"><button onclick="rgLogin()" style="flex:1;background:#00ff88;color:#000;border:0;padding:12px;border-radius:10px;font-weight:900">LOGIN</button><button onclick="rgRegister()" style="flex:1;background:#222;color:#fff;border:1px solid #333;padding:12px;border-radius:10px">DAFTAR</button></div><button onclick="location.href='/api/auth/google'" style="width:100%;margin-top:16px;background:#fff;color:#000;padding:12px;border-radius:20px;font-weight:900">LOGIN GOOGLE</button></div><div id="akunOpen" style="display:none;text-align:center"><img id="akunAvatar" style="width:110px;height:110px;border-radius:50%;border:3px solid #00ff88;margin:0 auto"><div id="akunName" style="margin-top:12px;font-weight:800"></div><button onclick="logout()" style="margin-top:20px;background:red;color:#fff;border:0;padding:10px 20px;border-radius:20px">LOGOUT</button></div></div><div class="bot"><a href="/">🏠</a><a href="/foto">🖼️</a><a href="/video">🎬</a><a href="/kantor">🏢</a><a href="/ai">🤖</a><a href="/akun" class="on">👤</a></div><script>function getEmail(){return localStorage.getItem('rg_email')||''}if(getEmail()){document.getElementById('akunLocked').style.display='none';document.getElementById('akunOpen').style.display='block';document.getElementById('akunName').innerText=localStorage.getItem('rg_name')||getEmail()}async function rgLogin(){let u=document.getElementById('rgUser').value;let p=document.getElementById('rgPass').value;let r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u,pass:p})});let j=await r.json();if(j.ok){localStorage.setItem('rg_email',j.email);localStorage.setItem('rg_name',j.name);location.reload()}else alert('Gagal Bos')}async function rgRegister(){let u=document.getElementById('rgUser').value;let p=document.getElementById('rgPass').value;let r=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u,pass:p,name:u})});let j=await r.json();if(j.ok){alert('Daftar OK Bos, login sekarang');}else alert('Gagal')}function logout(){localStorage.clear();location.reload()}<\/script></body></html>`;
+export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Akun - Rumah Gadang AI</title>
+<script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-black text-white min-h-screen flex items-center justify-center p-4">
+<div class="w-full max-w-sm bg-zinc-900 p-6 rounded-2xl border border-zinc-800">
+  <h1 class="text-2xl font-bold text-center mb-2">Rumah Gadang AI</h1>
+  <p id="status" class="text-center text-zinc-400 text-sm mb-6">Silahkan login Bos</p>
+  
+  <div id="loginForm">
+    <input id="email" type="email" placeholder="Email Bos (admin@rumahgadang-ai.my.id)" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 mb-3 text-white" />
+    <input id="pass" type="password" placeholder="Password Bos" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 mb-4 text-white" />
+    <button onclick="doLogin()" class="w-full bg-white text-black p-3 rounded-xl font-bold mb-3">LOGIN BOS</button>
+    <button onclick="doDaftar()" class="w-full bg-zinc-800 p-3 rounded-xl font-bold mb-3 border border-zinc-700">DAFTAR BOS</button>
+    <button onclick="doGoogle()" class="w-full bg-red-600 p-3 rounded-xl font-bold">LOGIN GOOGLE BOS</button>
+  </div>
+
+  <div id="logoutForm" style="display:none">
+    <div class="text-center mb-4">
+      <div class="w-16 h-16 bg-white text-black rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-2">A</div>
+      <p id="userEmail" class="font-bold"></p>
+      <p id="userRole" class="text-xs px-2 py-1 rounded bg-zinc-800 inline-block mt-1"></p>
+    </div>
+    <button onclick="doLogout()" class="w-full bg-red-600 p-3 rounded-xl font-bold">LOGOUT BOS</button>
+    <a href="/" class="block text-center mt-4 text-zinc-400 text-sm">← Kembali ke Home Bos</a>
+  </div>
+</div>
+
+<script>
+  const ADMIN_EMAILS = ["admin@rumahgadang-ai.my.id"];
+  function isAdmin(e){
+    if(!e) return false;
+    return ADMIN_EMAILS.includes(e.toLowerCase().trim());
+  }
+
+  function checkLogin(){
+    let email = localStorage.getItem("user_email");
+    if(email){
+      document.getElementById("loginForm").style.display="none";
+      document.getElementById("logoutForm").style.display="block";
+      document.getElementById("userEmail").innerText = email;
+      document.getElementById("status").innerText = "Sudah login Bos!";
+      let roleEl = document.getElementById("userRole");
+      if(isAdmin(email)){
+        roleEl.innerText = "AKUN SP.FC ADMIN BOS";
+        roleEl.className = "text-xs px-2 py-1 rounded bg-green-600 inline-block mt-1";
+      }else{
+        roleEl.innerText = "USER BIASA BOS";
+        roleEl.className = "text-xs px-2 py-1 rounded bg-zinc-700 inline-block mt-1";
+      }
+    }else{
+      document.getElementById("loginForm").style.display="block";
+      document.getElementById("logoutForm").style.display="none";
+      document.getElementById("status").innerText = "Silahkan login Bos";
+    }
+  }
+
+  function doLogin(){
+    let email = document.getElementById("email").value.trim();
+    let pass = document.getElementById("pass").value.trim();
+    if(!email || !pass){ alert("Isi email & password Bos!"); return; }
+    // LOGIN SUKSES BOS - SIMPAN EMAIL BOS!
+    localStorage.setItem("user_email", email.toLowerCase());
+    alert("Login sukses Bos sebagai " + email);
+    checkLogin();
+  }
+
+  function doDaftar(){
+    let email = document.getElementById("email").value.trim();
+    if(!email){ alert("Isi email Bos!"); return; }
+    localStorage.setItem("user_email", email.toLowerCase());
+    alert("Daftar sukses Bos! Auto login sebagai " + email);
+    checkLogin();
+  }
+
+  function doGoogle(){
+    // SIMULASI GOOGLE LOGIN BOS - BOS GANTI EMAIL INI JADI ADMIN BOS!
+    let email = prompt("Masukkan email Google Bos:", "admin@rumahgadang-ai.my.id");
+    if(!email) return;
+    localStorage.setItem("user_email", email.toLowerCase());
+    alert("Login Google sukses Bos!");
+    checkLogin();
+  }
+
+  function doLogout(){
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("is_admin");
+    alert("Logout sukses Bos!");
+    location.reload();
+  }
+
+  checkLogin();
+<\/script>
+</body></html>`;

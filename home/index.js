@@ -37,7 +37,7 @@ box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 12px rgba(0,255,136,0.15)}
 .bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#fff}
 </style></head><body>
 <div id=app>
-<div class=top><div style="display:flex;gap:10px;align-items:center"><img src="https://i.ibb.co/r2gL8YJB/1791014451654.jpg" class=logo><b>RUMAH GADANG AI</b></div><button id=loginBtn onclick="location.href='/akun'" style="background:#fff;color:#000;border:0;padding:6px 14px;border-radius:20px;font-weight:800;font-size:12px">LOGIN</button></div>
+<div class=top><div style="display:flex;gap:10px;align-items:center"><img src="https://i.ibb.co/r2gL8YJB/1791014451654.jpg" class=logo><b><span style="color:#00FF88">R</span><span style="color:#ffffff">umah</span> <span style="color:#00FF88">G</span><span style="color:#ffffff">adang</span> <span style="color:#00FF88">AI</span></b></div><button id=loginBtn onclick="location.href='/akun'" style="background:#fff;color:#000;border:0;padding:6px 14px;border-radius:20px;font-weight:800;font-size:12px">LOGIN</button></div>
 <div class=box>
 <div class=inputRow>
 <input id=tulisIn class=txt placeholder="Tulis disini...">

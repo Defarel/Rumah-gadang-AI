@@ -10,12 +10,11 @@ export default {
 async fetch(req, env) {
   const url = new URL(req.url);
   const cors = {'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Allow-Headers':'Content-Type,X-Admin-Email'};
-
   if(req.method==="OPTIONS") return new Response("",{headers:cors});
 
-  // === SITEMAP FULL BOS ===
+  // === SITEMAP ===
   if (url.pathname === '/sitemap.xml' || url.pathname === '/sitemap') {
-  const host = url.hostname; // auto www atau non-www Bos!
+  const host = url.hostname;
   const origin = `https://${host}`;
   const date = new Date().toISOString().split('T')[0];
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -28,29 +27,24 @@ async fetch(req, env) {
   <url><loc>${origin}/akun</loc><lastmod>${date}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>${origin}/tulis</loc><lastmod>${date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 </urlset>`;
-  return new Response(sitemap, {
-    headers: { 'Content-Type': 'application/xml; charset=utf-8' }
-  });
+  return new Response(sitemap, { headers: { 'Content-Type': 'application/xml; charset=utf-8' } });
   }
   if (url.pathname === '/robots.txt') {
   const origin = `https://${url.hostname}`;
-  return new Response(`User-agent: *
-Allow: /
-
-Sitemap: ${origin}/sitemap.xml
-`, { headers: { 'Content-Type': 'text/plain' } });
+  return new Response(`User-agent: *\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n`, { headers: { 'Content-Type': 'text/plain' } });
   }
 
-  // === CREATE + MIGRASI TABEL BOS BIAR FOTO BISA MASUK BOS ===
+  // === CREATE TABEL, BIAR GA ERROR  ===
   try{
    if(env.DB){
     await env.DB.prepare("CREATE TABLE IF NOT EXISTS local_videos (id TEXT PRIMARY KEY, created_at INTEGER)").run();
-    await env.DB.prepare("CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, user_email TEXT, name TEXT, picture TEXT, time INTEGER)").run();
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, user_email TEXT, name TEXT, picture TEXT, time INTEGER, tulisImg TEXT, url TEXT, likes INTEGER DEFAULT 0)").run();
     await env.DB.prepare("CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT, time INTEGER)").run();
     await env.DB.prepare("CREATE TABLE IF NOT EXISTS ig_curated (id INTEGER PRIMARY KEY AUTOINCREMENT, akun TEXT, img TEXT, linkIG TEXT, caption TEXT, time INTEGER)").run();
-    try{ await env.DB.prepare("ALTER TABLE tulis ADD COLUMN tulisImg TEXT").run(); }catch(e){}
-    try{ await env.DB.prepare("ALTER TABLE tulis ADD COLUMN url TEXT").run(); }catch(e){}
-    try{ await env.DB.prepare("ALTER TABLE tulis ADD COLUMN likes INTEGER DEFAULT 0").run(); }catch(e){}
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS follows (follower_id TEXT NOT NULL, following_id TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (follower_id, following_id))").run();
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS fotos (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT, caption TEXT, user_email TEXT, time INTEGER)").run();
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS foto_likes (foto_id INTEGER, user_email TEXT, PRIMARY KEY (foto_id, user_email))").run();
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS profiles (email TEXT PRIMARY KEY, username TEXT, name TEXT, bio TEXT, picture TEXT)").run();
    }
   }catch(e){}
 
@@ -61,7 +55,71 @@ Sitemap: ${origin}/sitemap.xml
   const adminEmail = req.headers.get("X-Admin-Email") || url.searchParams.get("admin") || "";
   const isAdminUser = isAdmin(adminEmail);
 
-  // === API TULIS BOS ===
+  // === API FOLLOW - KAYAK IG AKUN A FOLLOW B, B FOLLOW A ===
+  if(url.pathname==="/api/follow" && req.method==="POST"){
+    try{
+      let j=await req.json();
+      if(j.follower_id === j.following_id) return new Response(JSON.stringify({error:"Ga bisa follow diri sendiri bos!"}),{status:400, headers:cors});
+      await env.DB.prepare("INSERT OR IGNORE INTO follows (follower_id, following_id) VALUES (?, ?)").bind(j.follower_id, j.following_id).run();
+      return new Response(JSON.stringify({ok:true, message:"Follow berhasil bos!"}),{headers:cors});
+    }catch(e){ return new Response(JSON.stringify({error:e.message}),{status:500, headers:cors}); }
+  }
+  if(url.pathname==="/api/unfollow" && req.method==="POST"){
+    try{
+      let j=await req.json();
+      await env.DB.prepare("DELETE FROM follows WHERE follower_id = ? AND following_id = ?").bind(j.follower_id, j.following_id).run();
+      return new Response(JSON.stringify({ok:true}),{headers:cors});
+    }catch(e){ return new Response(JSON.stringify({error:e.message}),{status:500, headers:cors}); }
+  }
+  if(url.pathname.startsWith("/api/check-follow/")){
+    try{
+      const parts = url.pathname.split('/');
+      const follower_id = parts[parts.length-2];
+      const following_id = parts[parts.length-1];
+      let isFollowing = await env.DB.prepare("SELECT 1 FROM follows WHERE follower_id = ? AND following_id = ?").bind(follower_id, following_id).first();
+      let isFollowBack = await env.DB.prepare("SELECT 1 FROM follows WHERE follower_id = ? AND following_id = ?").bind(following_id, follower_id).first();
+      return new Response(JSON.stringify({following: !!isFollowing, followback: !!isFollowBack, mutual: !!isFollowing && !!isFollowBack}),{headers:cors});
+    }catch(e){ return new Response(JSON.stringify({following:false}),{headers:cors}); }
+  }
+  if(url.pathname.startsWith("/api/follow-stats/")){
+    try{
+      const userId = url.pathname.split('/').pop();
+      let followers = await env.DB.prepare("SELECT COUNT(*) as total FROM follows WHERE following_id = ?").bind(userId).first();
+      let following = await env.DB.prepare("SELECT COUNT(*) as total FROM follows WHERE follower_id = ?").bind(userId).first();
+      return new Response(JSON.stringify({followers: followers?.total||0, following: following?.total||0}),{headers:cors});
+    }catch(e){ return new Response(JSON.stringify({followers:0,following:0}),{headers:cors}); }
+  }
+  if(url.pathname.startsWith("/api/followers/")){
+    try{
+      const userId = url.pathname.split('/').pop();
+      let r = await env.DB.prepare("SELECT follower_id FROM follows WHERE following_id = ? ORDER BY created_at DESC").bind(userId).all();
+      return new Response(JSON.stringify(r.results||[]),{headers:cors});
+    }catch(e){ return new Response(JSON.stringify([]),{headers:cors}); }
+  }
+  if(url.pathname.startsWith("/api/following/")){
+    try{
+      const userId = url.pathname.split('/').pop();
+      let r = await env.DB.prepare("SELECT following_id FROM follows WHERE follower_id = ? ORDER BY created_at DESC").bind(userId).all();
+      return new Response(JSON.stringify(r.results||[]),{headers:cors});
+    }catch(e){ return new Response(JSON.stringify([]),{headers:cors}); }
+  }
+
+  // === API FOTO ===
+  if(url.pathname==="/api/fotos" && req.method==="GET"){
+    try{
+      let r=await env.DB.prepare("SELECT * FROM fotos ORDER BY time DESC LIMIT 100").all();
+      return new Response(JSON.stringify(r.results||[]),{headers:cors});
+    }catch(e){ return new Response(JSON.stringify([]),{headers:cors}); }
+  }
+  if(url.pathname==="/api/fotos" && req.method==="POST"){
+    try{
+      let j=await req.json();
+      await env.DB.prepare("INSERT INTO fotos (url, caption, user_email, time) VALUES (?,?,?,?)").bind(j.url||"", j.caption||"", j.user_email||"", Date.now()).run();
+      return new Response(JSON.stringify({ok:true}),{headers:cors});
+    }catch(e){ return new Response(JSON.stringify({error:e.message}),{status:500,headers:cors}); }
+  }
+
+  // === API TULIS ===
   if(url.pathname==="/api/tulis" && req.method==="GET"){
     try{
       let r=await env.DB.prepare("SELECT * FROM tulis ORDER BY time DESC LIMIT 100").all();
@@ -82,7 +140,7 @@ Sitemap: ${origin}/sitemap.xml
     return new Response(JSON.stringify({ok:true}),{headers:cors});
   }
 
-  // === API LAIN BOS ===
+  // === API VIDEO/LAIN ===
   if(url.pathname==="/api/videos"){
     let local=[]; try{ let r=await env.DB.prepare("SELECT id FROM local_videos ORDER BY created_at DESC").all(); local=r.results?.map(x=>x.id)||[]; }catch(e){}
     let all=[...new Set([...local,...(GLOBAL_VIDEOS||[])])];
@@ -108,7 +166,7 @@ Sitemap: ${origin}/sitemap.xml
     }catch(e){ return new Response(JSON.stringify({reply:"Error Bos"}),{headers:cors}); }
   }
 
-  // === FIX ROUTING BOS - JANGAN PAKAI /a LAGI BOS! ===
+  // === ROUTING ===
   let path = url.pathname;
   if(path==="/"||path.startsWith("/home")||path.startsWith("/tulis")) return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
   if(path.startsWith("/foto")) return new Response(FOTO_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});

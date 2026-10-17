@@ -162,17 +162,16 @@ async fetch(req, env) {
   }
 
   let path = url.pathname;
-  const STATIC_ROUTES = ["/akun", "/foto", "/video", "/ai", "/kantor", "/tulis", "/api", "/sitemap", "/robots", "/favicon", "/a"];
+  const STATIC_ROUTES = ["/akun", "/foto", "/video", "/ai", "/kantor", "/tulis", "/api", "/sitemap", "/robots", "/favicon"];
   if(path==="/"||path.startsWith("/home")||path.startsWith("/tulis")) return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
   if(path.startsWith("/foto")) return new Response(FOTO_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
   if(path.startsWith("/video")) return new Response(VIDEO_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
   if(path.startsWith("/ai")) return new Response(AI_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
   if(path.startsWith("/kantor")) return new Response(KANTOR_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-  if(path.startsWith("/akun")||path==="/a") return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-  if(path.length > 1 && !STATIC_ROUTES.some(r => path.startsWith(r)) && !path.includes(".") && !path.startsWith("/u/")){
+  if(path==="/akun"||path==="/a"||path.startsWith("/akun/")||path.startsWith("/a/")) return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
+
+  // kalau bukan halaman statis, anggap username IG style
+  const isStatic = STATIC_ROUTES.some(r => path===r || path.startsWith(r+"/"));
+  if(path.length > 1 && !isStatic && !path.includes(".") && !path.startsWith("/u/")){
     return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
   }
-  if(path.startsWith("/u/")){ return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}}); }
-  return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-}
-};

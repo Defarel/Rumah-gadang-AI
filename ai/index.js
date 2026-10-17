@@ -47,7 +47,7 @@ body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;ov
 <audio id="bgMusic" loop preload="auto"><source src="/ai/RumahGadangV1.m4a" type="audio/mp4"></audio>
 
 <div id="chat">
-  <div class="bubble ai">Halo Dunsanak! 👋 Saya Rumah Gadang AI. Dibuat Tim Rumah Gadang AI di Padang Bos! Tanya pakai bahasa indonesia dulu Bos!</div>
+  <div class="bubble ai">Halo Dunsanak! 👋 Saya Rumah Gadang AI. Tanya pakai bahasa indonesia dulu dalam tahap pengembangkan ke bahasa minang</div>
 </div>
 
 <div id="inputBar">

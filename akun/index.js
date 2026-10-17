@@ -33,16 +33,22 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
 <div id="loginPage" class="w-full max-w-[420px]">
   <div class="book-neon bg-white">
     <!-- ATAS BOS - FORM PUTIH -->
-    <div class="bg-white p-7 text-black">
-      <h1 class="text-3xl font-black">Masuk Rumah Gadang AI</h1>
-      <p class="text-sm text-zinc-500 mt-1 mb-6">Masukkan kredensial Anda untuk masuk</p>
-      <label class="text-sm font-bold">Email</label>
-      <input id="email" type="email" placeholder="nama@rumahgadang-ai.my.id" class="w-full p-4 rounded-2xl bg-zinc-100 border border-zinc-200 mt-1 mb-4 text-black outline-none" />
-      <label class="text-sm font-bold">Kata Sandi</label>
-      <input id="pass" type="password" placeholder="••••••" class="w-full p-4 rounded-2xl bg-zinc-100 border border-zinc-200 mt-1 mb-4 text-black outline-none" />
+        <!-- ATAS BOS - FORM HITAM BOS -->
+    <div class="bg-[#121212] p-7 text-white">
+      <h1 class="text-3xl font-black text-white">Masuk Rumah Gadang AI</h1>
+      <p class="text-sm text-zinc-400 mt-1 mb-6">Masukkan kredensial Anda untuk masuk</p>
+      <label class="text-sm font-bold text-white">Email</label>
+      <input id="email" type="email" placeholder="nama@rumahgadang-ai.my.id" class="w-full p-4 rounded-2xl bg-zinc-800 border border-zinc-700 mt-1 mb-4 text-white outline-none focus:border-[#00ff00]" />
+      <label class="text-sm font-bold text-white">Kata Sandi</label>
+      <input id="pass" type="password" placeholder="••••••" class="w-full p-4 rounded-2xl bg-zinc-800 border border-zinc-700 mt-1 mb-4 text-white outline-none focus:border-[#00ff00]" />
+      
       <div class="flex items-center gap-2 mb-6">
-        <input type="checkbox" class="w-5 h-5 rounded"><span class="text-sm text-zinc-600">Ingat saya</span>
+        <input type="checkbox" class="w-5 h-5 rounded accent-[#00ff00]"><span class="text-sm text-zinc-400">Ingat saya</span>
       </div>
+      
+      <button onclick="doLogin()" class="w-full bg-white text-black p-4 rounded-2xl font-bold text-lg">Masuk</button>
+      <p class="text-center text-sm text-zinc-500 mt-4">Belum menjadi anggota? <b class="text-white">Buat akun.</b></p>
+    </div>
       <button onclick="doLogin()" class="w-full bg-black text-white p-4 rounded-2xl font-bold text-lg">Masuk</button>
       <p class="text-center text-sm text-zinc-500 mt-4">Belum menjadi anggota? <b class="text-black">Buat akun.</b></p>
     </div>

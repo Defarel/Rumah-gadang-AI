@@ -1,4 +1,4 @@
-import { LOGO, GLOBAL_VIDEOS } from './config.js';
+import { LOGO, GLOBAL_VIDEOS, ADMIN_EMAILS } from './config.js';
 import { HOME_HTML } from './home/index.js';
 import { AI_HTML } from './ai/index.js';
 import { FOTO_HTML } from './foto/index.js';

@@ -174,4 +174,4 @@ async fetch(req, env) {
   const isStatic = STATIC_ROUTES.some(r => path===r || path.startsWith(r+"/"));
   if(path.length > 1 && !isStatic && !path.includes(".") && !path.startsWith("/u/")){
     return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-  }
+  }}

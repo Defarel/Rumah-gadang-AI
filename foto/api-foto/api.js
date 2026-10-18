@@ -33,17 +33,25 @@ export const FOTO_API = {
     }
 
     // IG PREVIEW BOS
-    if (path === "/api/ig-preview") {
-      const igUrl = url.searchParams.get("url") || "";
-      try {
-        const resp = await fetch(igUrl, { headers: { "User-Agent": "Mozilla/5.0 (iPhone) AppleWebKit" } });
-        const html = await resp.text();
-        let thumb = html.match(/property="og:image"\s+content="([^"]+)"/)?.[1] || "";
-        let username = html.match(/"username":"([^"]+)"/)?.[1] || igUrl.split("/")[3] || "minang";
-        thumb = thumb.replace(/&amp;/g, "&");
-        return new Response(JSON.stringify({ thumbnail: thumb, username, caption: "Dari @"+username }), { headers: cors });
-      } catch { return new Response(JSON.stringify({ error: "gagal" }), { headers: cors, status: 500 }); }
+if(url.pathname==="/api/ig-preview"){ 
+  let igUrl=url.searchParams.get("url")||""; 
+  try{ 
+    // COBA PAKAI MICROLINK BOS - ANTI BLOK IG!
+    let micro = await fetch("https://api.microlink.io/?url="+encodeURIComponent(igUrl));
+    let mjson = await micro.json();
+    let thumb = mjson.data?.image?.url || mjson.data?.logo?.url || "";
+    let username = igUrl.split("/")[3] || "minang";
+    let cap = mjson.data?.description || "Dari @"+username;
+    // Kalo microlink juga gagal, coba oembed IG
+    if(!thumb){
+      let oembed = await fetch("https://www.instagram.com/oembed/?url="+encodeURIComponent(igUrl));
+      let ojson = await oembed.json();
+      thumb = ojson.thumbnail_url || "";
+      username = ojson.author_name || username;
+      cap = ojson.title || cap;
     }
-    return null;
-  }
+    return new Response(JSON.stringify({thumbnail:thumb,username:username,caption:cap,linkIG:igUrl}),{headers:cors}); 
+  }catch(e){ 
+    return new Response(JSON.stringify({error:"gagal", thumbnail:"", username:"minang", caption:"IG ngeblok, upload manual Bos"}),{headers:cors}); 
+  } 
 }

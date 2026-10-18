@@ -1,5 +1,5 @@
 export const LOGO = "https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
-export const GLOBAL_VIDEOS = ["jNQXAC9IVRw","M7lc1UVf-VE","dQw4w9WgXcQ","9bZkp7q19f0","kJQP7kiw5Fk"];
+export const GLOBAL_VIDEOS = [];
 export const ADMIN_EMAILS = ["admin@rumahgadang-ai.my.id"];
 
 export function isAdmin(e){

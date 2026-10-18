@@ -42,7 +42,7 @@ box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 12px rgba(0,255,136,0.15)}
 </div>
 <div id=preview><img id=prevImg><span onclick="clearImg()">✕</span></div>
 <button class=btnKirim onclick="addTulis()">KIRIM</button>
-<input type=file id=fileIn accept="image/*" style="display:none">
+<input type=file id=fileIn accept=".txt" multiple style="display:none">
 </div>
 
 <div id=homeFeed style="padding:10px;color:#666">Loading Bos...</div>

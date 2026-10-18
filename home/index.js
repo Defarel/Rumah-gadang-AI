@@ -55,15 +55,25 @@ const LOGO_FALLBACK="https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
 const ADMIN_EMAILS=["admin@rumahgadang-ai.my.id","naura@rumahgadang-ai.my.id"];
 let selectedImg="";
 function getEmail(){
-  // FIX BOS: cek 2 tempat Bos biar login admin Bos kedetek Bos!
   let e = localStorage.getItem('rg_email')||localStorage.getItem('user_email')||"";
   return e.toLowerCase().trim();
 }
-function getName(){ return localStorage.getItem('rg_name')||localStorage.getItem('rg_profile')&&JSON.parse(localStorage.getItem('rg_profile')).name||"Dunsanak"; }
-function getAvatar(){ return localStorage.getItem('rg_avatar')||LOGO_FALLBACK; }
+function getName(){ 
+  try{
+    let p = localStorage.getItem('rg_profile');
+    if(p){ let j=JSON.parse(p); if(j.name) return j.name; }
+  }catch{}
+  return localStorage.getItem('rg_name')||"Dunsanak"; 
+}
+function getAvatar(){ 
+  try{
+    let p = localStorage.getItem('rg_profile');
+    if(p){ let j=JSON.parse(p); if(j.picture) return j.picture; }
+  }catch{}
+  return localStorage.getItem('rg_avatar')||LOGO_FALLBACK; 
+}
 function isAdmin(){ return ADMIN_EMAILS.includes(getEmail()); }
 function clearImg(){ selectedImg=""; document.getElementById('preview').style.display='none'; document.getElementById('prevImg').src=""; document.getElementById('fileIn').value=""; }
-
 function updateLogin(){
   let email = getEmail();
   let btn = document.getElementById('loginBtn');
@@ -72,29 +82,44 @@ function updateLogin(){
     btn.style.background = isAdmin() ? '#00ff88' : '#fff';
   }
 }
-
 document.getElementById('fileIn').addEventListener('change',function(e){
  let f=e.target.files[0]; if(!f) return;
  if(f.size>4*1024*1024){alert("Max 4MB Bos!");return;}
  let r=new FileReader();
- r.onload=function(ev){ selectedImg=ev.target.result; document.getElementById('prevImg').src=selectedImg; document.getElementById('preview').style.display='block'; };
+ r.onload=function(ev){ 
+   // BOS! KOMPRES OTOMATIS BOS BIAR BISA KIRIM BOS!
+   let img=new Image();
+   img.onload=function(){
+     let canvas=document.createElement('canvas');
+     let max=600;
+     let w=img.width,h=img.height;
+     if(w>max||h>max){ if(w>h){ h*=max/w; w=max; } else { w*=max/h; h=max; } }
+     canvas.width=w; canvas.height=h;
+     canvas.getContext('2d').drawImage(img,0,0,w,h);
+     selectedImg=canvas.toDataURL('image/jpeg',0.6);
+     document.getElementById('prevImg').src=selectedImg;
+     document.getElementById('preview').style.display='block';
+   };
+   img.src=ev.target.result;
+ };
  r.readAsDataURL(f);
 });
-
 async function loadTulis(){
  try{
   let r=await fetch('/api/tulis'); let d=await r.json();
   let h=document.getElementById('homeFeed');
   if(!d.length){ h.innerHTML='<div style="text-align:center;padding:40px;color:#777">Belum ada tulisan Bos</div>'; return;}
   let admin=isAdmin();
-  let email = getEmail();
   h.innerHTML=d.map(x=>{
-   let img = x.tulisImg||x.url||"";
-   return '<div class=post id="post-'+x.id+'"><img class=post-av src="'+(x.picture||LOGO_FALLBACK)+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=post-body><div><span class=post-name>'+(x.name||'Anonim')+'</span><span class=post-time> • '+new Date(x.time).toLocaleString()+'</span></div><div class=post-text>'+(x.text||'')+'</div>'+(img?'<div class=post-img><img src="'+img+'" loading=lazy></div>':'')+'<div class=like-bar><span class=btn-like>❤️ '+(x.likes||0)+'</span><span class=btn-like>💬 Komen</span>'+(admin?'<button class=del onclick="hapusPost('+x.id+')">HAPUS</button>':'')+'</div></div></div>';
+   let isi = x.isi || x.text || x.judul || "";
+   let img = x.picture || x.tulisImg || x.url || "";
+   let waktu = x.created_at ? new Date(x.created_at).toLocaleString() : (x.time ? new Date(x.time).toLocaleString() : "");
+   let nama = x.email ? x.email.split('@')[0] : (x.name||'Anonim');
+   let av = LOGO_FALLBACK;
+   return '<div class=post id="post-'+x.id+'"><img class=post-av src="'+av+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=post-body><div><span class=post-name>'+nama+'</span><span class=post-time> • '+waktu+'</span></div><div class=post-text>'+isi+'</div>'+(img?'<div class=post-img><img src="'+img+'" loading=lazy></div>':'')+'<div class=like-bar><span class=btn-like>❤️ '+(x.likes||0)+'</span><span class=btn-like>💬 Komen</span>'+(admin?'<button class=del onclick="hapusPost(\\''+x.id+'\\')">HAPUS</button>':'')+'</div></div></div>';
   }).join('');
  }catch(e){ document.getElementById('homeFeed').innerHTML='Error Bos: '+e.message; }
 }
-
 async function addTulis(){
  let txt=document.getElementById('tulisIn').value.trim();
  if(!txt && !selectedImg){ alert("Tulis dulu Bos!"); return; }
@@ -102,13 +127,12 @@ async function addTulis(){
  if(!email){ alert("Login dulu Bos di Akun Bos!"); location.href='/akun'; return; }
  let btn=document.querySelector('.btnKirim'); btn.innerText="MENGIRIM..."; btn.disabled=true;
  try{
-  // FIX BOS: pakai /api/tulis Bos biar masuk DB Bos!
-  await fetch('/api/tulis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,user_email:email,name:getName(),picture:getAvatar(),tulisImg:selectedImg,time:Date.now()})});
+  // BOS! INI YANG BENAR BOS! PAKAI isi, email, picture BOS!
+  await fetch('/api/tulis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({isi:txt,email:email,picture:selectedImg})});
   document.getElementById('tulisIn').value=''; clearImg(); loadTulis();
  }catch(e){ alert("Gagal Bos: "+e.message); }
  btn.innerText="KIRIM"; btn.disabled=false;
 }
-
 async function hapusPost(id){
  if(!confirm("Hapus postingan ini Bos?")) return;
  let email = getEmail();
@@ -122,11 +146,9 @@ async function hapusPost(id){
    let d = await r.json();
    if(d.error){ alert(d.error); return; }
    document.getElementById('post-'+id)?.remove();
-   // hapus juga di list Bos
    loadTulis();
  }catch(e){ alert("Error hapus Bos: "+e.message); }
 }
-
 updateLogin();
 loadTulis();
 <\/script></body></html>

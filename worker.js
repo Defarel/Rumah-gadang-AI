@@ -26,20 +26,56 @@ export default {
 
     try{
       if(env.DB){
+        // BOS! INI YANG BENAR BOS! ADA EMAIL + PICTURE BOS!
+        await env.DB.prepare(`CREATE TABLE IF NOT EXISTS tulisan (
+          id TEXT PRIMARY KEY, 
+          email TEXT,
+          judul TEXT, 
+          isi TEXT, 
+          picture TEXT,
+          created_at INTEGER
+        )`).run();
+        
         await env.DB.prepare("CREATE TABLE IF NOT EXISTS local_videos (id TEXT PRIMARY KEY, created_at INTEGER)").run();
         await env.DB.prepare("CREATE TABLE IF NOT EXISTS blocked_videos (id TEXT PRIMARY KEY)").run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS profiles (email TEXT PRIMARY KEY, name TEXT, bio TEXT, picture TEXT)").run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, username TEXT, picture TEXT)").run();
+        
+        // BOS! INI ADA USERNAME BOS!
+        await env.DB.prepare(`CREATE TABLE IF NOT EXISTS profiles (
+          email TEXT PRIMARY KEY, 
+          username TEXT,
+          name TEXT, 
+          bio TEXT, 
+          picture TEXT
+        )`).run();
+        
+        await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (
+          email TEXT PRIMARY KEY, 
+          username TEXT,
+          name TEXT, 
+          picture TEXT,
+          created_at INTEGER
+        )`).run();
+        
+        // BOS! BUAT 2 TABEL BOS BIAR FOLLOW GAK ERROR BOS!
         await env.DB.prepare("CREATE TABLE IF NOT EXISTS followers (follower_id TEXT, following_id TEXT, PRIMARY KEY (follower_id, following_id))").run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS tulisan (id TEXT PRIMARY KEY, judul TEXT, isi TEXT, created_at INTEGER)").run();
+        await env.DB.prepare("CREATE TABLE IF NOT EXISTS follows (follower_id TEXT, following_id TEXT, PRIMARY KEY (follower_id, following_id))").run();
+
+        // BOS! TAMBAH KOLOM KALAU TABEL LAMA BOS!
+        try{ await env.DB.prepare("ALTER TABLE tulisan ADD COLUMN email TEXT").run(); }catch(e){}
+        try{ await env.DB.prepare("ALTER TABLE tulisan ADD COLUMN picture TEXT").run(); }catch(e){}
+        try{ await env.DB.prepare("ALTER TABLE tulisan ADD COLUMN judul TEXT").run(); }catch(e){}
+        try{ await env.DB.prepare("ALTER TABLE profiles ADD COLUMN username TEXT").run(); }catch(e){}
+        try{ await env.DB.prepare("ALTER TABLE profiles ADD COLUMN picture TEXT").run(); }catch(e){}
+        try{ await env.DB.prepare("ALTER TABLE profiles ADD COLUMN bio TEXT").run(); }catch(e){}
+        try{ await env.DB.prepare("ALTER TABLE users ADD COLUMN username TEXT").run(); }catch(e){}
+        try{ await env.DB.prepare("ALTER TABLE users ADD COLUMN picture TEXT").run(); }catch(e){}
       }
-    }catch(e){}
+    }catch(e){ console.log("DB Error Bos:", e.message); }
 
     let r;
     r = await SITEMAP_API.handle(req, env, url);
     if(r) return r;
 
-    // BOS! API DULU BOS!
     if(path.startsWith('/api/')){
       r = await TULIS_API.handle(req, env, url, cors);
       if(r) return r;
@@ -52,11 +88,9 @@ export default {
       r = await AKUN_API.handle(req, env, url, cors);
       if(r) return r;
       
-      // BOS! JANGAN RETURN [] BOS! RETURN 404 BOS BIAR KETAHUAN BOS!
       return new Response(JSON.stringify({error:"API not found: "+path}), {status:404, headers: cors});
     }
 
-    // BOS! HALAMAN HTML BOS!
     if(path === "/" || path === "/home") {
       return new Response(HOME_HTML, {headers: {'Content-Type':'text/html'}});
     }
@@ -75,10 +109,9 @@ export default {
     if(path.startsWith("/akun") || path.startsWith("/a/") || path === "/a") {
       return new Response(AKUN_HTML, {headers: {'Content-Type':'text/html'}});
     }
-    // BOS! UNTUK @username BOS! MISAL /naura BOS!
     if(path.length > 1 && !path.includes(".") && !path.startsWith("/api")){
       let username = path.replace("/","").split("/")[0].toLowerCase();
-      let blocked = ["foto","video","ai","kantor","tulis","api","sitemap","robots"];
+      let blocked = ["foto","video","ai","kantor","tulis","api","sitemap","robots","home"];
       if(!blocked.includes(username)){
         return new Response(AKUN_HTML, {headers: {'Content-Type':'text/html'}});
       }

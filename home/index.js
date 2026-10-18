@@ -1,9 +1,98 @@
-export const HOME_HTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rumah Gadang AI</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#000;color:#fff;font-family:sans-serif;padding-bottom:80px}.top{border:2px solid #0f0;display:flex;justify-content:space-between;padding:10px}.box{border-left:2px solid #0f0;border-right:2px solid #0f0;border-bottom:2px solid #0f0;padding:12px}.row{display:flex;gap:8px}.row input{flex:1;padding:14px;border-radius:14px;border:2px solid #0f0;background:#111;color:#fff}.btn{width:52px;background:#222;border:2px solid #0f0;border-radius:14px;color:#fff;font-size:28px}.kirim{width:100%;margin-top:10px;padding:14px;background:#0f0;color:#000;font-weight:800;border-radius:14px;border:none}#list{padding:14px}.item{border:1px solid #222;border-left:3px solid #0f0;padding:10px;margin-bottom:10px;border-radius:10px;background:#0f0f0f}</style></head><body>
-<div class="top"><b><span style="color:#0f0">Rumah</span> Gadang AI</b><div style="background:#fff;color:#000;padding:4px 12px;border-radius:20px">sp.fc</div></div>
-<div class="box"><div class="row"><input id="tulisInput" placeholder="Tulis disini..."><button class="btn" onclick="document.getElementById('f').click()">+</button><input type="file" id="f" hidden accept="image/*"></div><img id="prev" style="display:none;width:100%;margin-top:10px;border-radius:10px"><button class="kirim" onclick="kirim()">KIRIM</button></div>
-<div id="list">Loading...</div>
+export const HOME_HTML = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{background:#000;color:#fff;font-family:sans-serif}
+#app{max-width:520px;margin:0 auto;background:#000;min-height:100vh;padding-bottom:80px;
+border-left:2px solid #00ff88;border-right:2px solid #00ff88;border-bottom:2px solid #00ff88;
+box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 12px rgba(0,255,136,0.15)}
+.top{padding:12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #111;position:sticky;top:0;background:#000;z-index:10}
+.logo{width:36px;height:36px;border-radius:50%;border:2px solid #00ff88;object-fit:cover;box-shadow:0 0 8px #00ff88}
+.box{padding:12px;background:#0a0a0a;border-bottom:1px solid #222}
+.inputRow{display:flex;gap:8px;align-items:center}
+.txt{flex:1;background:#111;border:2px solid #00ff88;color:#fff;padding:14px 16px;border-radius:14px;font-size:15px;outline:none;box-shadow:0 0 10px rgba(0,255,136,0.5), inset 0 0 6px rgba(0,255,136,0.1)}
+.txt::placeholder{color:#aaa}
+.txt:focus{border-color:#00ff88;box-shadow:0 0 15px rgba(0,255,136,0.8)}
+.btnPlus{width:48px;height:48px;background:#222;border:1px solid #333;color:#fff;border-radius:12px;font-size:28px;font-weight:900;display:grid;place-items:center;cursor:pointer;flex-shrink:0}
+.btnPlus:active{background:#00ff88;color:#000}
+.btnKirim{width:100%;margin-top:10px;background:#00ff88;color:#000;border:0;padding:14px;border-radius:14px;font-weight:900;font-size:15px;cursor:pointer;box-shadow:0 0 12px rgba(0,255,136,0.6)}
+#preview{margin-top:10px;display:none;position:relative}
+#preview img{width:100%;border-radius:12px;max-height:320px;object-fit:cover;border:1px solid #00ff88}
+#preview span{position:absolute;top:8px;right:8px;background:#000;color:#fff;padding:6px 10px;border-radius:20px;cursor:pointer;border:1px solid #333}
+.post{padding:14px;border-bottom:1px solid #151515;display:flex;gap:10px}
+.post-av{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid #333;flex-shrink:0}
+.post-body{flex:1;min-width:0}
+.post-name{font-weight:800;font-size:14px;color:#fff}
+.post-time{font-size:11px;color:#888;margin-left:6px}
+.post-text{margin-top:6px;font-size:14px;line-height:1.5;color:#fff;white-space:pre-wrap;word-break:break-word}
+.post-img{margin-top:10px;border-radius:12px;overflow:hidden;border:1.5px solid #222}
+.post-img img{width:100%;display:block}
+.like-bar{margin-top:10px;display:flex;gap:8px}
+.btn-like{background:#111;border:1px solid #222;color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer}
+.del{background:#ff1a1a;color:#fff;border:0;padding:6px 12px;border-radius:20px;font-size:11px;cursor:pointer;margin-left:8px}
+.bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99;box-shadow:0 -4px 12px rgba(0,255,136,0.3)}
+.bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#fff}
+</style></head><body>
+<div id=app>
+<div class=top><div style="display:flex;gap:10px;align-items:center"><img src="https://i.ibb.co/r2gL8YJB/1791014451654.jpg" class=logo><b>RUMAH GADANG AI</b></div><button onclick="location.href='/akun'" style="background:#fff;color:#000;border:0;padding:6px 14px;border-radius:20px;font-weight:800;font-size:12px">LOGIN</button></div>
+
+<div class=box>
+<div class=inputRow>
+<input id=tulisIn class=txt placeholder="Tulis disini...">
+<button class=btnPlus onclick="document.getElementById('fileIn').click()">+</button>
+</div>
+<div id=preview><img id=prevImg><span onclick="clearImg()">✕</span></div>
+<button class=btnKirim onclick="addTulis()">KIRIM</button>
+<input type=file id=fileIn accept="image/*" style="display:none">
+</div>
+
+<div id=homeFeed style="padding:10px;color:#666">Loading Bos...</div>
+</div>
+
+<div class=bot><a href="/" class=on>🏠<br><span style="font-size:10px">Home</span></a><a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a><a href="/video">🎬<br><span style="font-size:10px">Video</span></a><a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a><a href="/ai">🤖<br><span style="font-size:10px">AI</span></a><a href="/akun">👤<br><span style="font-size:10px">Akun</span></a></div>
+
 <script>
-let b64="";document.getElementById('f').addEventListener('change',e=>{let r=new FileReader();r.onload=x=>{b64=x.target.result;let p=document.getElementById('prev');p.src=b64;p.style.display='block'};r.readAsDataURL(e.target.files[0])});
-async function kirim(){let i=document.getElementById('tulisInput');let t=i.value.trim();if(!t&&!b64)return alert('Tulis dulu');let btn=document.querySelector('.kirim');btn.innerText='MENGIRIM...';try{let res=await fetch('/api/tulis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({isi:t,email:localStorage.getItem('email')||'admin@rumahgadang-ai.my.id',picture:b64})});let j=await res.json();if(j.ok){i.value='';b64='';document.getElementById('prev').style.display='none';load()}}catch(e){alert(e.message)}btn.innerText='KIRIM'}
-async function load(){let c=document.getElementById('list');try{let r=await fetch('/api/tulis?'+Date.now());let d=await r.json();let l=Array.isArray(d)?d:(d.results||[]);if(!l.length){c.innerHTML='Belum ada tulisan Bos';return}c.innerHTML=l.map(x=>'<div class=item><div style=color:#0f0;font-size:11px>'+(x.email||'')+'</div><div>'+(x.isi||x.text||'')+'</div>'+(x.picture?'<img src="'+x.picture+'" style="width:100%;margin-top:8px;border-radius:8px">':'')+'</div>').join('')}catch(e){c.innerHTML='Error: '+e.message}}load();
-</script></body></html>`;
+const LOGO_FALLBACK="https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
+const ADMIN_EMAILS=["admin@rumahgadang-ai.my.id","naura@rumahgadang-ai.my.id"];
+let selectedImg="";
+function getEmail(){return (localStorage.getItem('rg_email')||"").toLowerCase().trim();}
+function getName(){return localStorage.getItem('rg_name')||"Dunsanak";}
+function getAvatar(){return localStorage.getItem('rg_avatar')||LOGO_FALLBACK;}
+function isAdmin(){return ADMIN_EMAILS.includes(getEmail());}
+function clearImg(){selectedImg="";document.getElementById('preview').style.display='none';document.getElementById('prevImg').src="";document.getElementById('fileIn').value="";}
+document.getElementById('fileIn').addEventListener('change',function(e){
+ let f=e.target.files[0]; if(!f) return;
+ if(f.size>4*1024*1024){alert("Max 4MB Bos!");return;}
+ let r=new FileReader();
+ r.onload=function(ev){ selectedImg=ev.target.result; document.getElementById('prevImg').src=selectedImg; document.getElementById('preview').style.display='block'; };
+ r.readAsDataURL(f);
+});
+async function loadTulis(){
+ try{
+  let r=await fetch('/api/tulis'); let d=await r.json();
+  let h=document.getElementById('homeFeed');
+  if(!d.length){ h.innerHTML='<div style="text-align:center;padding:40px;color:#777">Belum ada tulisan Bos</div>'; return;}
+  let admin=isAdmin();
+  h.innerHTML=d.map(x=>{
+   return '<div class=post id="post-'+x.id+'"><img class=post-av src="'+(x.picture||LOGO_FALLBACK)+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=post-body><div><span class=post-name>'+(x.name||'Anonim')+'</span><span class=post-time> • '+new Date(x.time).toLocaleString()+'</span></div><div class=post-text>'+(x.text||'')+'</div>'+(x.tulisImg?'<div class=post-img><img src="'+x.tulisImg+'" loading=lazy></div>':'')+'<div class=like-bar><span class=btn-like>❤️ '+(x.likes||0)+'</span><span class=btn-like>💬 Komen</span>'+(admin?'<button class=del onclick="hapusPost('+x.id+')">HAPUS</button>':'')+'</div></div></div>';
+  }).join('');
+ }catch(e){ document.getElementById('homeFeed').innerHTML='Error Bos: '+e.message; }
+}
+async function addTulis(){
+ let txt=document.getElementById('tulisIn').value.trim();
+ if(!txt && !selectedImg){ alert("Tulis dulu Bos!"); return; }
+ let btn=document.querySelector('.btnKirim'); btn.innerText="MENGIRIM..."; btn.disabled=true;
+ try{
+  await fetch('/api/tulis/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,email:getEmail()||'anon@rg.id',name:getName(),picture:getAvatar(),tulisImg:selectedImg})});
+  document.getElementById('tulisIn').value=''; clearImg(); loadTulis();
+ }catch(e){ alert("Gagal Bos: "+e.message); }
+ btn.innerText="KIRIM"; btn.disabled=false;
+}
+async function hapusPost(id){
+ if(!confirm("Hapus Bos?")) return;
+ await fetch('/api/tulis/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});
+ await fetch('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'tulis',id:id,email:getEmail()})});
+ document.getElementById('post-'+id)?.remove();
+}
+loadTulis();
+<\/script></body></html>
+`;

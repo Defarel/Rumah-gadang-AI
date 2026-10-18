@@ -1,114 +1,18 @@
-import { LOGO, GLOBAL_VIDEOS, ADMIN_EMAILS } from './config.js';
-import { HOME_HTML } from './home/index.js';
-import { AI_HTML } from './ai/index.js';
-import { FOTO_HTML } from './foto/index.js';
-import { VIDEO_HTML } from './video/index.js';
-import { KANTOR_HTML } from './kantor/index.js';
-import { AKUN_HTML } from './akun/index.js';
-import { AI_API } from './ai/api-ai/api.js';
-import { AKUN_API } from './akun/api-akun/api.js';
-import { FOTO_API } from './foto/api-foto/api.js';
-import { TULIS_API } from './home/api-tulis/api.js';
-import { VIDEO_API } from './video/api-video/api.js';
-import { SITEMAP_API } from './api-sitemap/index.js';
-
+import { HOME_HTML } from "./home/index.js";
 export default {
-  async fetch(req, env) {
-    const url = new URL(req.url);
-    const path = url.pathname;
-    const cors = {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET,POST,OPTIONS,DELETE',
-      'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Email'
-    };
-    if(req.method === "OPTIONS") return new Response("", {headers: cors});
-
-    try{
-      if(env.DB){
-        // MIGRASI AMAN - PINDAHIN BERITA LAMA, JANGAN HAPUS
-        try{
-          let cek = await env.DB.prepare("SELECT sql FROM sqlite_master WHERE name='tulisan'").first();
-          if(cek && cek.sql && !cek.sql.includes("email")){
-            await env.DB.prepare(`CREATE TABLE IF NOT EXISTS tulisan_new (
-              id TEXT PRIMARY KEY,
-              email TEXT,
-              isi TEXT,
-              judul TEXT,
-              picture TEXT,
-              created_at INTEGER,
-              name TEXT,
-              text TEXT,
-              tulisImg TEXT,
-              time INTEGER
-            )`).run();
-            await env.DB.prepare(`INSERT OR IGNORE INTO tulisan_new (id, isi, judul, created_at, text, time)
-              SELECT id, isi, judul, created_at, isi, created_at FROM tulisan`).run();
-            await env.DB.prepare("DROP TABLE tulisan").run();
-            await env.DB.prepare("ALTER TABLE tulisan_new RENAME TO tulisan").run();
-          }
-        }catch(e){ console.log("Migrasi tulisan:", e.message); }
-
-        await env.DB.prepare(`CREATE TABLE IF NOT EXISTS tulisan (
-          id TEXT PRIMARY KEY,
-          email TEXT,
-          isi TEXT,
-          judul TEXT,
-          picture TEXT,
-          created_at INTEGER,
-          name TEXT,
-          text TEXT,
-          tulisImg TEXT,
-          time INTEGER
-        )`).run();
-
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS local_videos (id TEXT PRIMARY KEY, created_at INTEGER)").run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS blocked_videos (id TEXT PRIMARY KEY)").run();
-        await env.DB.prepare(`CREATE TABLE IF NOT EXISTS profiles (email TEXT PRIMARY KEY, username TEXT, name TEXT, bio TEXT, picture TEXT)`).run();
-        await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, username TEXT, name TEXT, picture TEXT, created_at INTEGER)`).run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS followers (follower_id TEXT, following_id TEXT, PRIMARY KEY (follower_id, following_id))").run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS follows (follower_id TEXT, following_id TEXT, PRIMARY KEY (follower_id, following_id))").run();
-
-        try{ await env.DB.prepare("ALTER TABLE tulisan ADD COLUMN email TEXT").run(); }catch{}
-        try{ await env.DB.prepare("ALTER TABLE tulisan ADD COLUMN picture TEXT").run(); }catch{}
-        try{ await env.DB.prepare("ALTER TABLE tulisan ADD COLUMN isi TEXT").run(); }catch{}
-        try{ await env.DB.prepare("ALTER TABLE tulisan ADD COLUMN created_at INTEGER").run(); }catch{}
-        try{ await env.DB.prepare("ALTER TABLE profiles ADD COLUMN username TEXT").run(); }catch{}
-        try{ await env.DB.prepare("ALTER TABLE profiles ADD COLUMN picture TEXT").run(); }catch{}
-      }
-    }catch(e){ console.log("DB Init Error:", e.message); }
-
-    let r;
-    r = await SITEMAP_API.handle(req, env, url);
-    if(r) return r;
-
-    if(path.startsWith('/api/')){
-      r = await TULIS_API.handle(req, env, url, cors);
-      if(r) return r;
-      r = await FOTO_API.handle(req, env, url, cors);
-      if(r) return r;
-      r = await VIDEO_API.handle(req, env, url, cors);
-      if(r) return r;
-      r = await AI_API.handle(req, env, url, cors);
-      if(r) return r;
-      r = await AKUN_API.handle(req, env, url, cors);
-      if(r) return r;
-      return new Response(JSON.stringify({error:"API not found"}), {status:404, headers: cors});
-    }
-
-    if(path === "/" || path === "/home") return new Response(HOME_HTML, {headers: {'Content-Type':'text/html'}});
-    if(path.startsWith("/video")) return new Response(VIDEO_HTML, {headers: {'Content-Type':'text/html'}});
-    if(path.startsWith("/foto")) return new Response(FOTO_HTML, {headers: {'Content-Type':'text/html'}});
-    if(path.startsWith("/ai")) return new Response(AI_HTML, {headers: {'Content-Type':'text/html'}});
-    if(path.startsWith("/kantor")) return new Response(KANTOR_HTML, {headers: {'Content-Type':'text/html'}});
-    if(path.startsWith("/akun") || path.startsWith("/a/") || path === "/a") return new Response(AKUN_HTML, {headers: {'Content-Type':'text/html'}});
-    
-    if(path.length > 1 && !path.includes(".") && !path.startsWith("/api")){
-      let u = path.replace("/","").split("/")[0].toLowerCase();
-      let blocked = ["foto","video","ai","kantor","tulis","api","sitemap","robots","home","icon.png","favicon.ico"];
-      if(!blocked.includes(u)) return new Response(AKUN_HTML, {headers: {'Content-Type':'text/html'}});
-    }
-
-    return new Response(HOME_HTML, {headers: {'Content-Type':'text/html'}});
+ async fetch(req, env) {
+  const url = new URL(req.url);
+  if (url.pathname === "/api/tulis") {
+   if (req.method === "POST") {
+    const b = await req.json();
+    const id = Date.now().toString();
+    await env.DB.prepare("INSERT INTO tulisan (id, isi, email, created_at) VALUES (?,?,?,?)").bind(id, b.isi||b.text||'', b.email||'admin', Date.now()).run();
+    return new Response(JSON.stringify({ok:true}), {headers:{'Content-Type':'application/json'}});
+   } else {
+    const {results} = await env.DB.prepare("SELECT * FROM tulisan ORDER BY created_at DESC LIMIT 100").all();
+    return new Response(JSON.stringify(results), {headers:{'Content-Type':'application/json'}});
+   }
   }
+  return new Response(HOME_HTML, {headers:{'Content-Type':'text/html'}});
+ }
 }

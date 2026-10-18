@@ -10,7 +10,7 @@ import { AKUN_HTML } from './akun/index.js';
 import { AI_API } from './ai/api-ai/api.js';
 import { AKUN_API } from './akun/api-akun/api.js';
 import { FOTO_API } from './foto/api-foto/api.js';
-import { TULIS_API } from './home/api-tulis/api.js'; // ini yang di foto Bos masih di dalam home
+import { TULIS_API } from './home/api-tulis/api.js';
 import { SITEMAP_API } from './api-sitemap/index.js';
 
 export default {
@@ -34,37 +34,43 @@ export default {
 
     // 2. API - OTAK (KUNCI 1-5)
     let apiRes = null;
-    
     apiRes = await AI_API.handle(req, env, url, cors);
     if (apiRes) return apiRes;
-    
     apiRes = await AKUN_API.handle(req, env, url, cors);
     if (apiRes) return apiRes;
-    
     apiRes = await FOTO_API.handle(req, env, url, cors);
     if (apiRes) return apiRes;
-    
     apiRes = await TULIS_API.handle(req, env, url, cors);
     if (apiRes) return apiRes;
 
-    // 3. TAMPILAN - HTML
-    if (path === '/ai' || path === '/ai/') {
+    // 3. TAMPILAN - HTML BOS! UDAH AKU LENGKAPIN BIAR GAK 404!
+    if (path === '/' || path === '/home' || path === '/home/') {
+      return new Response(HOME_HTML, { headers: { "Content-Type": "text/html;charset=utf-8" } });
+    }
+    if (path === '/ai' || path === '/ai/' || path.startsWith('/ai/')) {
       return new Response(AI_HTML, { headers: { "Content-Type": "text/html;charset=utf-8" } });
+    }
+    if (path === '/foto' || path === '/foto/' || path.startsWith('/foto/')) {
+      return new Response(FOTO_HTML, { headers: { "Content-Type": "text/html;charset=utf-8" } });
+    }
+    if (path === '/video' || path === '/video/' || path.startsWith('/video/')) {
+      return new Response(VIDEO_HTML, { headers: { "Content-Type": "text/html;charset=utf-8" } });
+    }
+    if (path === '/kantor' || path === '/kantor/' || path.startsWith('/kantor/')) {
+      return new Response(KANTOR_HTML, { headers: { "Content-Type": "text/html;charset=utf-8" } });
     }
     if (path === '/akun' || path === '/akun/' || path.startsWith('/u/')) {
       return new Response(AKUN_HTML, { headers: { "Content-Type": "text/html;charset=utf-8" } });
     }
-    if (path === '/foto' || path === '/foto/') {
-      return new Response(FOTO_HTML, { headers: { "Content-Type": "text/html;charset=utf-8" } });
-    }
 
-    // Kalau bukan halaman statis, anggap username
+    // Kalau ketik nama user langsung, misal rumahgadang-ai.my.id/naura
     const STATIC_ROUTES = ['/', '/foto', '/video', '/ai', '/akun', '/kantor', '/home', '/api', '/sitemap.xml', '/robots.txt'];
     const isStatic = STATIC_ROUTES.some(r => path === r || path.startsWith(r + "/"));
     if (path.length > 1 && !isStatic && !path.includes(".") && !path.startsWith("/u/")) {
       return new Response(AKUN_HTML, { headers: { "Content-Type": "text/html;charset=utf-8" } });
     }
 
-    return new Response("404 Bos - Halaman gak ada", { status: 404, headers: { "Content-Type": "text/html" } });
-  } // <- INI YANG HILANG TADI DI LINE 178 BOS!
-} // <- INI JUGA YANG HILANG BOS!
+    // JANGAN 404 LAGI BOS! KASIH HOME AJA BOS BIAR GAK PUTIH!
+    return new Response(HOME_HTML, { headers: { "Content-Type": "text/html;charset=utf-8" } });
+  }
+}

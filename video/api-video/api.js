@@ -1,12 +1,19 @@
-// KUNCI 3: VIDEO BOS
-import { GLOBAL_VIDEOS } from '../config.js';
 export const VIDEO_API = {
   async handle(req, env, url, cors) {
-    if(url.pathname==="/api/videos"){
-      let local=[];
-      try{ let r=await env.DB.prepare("SELECT id FROM local_videos ORDER BY created_at DESC").all(); local=r.results?.map(x=>x.id)||[]; }catch(e){}
-      let all=[...new Set([...local,...(GLOBAL_VIDEOS||[])])];
-      return new Response(JSON.stringify(all),{headers:cors});
+    if (!url.pathname.startsWith('/api/video')) return null;
+    if (req.method === 'GET') {
+      try {
+        const { results } = await env.DB.prepare("SELECT * FROM local_videos ORDER BY id DESC LIMIT 50").all();
+        return new Response(JSON.stringify(results || []), { headers: cors });
+      } catch (e) {
+        // Coba tabel videos Bos, kalau gak ada juga kasih kosong!
+        try {
+          const { results } = await env.DB.prepare("SELECT * FROM videos ORDER BY id DESC LIMIT 50").all();
+          return new Response(JSON.stringify(results || []), { headers: cors });
+        } catch {
+          return new Response(JSON.stringify([]), { headers: cors });
+        }
+      }
     }
     return null;
   }

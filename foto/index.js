@@ -75,7 +75,7 @@ input{width:100%;background:#0a0a0a;border:1px solid #333;color:#fff;padding:12p
 .thumbBox span{font-size:11px;color:#666;text-align:center;padding:10px}
 </style></head><body>
 <div id=app>
-<div class=top><b>RG FOTO</b><span style="font-size:10px;color:#00ff88;border:1px solid #00ff88;padding:2px 6px;border-radius:8px">NEON</span></div>
+<div class=top><b>RG FOTO</b><span style="font-size:10px;color:#00ff88;border:1px solid #00ff88;padding:2px 6px;border-radius:8px"></span></div>
 <div class=grid3 id=fg></div>
 <div class=fab onclick="toggleUp()">+</div>
 </div>

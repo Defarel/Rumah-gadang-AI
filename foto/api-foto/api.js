@@ -53,5 +53,4 @@ if(url.pathname==="/api/ig-preview"){
     return new Response(JSON.stringify({thumbnail:thumb,username:username,caption:cap,linkIG:igUrl}),{headers:cors}); 
   }catch(e){ 
     return new Response(JSON.stringify({error:"gagal", thumbnail:"", username:"minang", caption:"IG ngeblok, upload manual Bos"}),{headers:cors}); 
-  } 
-}
+  } } 

@@ -29,7 +29,7 @@ input:focus{border-color:#00ff88;box-shadow:0 0 8px rgba(0,255,136,0.5);outline:
 .bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#fff}
 </style></head><body>
 <div id=app>
-<div class=top><b>RG VIDEO</b><span style="font-size:11px;color:#00ff88">TikTok Auto 1 Suara Bos!</span></div>
+<div class=top><b>RG VIDEO</b><span style="font-size:11px;color:#00ff88"></span></div>
 <div id=vWrap></div>
 <div class=fab onclick="toggleUp()">+</div>
 </div>

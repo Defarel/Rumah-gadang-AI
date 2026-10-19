@@ -1,10 +1,3 @@
 name = "purple-firefly-d778"
 main = "worker.js"
 compatibility_date = "2024-01-01"
-
-[assets]
-directory = "./public"
-not_found_handling = "none"
-
-[vars]
-LOGO_FALLBACK = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png"

@@ -160,7 +160,23 @@ export const AKUN_API = {
           ).bind(cleanFollower, cleanFollowing, Date.now()).run();
           return new Response(JSON.stringify({ ok: true, status: "followed" }), { headers: h });
         }
-      }
+      
+      // --- 6. API UPDATE PROFIL ---
+if (path === "/api/akun/update" && req.method === "POST") {
+  let { email, name, picture } = await req.json();
+  let cleanEmail = (email || "").toLowerCase().trim();
+
+  if (!cleanEmail) {
+    return new Response(JSON.stringify({ ok: false, error: "Email tidak valid" }), { headers: h, status: 400 });
+  }
+}
+  // Update tabel users di database D1
+  await env.DB.prepare(
+    "UPDATE users SET name = COALESCE(?, name), picture = COALESCE(?, picture) WHERE LOWER(email) = ?"
+  ).bind(name || null, picture || null, cleanEmail).run();
+
+  return new Response(JSON.stringify({ ok: true }), { headers: h });
+}
 
     } catch (err) {
       return new Response(JSON.stringify({ ok: false, error: err.message }), { headers: h, status: 500 });

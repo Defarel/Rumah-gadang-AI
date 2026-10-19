@@ -4,11 +4,8 @@ export const HOME_HTML = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Rumah Gadang AI - Komunitas Minangkabau</title>
 <meta name="description" content="Rumah Gadang AI - Komunitas digital Minangkabau">
-<meta name="robots" content="index, follow">
 <link rel="icon" href="/icon.png">
 <link rel="canonical" href="https://www.rumahgadang-ai.my.id/">
-<meta property="og:image" content="/icon.png">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Rumah Gadang AI","url":"https://www.rumahgadang-ai.my.id","logo":"/icon.png"}</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{background:#000;color:#fff;font-family:sans-serif}
 #app{max-width:520px;margin:0 auto;background:#000;min-height:100vh;padding-bottom:80px;border-left:2px solid #00ff88;border-right:2px solid #00ff88;border-bottom:2px solid #00ff88;box-shadow:0 0 12px rgba(0,255,136,0.6)}
@@ -28,7 +25,7 @@ export const HOME_HTML = `<!DOCTYPE html>
 .bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99}.bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#fff}
 </style></head><body>
 <div id=app>
-<div class=top><div style="display:flex;gap:10px;align-items:center"><img src="/icon.png" class=logo><b>RUMAH GADANG AI</b></div><button id=topLoginBtn onclick="location.href='/akun'" style="background:#fff;color:#000;border:0;padding:6px 14px;border-radius:20px;font-weight:800;font-size:12px">LOGIN</button></div>
+<div class=top><div style="display:flex;gap:10px;align-items:center"><img src="/icon.png" class=logo><b>RUMAH GADANG AI</b></div><button id=topLoginBtn style="background:#fff;color:#000;border:0;padding:6px 14px;border-radius:20px;font-weight:800;font-size:12px">LOGIN</button></div>
 <div class=box>
 <div class=inputRow>
 <input id=tulisIn class=txt placeholder="Tulis disini...">
@@ -43,32 +40,38 @@ export const HOME_HTML = `<!DOCTYPE html>
 <div class=bot><a href="/" class=on>🏠<br><span style="font-size:10px">Home</span></a><a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a><a href="/video">🎬<br><span style="font-size:10px">Video</span></a><a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a><a href="/ai">🤖<br><span style="font-size:10px">AI</span></a><a href="/akun">👤<br><span style="font-size:10px">Akun</span></a></div>
 <script>
 const LOGO_FALLBACK="/icon.png";
-const ADMIN_EMAILS=["admin@rumahgadang-ai.my.id","naura@rumahgadang-ai.my.id"];
 let selectedImg="";
 
-// BOS: FIX SINKRON SAMA AKUN_HTML BOS - BACA user_email & rg_profile BOS
+// --- BOS INI KUNCI FIX NYA BOS ---
 function getEmail(){
   let e = localStorage.getItem("user_email") || localStorage.getItem("rg_email") || "";
-  // cek kalau ada di session juga
-  if(!e){ try{ let p=JSON.parse(localStorage.getItem("rg_profile")||"{}"); if(p.email) e=p.email; }catch{} }
+  if(!e){
+    try{
+      let p = JSON.parse(localStorage.getItem("rg_profile")||"{}");
+      if(p.email) e = p.email;
+    }catch{}
+  }
   return (e||"").toLowerCase().trim();
 }
 function getName(){
+  let n = localStorage.getItem("rg_name");
+  if(n) return n;
   try{
     let p=JSON.parse(localStorage.getItem("rg_profile")||"{}");
     if(p.name && p.name!=="Dunsanak") return p.name;
   }catch{}
-  return localStorage.getItem("rg_name") || getEmail().split('@')[0] || "Dunsanak";
+  return getEmail().split('@')[0] || "Dunsanak";
 }
 function getAvatar(){
+  let a = localStorage.getItem("rg_avatar");
+  if(a) return a;
   try{
     let p=JSON.parse(localStorage.getItem("rg_profile")||"{}");
     if(p.picture) return p.picture;
   }catch{}
-  return localStorage.getItem("rg_avatar") || LOGO_FALLBACK;
+  return LOGO_FALLBACK;
 }
 function isLogged(){ return !!getEmail() && getEmail().includes('@'); }
-function isAdmin(){ return ADMIN_EMAILS.includes(getEmail()); }
 function clearImg(){ selectedImg=""; document.getElementById('preview').style.display='none'; document.getElementById('prevImg').src=""; document.getElementById('fileIn').value=""; }
 
 function checkLoginUI(){
@@ -77,18 +80,19 @@ function checkLoginUI(){
   let plus=document.querySelector('.btnPlus');
   let kirim=document.querySelector('.btnKirim');
   let topBtn=document.getElementById('topLoginBtn');
+  let goAkun=()=>location.href='/akun';
+
   if(!logged){
     inp.placeholder="Login dulu Bos baru bisa tulis...";
-    let goAkun=()=>location.href='/akun';
     plus.onclick=goAkun; kirim.onclick=goAkun; inp.onclick=goAkun;
     kirim.style.opacity="0.6";
-    if(topBtn){ topBtn.innerText="LOGIN"; topBtn.style.background="#fff"; topBtn.onclick=goAkun; }
+    topBtn.innerText="LOGIN"; topBtn.style.background="#fff"; topBtn.onclick=goAkun;
   }else{
-    inp.placeholder="Tulis disini Bos...";
+    inp.placeholder="Tulis disini Bos... "+getName();
     plus.onclick=()=>document.getElementById('fileIn').click();
     kirim.onclick=addTulis; inp.onclick=null;
     kirim.style.opacity="1";
-    if(topBtn){ topBtn.innerText=getName().toUpperCase().slice(0,12); topBtn.style.background="#00ff88"; topBtn.onclick=()=>location.href='/akun'; }
+    topBtn.innerText=getName().toUpperCase().slice(0,12); topBtn.style.background="#00ff88"; topBtn.onclick=()=>location.href='/akun';
   }
 }
 
@@ -137,12 +141,15 @@ async function addTulis(){
  if(!txt && !selectedImg){ alert("Tulis dulu Bos!"); return; }
  let btn=document.querySelector('.btnKirim'); btn.innerText="MENGIRIM..."; btn.disabled=true;
  try{
-  await fetch('/api/tulis/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,email:getEmail(),name:getName(),picture:getAvatar(),tulisImg:selectedImg})});
+  let res=await fetch('/api/tulis/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,email:getEmail(),name:getName(),picture:getAvatar(),tulisImg:selectedImg})});
+  let j=await res.json();
+  if(!j.ok){ alert(j.error||"Gagal Bos"); location.href='/akun'; return; }
   document.getElementById('tulisIn').value=''; clearImg(); loadTulis();
  }catch(e){ alert("Gagal Bos: "+e.message); }
  btn.innerText="KIRIM"; btn.disabled=false;
 }
 
+window.addEventListener('storage', checkLoginUI);
 checkLoginUI();
 loadTulis();
 <\/script></body></html>

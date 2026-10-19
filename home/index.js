@@ -8,73 +8,54 @@ export const HOME_HTML = `<!DOCTYPE html>
 <link rel="icon" href="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png">
 <link rel="canonical" href="https://www.rumahgadang-ai.my.id/">
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 body { background: #000; color: #fff; display: flex; justify-content: center; }
 
 #app {
   width: 100%;
-  max-width: 500px;
-  background: #000;
+  max-width: 520px;
   min-height: 100vh;
   padding-bottom: 90px;
+  background: #000;
   border-left: 2px solid #00ff88;
   border-right: 2px solid #00ff88;
   border-bottom: 2px solid #00ff88;
   box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
 }
 
-/* Header Navbar */
-.top-nav {
+.top {
+  position: sticky;
+  top: 0;
+  background: #000;
+  z-index: 10;
   padding: 12px 16px;
+  border-bottom: 1px solid #111;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #000;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  border-bottom: 1px solid #111;
 }
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.brand img {
+.logo {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   border: 2px solid #00ff88;
-  box-shadow: 0 0 8px rgba(0, 255, 136, 0.8);
   object-fit: cover;
-}
-.brand span {
-  font-weight: 900;
-  font-size: 16px;
-  letter-spacing: 0.5px;
-}
-.btn-login {
-  background: #fff;
-  color: #000;
-  border: none;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-weight: 800;
-  font-size: 13px;
-  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.8);
 }
 
-/* Input Form Box */
+/* Form Input Postingan */
 .create-box {
   padding: 14px;
-  border-bottom: 2px solid #00ff88;
   background: #000;
+  border-bottom: 2px solid #00ff88;
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
 }
 .input-row {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  align-items: center;
 }
-.input-txt {
+.txt {
   flex: 1;
   background: #0a0a0a;
   border: 2px solid #00ff88;
@@ -85,8 +66,8 @@ body { background: #000; color: #fff; display: flex; justify-content: center; }
   outline: none;
   box-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
 }
-.input-txt::placeholder { color: #888; }
-.btn-add-file {
+.txt::placeholder { color: #888; }
+.btnPlus {
   width: 46px;
   height: 46px;
   background: #181818;
@@ -99,12 +80,12 @@ body { background: #000; color: #fff; display: flex; justify-content: center; }
   cursor: pointer;
   flex-shrink: 0;
 }
-.btn-submit {
+.btnKirim {
   width: 100%;
   margin-top: 10px;
   background: #00ff88;
   color: #000;
-  border: none;
+  border: 0;
   padding: 12px;
   border-radius: 14px;
   font-weight: 900;
@@ -112,178 +93,148 @@ body { background: #000; color: #fff; display: flex; justify-content: center; }
   cursor: pointer;
   box-shadow: 0 0 12px rgba(0, 255, 136, 0.6);
 }
-#preview {
-  margin-top: 10px;
-  display: none;
-  position: relative;
-}
-#preview img {
-  width: 100%;
-  border-radius: 12px;
-  max-height: 250px;
-  object-fit: cover;
-  border: 1px solid #00ff88;
-}
-#preview .close-prev {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(0,0,0,0.8);
-  color: #fff;
-  padding: 4px 10px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 1px solid #444;
-}
 
 /* Post Cards */
-.feed-container {
-  padding: 10px;
-}
-.post-card {
-  background: #080808;
-  border: 2px solid #00ff88;
-  border-radius: 16px;
+.post {
   padding: 14px;
-  margin-bottom: 14px;
+  display: flex;
+  gap: 10px;
+  background: #080808;
+  margin: 10px 8px;
+  border-radius: 16px;
+  border: 2px solid #00ff88;
   box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
 }
-.post-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.post-avatar {
+.post-av {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  border: 1.5px solid #00ff88;
   object-fit: cover;
+  border: 1.5px solid #00ff88;
+  flex-shrink: 0;
 }
-.post-author {
+.post-body {
+  flex: 1;
+  min-width: 0;
+}
+.post-name {
   font-weight: 800;
-  font-size: 15px;
+  font-size: 14px;
   color: #fff;
 }
-.post-date {
-  font-size: 12px;
+.post-time {
+  font-size: 11px;
   color: #888;
-  font-weight: normal;
   margin-left: 6px;
 }
-.post-content {
+.post-text {
+  margin-top: 6px;
   font-size: 14px;
   line-height: 1.5;
   color: #eee;
   white-space: pre-wrap;
   word-break: break-word;
-  margin-bottom: 10px;
 }
-.post-image-box {
+.post-img {
+  margin-top: 10px;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid #222;
-  margin-bottom: 12px;
 }
-.post-image-box img {
+.post-img img {
   width: 100%;
   display: block;
-  max-height: 380px;
+  max-height: 360px;
   object-fit: cover;
 }
 
-/* Post Actions Bar */
-.post-actions {
+.like-bar {
+  margin-top: 10px;
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
   align-items: center;
 }
-.btn-action {
+.btn-like {
   background: #121212;
   border: 1px solid #2a2a2a;
   color: #fff;
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 12px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 6px;
   cursor: pointer;
+  font-weight: 600;
 }
-.btn-delete {
+.del {
   background: #ff1a1a;
   color: #fff;
-  border: none;
+  border: 0;
   padding: 6px 14px;
   border-radius: 20px;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
   cursor: pointer;
+  font-weight: 800;
   margin-left: auto;
 }
 
-/* Bottom Nav Bar */
-.bottom-nav {
+/* Bottom Navigation */
+.bot {
   position: fixed;
   bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: 100%;
-  max-width: 500px;
+  max-width: 520px;
   background: #000;
   border-top: 2px solid #00ff88;
   display: flex;
-  justify-content: space-around;
-  padding: 8px 0;
-  z-index: 999;
+  z-index: 99;
   box-shadow: 0 -4px 12px rgba(0,255,136,0.3);
 }
-.bottom-nav a {
+.bot a {
+  flex: 1;
+  text-align: center;
+  padding: 8px 0;
   color: #777;
   text-decoration: none;
-  text-align: center;
   font-size: 18px;
-  flex: 1;
 }
-.bottom-nav a.active { color: #fff; }
-.bottom-nav span { display: block; font-size: 10px; margin-top: 2px; }
+.bot a.on { color: #fff; }
+.bot a span { display: block; font-size: 10px; margin-top: 2px; }
 </style>
 </head>
 <body>
 
 <div id="app">
-  <!-- Top Bar -->
-  <div class="top-nav">
-    <div class="brand">
-      <img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png" alt="Logo">
-      <span>RUMAH GADANG AI</span>
+  <div class="top">
+    <div style="display:flex;gap:10px;align-items:center">
+      <img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png" class="logo">
+      <b>RUMAH GADANG AI</b>
     </div>
-    <button class="btn-login" onclick="location.href='/akun'">LOGIN</button>
+    <button onclick="location.href='/akun'" style="background:#fff;color:#000;border:0;padding:6px 16px;border-radius:20px;font-weight:800;font-size:12px;cursor:pointer">LOGIN</button>
   </div>
 
-  <!-- Create Post Box -->
+  <!-- Kotak Buat Postingan -->
   <div class="create-box">
     <div class="input-row">
-      <input type="text" id="postInput" class="input-txt" placeholder="Tulis disini...">
-      <button class="btn-add-file" onclick="document.getElementById('fileInput').click()">+</button>
+      <input id="tulisIn" class="txt" placeholder="Tulis disini...">
+      <button class="btnPlus" onclick="document.getElementById('tulisFile').click()">+</button>
     </div>
-    <div id="preview">
-      <img id="prevImg">
-      <span class="close-prev" onclick="clearImage()">✕</span>
+    <div id="tulisPreview" style="display:none;margin-top:10px;position:relative">
+      <img id="tulisPreviewImg" style="width:100%;max-height:220px;border-radius:12px;object-fit:cover;border:1px solid #00ff88">
+      <span onclick="clearPrev()" style="position:absolute;top:8px;right:8px;background:#000;color:#fff;padding:4px 10px;border-radius:50%;cursor:pointer;border:1px solid #333">✕</span>
     </div>
-    <button class="btn-submit" onclick="submitPost()">KIRIM</button>
-    <input type="file" id="fileInput" accept="image/*" style="display:none">
+    <button class="btnKirim" onclick="addTulis()">KIRIM</button>
+    <input id="tulisFile" type="file" accept="image/*" style="display:none">
   </div>
 
-  <!-- Feed D1 Stream -->
-  <div id="feedList" class="feed-container">
-    <div style="text-align:center; padding:30px; color:#888;">Memuat postingan...</div>
-  </div>
+  <!-- Feed Postingan dari D1 -->
+  <div id="homeFeed" style="padding:4px 0">Memuat postingan...</div>
 </div>
 
-<!-- Bottom Navigation Bar -->
-<div class="bottom-nav">
-  <a href="/" class="active">🏠<span>Home</span></a>
+<!-- Navigasi Bawah -->
+<div class="bot">
+  <a href="/" class="on">🏠<span>Home</span></a>
   <a href="/foto">🖼️<span>Foto</span></a>
   <a href="/video">🎬<span>Video</span></a>
   <a href="/kantor">🏢<span>Kantor</span></a>
@@ -293,162 +244,152 @@ body { background: #000; color: #fff; display: flex; justify-content: center; }
 
 <script>
 const DEFAULT_LOGO = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
+const ADMIN_EMAILS = ["admin@rumahgadang-ai.my.id", "naura@rumahgadang-ai.my.id", "defarel@gmail.com"];
 let selectedImageBase64 = "";
 
-// Cek Akun Login dari LocalStorage
-function getUserSession() {
-  return {
-    email: (localStorage.getItem('rg_email') || "").toLowerCase().trim(),
-    name: localStorage.getItem('rg_name') || "Dunsanak",
-    avatar: localStorage.getItem('rg_avatar') || DEFAULT_LOGO
-  };
+function getEmail() { return (localStorage.getItem('rg_email') || '').toLowerCase().trim(); }
+function getName() { return localStorage.getItem('rg_name') || 'Dunsanak'; }
+function getAvatar() { return localStorage.getItem('rg_avatar') || DEFAULT_LOGO; }
+function isAdminCheck() { return ADMIN_EMAILS.includes(getEmail()); }
+
+function clearPrev() {
+  selectedImageBase64 = '';
+  document.getElementById('tulisPreview').style.display = 'none';
+  document.getElementById('tulisPreviewImg').src = '';
+  document.getElementById('tulisFile').value = '';
 }
 
-// Reset pilihan gambar
-function clearImage() {
-  selectedImageBase64 = "";
-  document.getElementById('preview').style.display = 'none';
-  document.getElementById('prevImg').src = "";
-  document.getElementById('fileInput').value = "";
-}
-
-// Handler Pilih File Gambar
-document.getElementById('fileInput').addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (file.size > 4 * 1024 * 1024) {
-    alert("Ukuran gambar maksimal 4MB!");
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    selectedImageBase64 = ev.target.result;
-    document.getElementById('prevImg').src = selectedImageBase64;
-    document.getElementById('preview').style.display = 'block';
+// Compress & Preview Image
+document.getElementById('tulisFile')?.addEventListener('change', function(e) {
+  let f = e.target.files[0];
+  if(!f) return;
+  if(f.size > 4 * 1024 * 1024){ alert("Maksimal ukuran gambar 4MB!"); return; }
+  let rd = new FileReader();
+  rd.onload = function(ev){
+    let img = new Image();
+    img.onload = function(){
+      let c = document.createElement('canvas'); 
+      c.width = 600; 
+      c.height = 600 * img.height / img.width;
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      selectedImageBase64 = c.toDataURL('image/jpeg', 0.6);
+      document.getElementById('tulisPreviewImg').src = selectedImageBase64;
+      document.getElementById('tulisPreview').style.display = 'block';
+    };
+    img.src = ev.target.result;
   };
-  reader.readAsDataURL(file);
+  rd.readAsDataURL(f);
 });
 
-// Load Feed dari Database D1
-async function loadFeed() {
-  const feedContainer = document.getElementById('feedList');
+// Load Postingan D1
+async function loadTulis() {
   try {
-    const res = await fetch('/api/tulis');
-    if (!res.ok) throw new Error("Gagal terhubung ke database D1");
-    const posts = await res.json();
-
-    if (!Array.isArray(posts) || posts.length === 0) {
-      feedContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">Belum ada postingan D1</div>';
+    let r = await fetch('/api/tulis');
+    let d = await r.json();
+    let h = document.getElementById('homeFeed');
+    if(!h) return;
+    
+    if(!Array.isArray(d) || !d.length){
+      h.innerHTML = '<div style="padding:30px;text-align:center;color:#666">Belum ada tulisan Bos, jadi yang pertama Bos!</div>';
       return;
     }
-
-    const session = getUserSession();
-    feedContainer.innerHTML = posts.map(item => {
-      const avatar = item.picture || DEFAULT_LOGO;
-      const authorName = item.name || "Anonim";
-      const postDate = item.time ? new Date(item.time).toLocaleString('id-ID') : '';
-      const contentText = item.text || '';
-      const imageTag = item.tulisImg ? '<div class="post-image-box"><img src="' + item.tulisImg + '" loading="lazy"></div>' : '';
+    
+    let sessionEmail = getEmail();
+    h.innerHTML = d.map(x => {
+      let isOwner = sessionEmail && sessionEmail === (x.email || '').toLowerCase().trim();
+      let deleteBtn = (isOwner || isAdminCheck()) ? '<button class="del" onclick="delPost(' + x.id + ')">HAPUS</button>' : '';
+      let imgHtml = x.tulisImg ? '<div class="post-img"><img src="' + x.tulisImg + '" loading="lazy"></div>' : '';
+      let postDate = x.time ? new Date(x.time).toLocaleString('id-ID') : '';
       
-      // Tombol hapus jika milik user login atau admin
-      const isOwner = session.email && (session.email === (item.email || '').toLowerCase().trim());
-      const deleteBtn = isOwner ? '<button class="btn-delete" onclick="deletePost(' + item.id + ')">HAPUS</button>' : '';
-
-      return '<div class="post-card" id="post-' + item.id + '">' +
-        '<div class="post-header">' +
-          '<img class="post-avatar" src="' + avatar + '" onerror="this.src=\\'' + DEFAULT_LOGO + '\\'">' +
-          '<div>' +
-            '<span class="post-author">' + authorName + '</span>' +
-            '<span class="post-date">• ' + postDate + '</span>' +
+      return '<div class="post" id="post-' + x.id + '">' +
+        '<img class="post-av" src="' + (x.picture || DEFAULT_LOGO) + '" onerror="this.src=\\'' + DEFAULT_LOGO + '\\'">' +
+        '<div class="post-body">' +
+          '<div><span class="post-name">' + (x.name || 'Anonim') + '</span><span class="post-time">• ' + postDate + '</span></div>' +
+          '<div class="post-text">' + (x.text || '') + '</div>' +
+          imgHtml +
+          '<div class="like-bar">' +
+            '<span class="btn-like">❤️ ' + (x.likes || 0) + '</span>' +
+            '<span class="btn-like">💬 Komen</span>' +
+            deleteBtn +
           '</div>' +
-        '</div>' +
-        '<div class="post-content">' + contentText + '</div>' +
-        imageTag +
-        '<div class="post-actions">' +
-          '<button class="btn-action">❤️ ' + (item.likes || 0) + '</button>' +
-          '<button class="btn-action">💬 Komen</button>' +
-          deleteBtn +
         '</div>' +
       '</div>';
     }).join('');
-
-  } catch (err) {
-    feedContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#ff4444;">Error: ' + err.message + '</div>';
+  } catch(e) {
+    document.getElementById('homeFeed').innerHTML = '<div style="padding:20px;text-align:center;color:#ff4444">Gagal memuat feed D1</div>';
   }
 }
 
-// Kirim Postingan Baru ke Database D1
-async function submitPost() {
-  const session = getUserSession();
-  
-  if (!session.email) {
-    alert("Silakan login akun Anda terlebih dahulu untuk membuat postingan!");
+// Kirim Postingan Baru ke /api/tulis
+async function addTulis() {
+  let sessionEmail = getEmail();
+  if(!sessionEmail){
+    alert('Silakan login akun Anda terlebih dahulu!');
     location.href = '/akun';
     return;
   }
-
-  const textInput = document.getElementById('postInput');
-  const textContent = textInput.value.trim();
-
-  if (!textContent && !selectedImageBase64) {
-    alert("Tulis sesuatu atau pilih gambar terlebih dahulu!");
+  
+  let txt = document.getElementById('tulisIn').value.trim();
+  if(!txt && !selectedImageBase64){
+    alert('Tulis sesuatu atau pilih gambar terlebih dahulu!');
     return;
   }
-
-  const btnSubmit = document.querySelector('.btn-submit');
-  btnSubmit.innerText = "MENGIRIM...";
-  btnSubmit.disabled = true;
+  
+  let btn = document.querySelector('.btnKirim');
+  if(btn){ btn.innerText = "MENGIRIM..."; btn.disabled = true; }
 
   try {
-    const res = await fetch('/api/tulis', {
+    let res = await fetch('/api/tulis', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        text: textContent,
-        email: session.email,
-        name: session.name,
-        picture: session.avatar,
+        text: txt,
+        email: sessionEmail,
+        name: getName(),
+        picture: getAvatar(),
         tulisImg: selectedImageBase64
       })
     });
-
-    const result = await res.json().catch(() => ({}));
-
-    if (res.ok && (result.ok || result.success || !result.error)) {
-      textInput.value = '';
-      clearImage();
-      await loadFeed();
+    
+    let j = await res.json();
+    if(res.ok && (j.ok || j.success || !j.error)){
+      document.getElementById('tulisIn').value = '';
+      clearPrev();
+      await loadTulis();
     } else {
-      alert("Gagal posting: " + (result.error || result.message || "Gagal menyimpan ke D1"));
+      alert('Gagal: ' + (j.error || 'Gagal menyimpan postingan'));
     }
-  } catch (err) {
-    alert("Kesalahan jaringan: " + err.message);
+  } catch(e) {
+    alert('Kesalahan jaringan: ' + e.message);
   } finally {
-    btnSubmit.innerText = "KIRIM";
-    btnSubmit.disabled = false;
+    if(btn){ btn.innerText = "KIRIM"; btn.disabled = false; }
   }
 }
 
-// Hapus Postingan dari D1
-async function deletePost(id) {
-  if (!confirm("Apakah Anda yakin ingin menghapus postingan ini?")) return;
-  const session = getUserSession();
+// Hapus Postingan melalui /api/tulis/delete
+async function delPost(id) {
+  if(!confirm('Apakah Anda yakin ingin menghapus postingan ini?')) return;
   try {
-    const res = await fetch('/api/tulis/delete', {
+    let res = await fetch('/api/tulis/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: id, email: session.email })
+      body: JSON.stringify({ id: id, email: getEmail() })
     });
-    if (!res.ok) throw new Error("Gagal menghapus postingan");
-    document.getElementById('post-' + id)?.remove();
-  } catch (err) {
-    alert("Gagal menghapus: " + err.message);
+    let j = await res.json();
+    if(res.ok && (j.ok || j.success)){
+      document.getElementById('post-' + id)?.remove();
+    } else {
+      alert('Gagal menghapus: ' + (j.error || 'Terjadi kesalahan'));
+    }
+  } catch(e) {
+    alert('Kesalahan jaringan: ' + e.message);
   }
 }
 
-// Load data awal
-loadFeed();
-<\/script>
+window.addEventListener('load', function() {
+  loadTulis();
+});
+</script>
 </body>
 </html>
 `;

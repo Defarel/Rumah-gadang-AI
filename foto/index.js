@@ -81,15 +81,15 @@ input{width:100%;background:#0a0a0a;border:1px solid #333;color:#fff;padding:12p
 </div>
 
 <div id=upPanel><div class=box>
-<div style="display:flex;justify-content:space-between"><b style="color:#00ff88">TAMBAH FOTO BOS</b><button onclick="toggleUp()" style="background:#222;color:#fff;border:1px solid #444;border-radius:50%;width:32px;height:32px">X</button></div>
+<div style="display:flex;justify-content:space-between"><b style="color:#00ff88">TAMBAH FOTO</b><button onclick="toggleUp()" style="background:#222;color:#fff;border:1px solid #444;border-radius:50%;width:32px;height:32px">X</button></div>
 
 <div style="background:#0a0a0a;border:1px solid #00ff88;border-radius:12px;padding:12px;margin-top:12px">
-<b style="color:#00ff88;font-size:12px">CARA 1: UPLOAD THUMB MANUAL BOS</b>
-<div style="font-size:10px;color:#888;margin-top:4px">1. Screenshot Reel IG Bos 2. Pilih foto -> auto crop kotak Bos 3. Paste link IG Bos</div>
+<b style="color:#00ff88;font-size:12px">CARA 1: UPLOAD THUMB MANUAL</b>
+<div style="font-size:10px;color:#888;margin-top:4px">1. Screenshot Reel IG 2. Pilih foto -> auto crop kotak 3. Paste link IG</div>
 <input id=fThumb type=file accept="image/*" style="margin-top:10px">
-<div class=thumbBox id=thumbBox><span>📸 Belum ada thumb Bos<br>Klik Pilih File di atas Bos</span></div>
+<div class=thumbBox id=thumbBox><span>📸 Belum ada thumb<br>Klik Pilih File di atas</span></div>
 <input id=igUrl placeholder="https://www.instagram.com/reel/.../">
-<button class=btn btn-g onclick="saveManual()">+ SIMPAN THUMB + LINK IG BOS ✅</button>
+<button class=btn btn-g onclick="saveManual()">+ SIMPAN THUMB + LINK IG ✅</button>
 </div>
 
 <div style="margin:14px 0;text-align:center;color:#444;font-size:11px">--- ATAU ---</div>

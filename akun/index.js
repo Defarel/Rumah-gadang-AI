@@ -183,8 +183,8 @@ function renderLoginView(container){
           <button class="btn-submit" onclick="doGoogleLogin()">Lanjutkan dengan Google</button>
         \` : \`
           \${authTab === 'daftar' ? '<input id="nameIn" class="input-field" placeholder="nama kamu: Farel">' : ''}
-          <input id="emailIn" class="input-field" type="email" placeholder="email kamu: amanda@...">
-          <input id="passIn" class="input-field" type="password" placeholder="password (bebas)">
+          <input id="emailIn" class="input-field" type="email" placeholder="Masukan email">
+          <input id="passIn" class="input-field" type="password" placeholder="password">
           <button class="btn-submit" onclick="doAuth()">\${authTab==='masuk'?'Masuk':'Daftar Sekarang'}</button>
         \`}
       </div>

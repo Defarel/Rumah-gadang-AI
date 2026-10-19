@@ -31,7 +31,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .prof-top{display:flex;align-items:center;gap:16px;margin-bottom:16px}
 .avatar-wrap{position:relative;width:72px;height:72px;flex-shrink:0}
 .avatar-img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid #00ff88}
-.avatar-badge{position:absolute;bottom:0;right:0;background:#fff;color:#000;border-radius:50%;width:20px;height:20px;display:grid;place-items:center;font-weight:bold;font-size:14px;border:1px solid #000}
+.avatar-badge{position:absolute;bottom:0;right:0;background:#fff;color:#000;border-radius:50%;width:20px;height:20px;display:grid;place-items:center;font-weight:bold;font-size:14px;border:1px solid #000;cursor:pointer}
 .music-bubble{position:absolute;top:-20px;left:-10px;background:#222;color:#aaa;padding:4px 8px;border-radius:10px;font-size:10px;border:1px solid #444;white-space:nowrap}
 
 .stats-wrap{flex:1;display:flex;justify-content:space-around;text-align:center}
@@ -101,6 +101,7 @@ let viewingUserEmail = null;
 
 function getMyEmail(){ return (localStorage.getItem('rg_email')||"").toLowerCase().trim(); }
 function getMyName(){ return localStorage.getItem('rg_name')||"Dunsanak"; }
+function getMyAvatar(){ return localStorage.getItem('rg_avatar')||LOGO_FALLBACK; }
 
 function saveAuth(email, name, avatar){
   localStorage.setItem('rg_email', email.toLowerCase().trim());
@@ -118,26 +119,54 @@ function logout(){
   }
 }
 
+// FUNGSI EDIT PROFIL (NAMA & FOTO)
+async function editProfile(){
+  const currentName = getMyName();
+  const currentAvatar = getMyAvatar();
+
+  const newName = prompt("Masukkan nama baru Anda:", currentName);
+  if(newName === null) return; // Batal
+
+  const newAvatar = prompt("Masukkan URL foto profil baru (link gambar):", currentAvatar);
+  if(newAvatar === null) return; // Batal
+
+  const email = getMyEmail();
+  if(!email) return;
+
+  try {
+    let res = await fetch('/api/akun/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name: newName || currentName, picture: newAvatar || currentAvatar })
+    });
+    let d = await res.json();
+    if(d.ok){
+      saveAuth(email, newName || currentName, newAvatar || currentAvatar);
+      alert("Profil berhasil diperbarui!");
+      render();
+    } else {
+      alert("Gagal memperbarui profil: " + (d.error || "Kesalahan server"));
+    }
+  } catch(e){
+    alert("Gagal koneksi ke server: " + e.message);
+  }
+}
+
 // ROUTER & RENDERER UTAMA
 async function render(){
   const myEmail = getMyEmail();
   const container = document.getElementById('viewContainer');
 
-  // 1. LOGIN VIEW JIKA BELUM LOGIN & TDK LIHAT TEMAN
   if(!myEmail && !viewingUserEmail){
     renderLoginView(container);
     return;
   }
 
-  // 2. PROFIL VIEW (SENDIRI ATAU TEMAN)
   const targetEmail = viewingUserEmail || myEmail;
   const isMe = (targetEmail === myEmail);
   renderProfileView(container, targetEmail, isMe);
 }
 
-// -------------------------------------------------------------
-// FORM LOGIN / REGISTER
-// -------------------------------------------------------------
 function renderLoginView(container){
   container.innerHTML = \`
     <div class="login-card">
@@ -199,30 +228,29 @@ function doGoogleLogin(){
   }
 }
 
-// -------------------------------------------------------------
-// TAMPILAN PROFIL
-// -------------------------------------------------------------
 async function renderProfileView(container, targetEmail, isMe){
   container.innerHTML = \`<div style="text-align:center;padding:40px;color:#888">Memuat profil...</div>\`;
 
-  let profileData = { name: isMe ? getMyName() : "Dunsanak", picture: LOGO_FALLBACK, posts: 0, followers: 0, following: 0, isFollowing: false };
+  let profileData = { name: isMe ? getMyName() : "Dunsanak", picture: isMe ? getMyAvatar() : LOGO_FALLBACK, posts: 0, followers: 0, following: 0, isFollowing: false };
 
   try {
     let res = await fetch('/api/akun/profile?email=' + encodeURIComponent(targetEmail) + '&me=' + encodeURIComponent(getMyEmail()));
     if(res.ok){
       let d = await res.json();
       profileData = { ...profileData, ...d };
+      if(isMe){
+        saveAuth(targetEmail, d.name, d.picture);
+      }
     }
   } catch(e){}
 
   container.innerHTML = \`
     <div class="profile-sec">
-      <!-- HEADER PROFIL & STATISTIK -->
       <div class="prof-top">
         <div class="avatar-wrap">
           <div class="music-bubble">Coba bagikan lagu...</div>
           <img src="\${profileData.picture || LOGO_FALLBACK}" class="avatar-img" onerror="this.src='\${LOGO_FALLBACK}'">
-          <div class="avatar-badge">+</div>
+          <div class="avatar-badge" onclick="\${isMe?'editProfile()':''}">+</div>
         </div>
 
         <div class="stats-wrap">
@@ -234,10 +262,9 @@ async function renderProfileView(container, targetEmail, isMe){
 
       <div class="name-display">\${profileData.name || 'Dunsanak'}</div>
 
-      <!-- TOMBOL AKSI -->
       <div class="action-bar">
         \${isMe ? \`
-          <button class="btn-action" onclick="alert('Fitur edit profil')">Edit profil</button>
+          <button class="btn-action" onclick="editProfile()">Edit profil</button>
           <button class="btn-action btn-keluar" onclick="logout()">Keluar</button>
         \` : \`
           <button class="btn-action \${profileData.isFollowing ? 'btn-following' : 'btn-follow'}" onclick="toggleFollow('\${targetEmail}')">
@@ -247,14 +274,12 @@ async function renderProfileView(container, targetEmail, isMe){
         \`}
       </div>
 
-      <!-- TAB MENU (FOTO, VIDEO, TEMAN) -->
       <div class="main-tabs">
         <button class="m-tab \${activeMainTab==='foto'?'active':''}" onclick="switchMainTab('foto')">FOTO</button>
         <button class="m-tab \${activeMainTab==='video'?'active':''}" onclick="switchMainTab('video')">video</button>
         <button class="m-tab \${activeMainTab==='teman'?'active':''}" onclick="switchMainTab('teman')">Teman</button>
       </div>
 
-      <!-- AREA KONTEN TAB -->
       <div id="tabContent" class="content-area">Memuat isi...</div>
     </div>
   \`;
@@ -267,9 +292,6 @@ function switchMainTab(tab){
   render();
 }
 
-// -------------------------------------------------------------
-// LOAD KONTEN TAB
-// -------------------------------------------------------------
 async function loadTabContent(targetEmail){
   const box = document.getElementById('tabContent');
   if(!box) return;
@@ -327,7 +349,6 @@ async function toggleFollow(targetEmail){
   }
 }
 
-// JALANKAN SAAT DIBUKA
 render();
 <\/script>
 </body>

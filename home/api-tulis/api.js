@@ -2,85 +2,83 @@ export const TULIS_API = {
   async handle(req, env, url, cors){
     const h = {"Content-Type":"application/json", ...cors};
     try{
-      const path = url.pathname;
-
-      // --- GET /api/tulis BOS - BUAT HOME FEED BOS ---
-      if(path === "/api/tulis" && req.method === "GET"){
-        // BOS: SELECT * BIAR KOMPATIBEL TABEL LAMA & BARU BOS
-        let r = await env.DB.prepare("SELECT * FROM tulis ORDER BY id DESC LIMIT 100").all();
-        // BOS: NORMALISASI BIAR FRONTEND GAK ERROR BOS
-        let data = (r.results||[]).map(row=>{
-          return {
-            id: row.id,
-            text: row.text || row.isi || row.judul || "",
-            isi: row.isi || row.text || "",
-            judul: row.judul || (row.text||"").slice(0,40),
-            email: row.email || "",
-            name: row.name || row.nama || "Dunsanak",
-            picture: row.picture || row.avatar || "",
-            tulisImg: row.tulisImg || row.img || row.image || "",
-            img: row.img || row.tulisImg || "",
-            time: row.time || row.created_at || Date.now(),
-            likes: row.likes || 0
-          };
-        });
-        return new Response(JSON.stringify(data), {headers: h});
+      // -------------------------------------------------------------
+      // 1. GET: AMBIL DAFTAR POSTINGAN
+      // -------------------------------------------------------------
+      if(url.pathname==="/api/tulis" && req.method==="GET"){
+        let r = await env.DB.prepare("SELECT * FROM tulis ORDER BY id DESC LIMIT 50").all();
+        return new Response(JSON.stringify(r.results || []), {headers: h});
       }
 
-      // --- POST /api/tulis/add BOS - INI YANG DIPAKE HOME FULL TADI BOS ---
-      if((path === "/api/tulis/add" || path === "/api/tulis") && req.method === "POST"){
+      // -------------------------------------------------------------
+      // 2. POST: TAMBAH POSTINGAN BARU (/api/tulis atau /api/tulis/add)
+      // -------------------------------------------------------------
+      if((url.pathname==="/api/tulis" || url.pathname==="/api/tulis/add") && req.method==="POST"){
         let j = await req.json();
         let list = Array.isArray(j) ? j : [j];
 
-        // BOS: CEK LOGIN, KALO GAK ADA EMAIL TOLAK BOS
         for(let x of list){
-          let email = (x.email||"").toLowerCase().trim();
-          if(!email || email.includes('anon@')){
-            // BOS: KALO DARI HOME FULL TADI UDAH DI CEK DI FRONTEND BOS, TAPI BACKEND JUGA JAGA BOS
-            if(path === "/api/tulis/add" && !email){
-              return new Response(JSON.stringify({ok:false, error:"Login dulu Bos!"}), {headers:h, status:401});
-            }
+          // Ambil input email atau user
+          let rawEmail = x.email || x.user_email || "";
+          let cleanEmail = "";
+          
+          if (rawEmail) {
+            cleanEmail = rawEmail.includes("@") 
+              ? rawEmail.toLowerCase().trim() 
+              : rawEmail.toLowerCase().trim() + "@rumahgadang-ai.my.id";
+          } else {
+            cleanEmail = "anon@rumahgadang-ai.my.id";
           }
-        }
 
-        for(let x of list){
-          let text = x.text || x.isi || x.content || "";
-          let judul = x.judul || x.title || text.slice(0,60) || "Berita";
-          let isi = x.isi || text || "";
-          let email = (x.email||"").toLowerCase().trim() || "anon@rg.id";
-          let name = x.name || x.nama || "Dunsanak";
-          let picture = x.picture || x.avatar || "";
+          let judul = x.judul || x.title || (x.text || x.isi || "").slice(0, 40) || "Berita";
+          let isi = x.text || x.isi || x.content || "";
+          let name = x.name || cleanEmail.split('@')[0] || "Dunsanak";
+          let picture = x.picture || x.avatar || "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
           let tulisImg = x.tulisImg || x.img || x.image || "";
-          let time = Date.now();
+          let timeNow = Date.now();
 
-          // BOS: COBA INSERT TABEL BARU DULU (text,email,name,picture,tulisImg,time,likes) BOS
-          try{
-            await env.DB.prepare(
-              "INSERT INTO tulis (text, judul, isi, email, name, picture, tulisImg, img, time, likes) VALUES (?,?,?,?,?,?,?,?,?,0)"
-            ).bind(text, judul, isi, email, name, picture, tulisImg, tulisImg, time).run();
-          }catch(e){
-            // BOS: FALLBACK KALO TABEL LAMA CUMA ADA (judul,isi,img) BOS
-            try{
-              await env.DB.prepare("INSERT INTO tulis (judul, isi, img, text, tulisImg, email, name, picture, time) VALUES (?,?,?,?,?,?,?,?,?)")
-                .bind(judul, isi, tulisImg, text, tulisImg, email, name, picture, time).run();
-            }catch(e2){
-              try{
-                await env.DB.prepare("INSERT INTO tulis (judul, isi, img) VALUES (?,?,?)").bind(judul, isi, tulisImg).run();
-              }catch(e3){
-                await env.DB.prepare("INSERT INTO tulis (isi) VALUES (?)").bind(isi || text).run();
-              }
+          // Simpan ke database dengan kolom lengkap (Mendukung struktur tabel lama & baru)
+          try {
+            await env.DB.prepare(`
+              INSERT INTO tulis (judul, isi, text, email, user_email, name, picture, tulisImg, img, time, created_at, likes) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+            `).bind(
+              judul, 
+              isi, 
+              isi, 
+              cleanEmail, 
+              cleanEmail, 
+              name, 
+              picture, 
+              tulisImg, 
+              tulisImg, 
+              timeNow, 
+              timeNow
+            ).run();
+          } catch (e1) {
+            // Fallback jika ada kolom yang belum tersedia di database
+            try {
+              await env.DB.prepare(`
+                INSERT INTO tulis (text, email, name, picture, tulisImg, time, likes) 
+                VALUES (?, ?, ?, ?, ?, ?, 0)
+              `).bind(isi, cleanEmail, name, picture, tulisImg, timeNow).run();
+            } catch (e2) {
+              await env.DB.prepare("INSERT INTO tulis (text) VALUES (?)").bind(isi || judul).run();
             }
           }
         }
+
         return new Response(JSON.stringify({ok:true, count:list.length}), {headers: h});
       }
 
-      // --- DELETE BOS ---
-      if((path === "/api/tulis/delete" || path === "/api/delete") && req.method === "POST"){
+      // -------------------------------------------------------------
+      // 3. DELETE: HAPUS POSTINGAN
+      // -------------------------------------------------------------
+      if(url.pathname==="/api/tulis/delete" && req.method==="POST"){
         let j = await req.json();
-        let id = j.id || j.tulisId;
-        if(!id) return new Response(JSON.stringify({ok:false, error:"id kosong Bos"}), {headers:h, status:400});
-        await env.DB.prepare("DELETE FROM tulis WHERE id=?").bind(id).run();
+        if(j.id){
+          await env.DB.prepare("DELETE FROM tulis WHERE id=?").bind(j.id).run();
+        }
         return new Response(JSON.stringify({ok:true}), {headers: h});
       }
 

@@ -1,5 +1,14 @@
 export const HOME_HTML = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rumah Gadang AI - Komunitas Minangkabau</title>
+<meta name="description" content="Rumah Gadang AI - Komunitas digital Minangkabau, berbagi foto video dan AI karya anak Minang.">
+<meta name="robots" content="index, follow">
+<link rel="icon" href="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png">
+<link rel="canonical" href="https://www.rumahgadang-ai.my.id/">
+<meta property="og:image" content="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Rumah Gadang AI","url":"https://www.rumahgadang-ai.my.id","logo":"https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png"}</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{background:#000;color:#fff;font-family:sans-serif}
 #app{max-width:520px;margin:0 auto;background:#000;min-height:100vh;padding-bottom:80px;

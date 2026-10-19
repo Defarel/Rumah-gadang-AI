@@ -11,9 +11,7 @@ export const HOME_HTML = `<!DOCTYPE html>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Rumah Gadang AI","url":"https://www.rumahgadang-ai.my.id","logo":"https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png"}</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{background:#000;color:#fff;font-family:sans-serif}
-#app{max-width:520px;margin:0 auto;background:#000;min-height:100vh;padding-bottom:80px;
-border-left:2px solid #00ff88;border-right:2px solid #00ff88;border-bottom:2px solid #00ff88;
-box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 12px rgba(0,255,136,0.15)}
+#app{max-width:520px;margin:0 auto;background:#000;min-height:100vh;padding-bottom:80px;border-left:2px solid #00ff88;border-right:2px solid #00ff88;border-bottom:2px solid #00ff88;box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 12px rgba(0,255,136,0.15)}
 .top{padding:12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #111;position:sticky;top:0;background:#000;z-index:10}
 .logo{width:36px;height:36px;border-radius:50%;border:2px solid #00ff88;object-fit:cover;box-shadow:0 0 8px #00ff88}
 .box{padding:12px;background:#0a0a0a;border-bottom:2px solid #00ff88;box-shadow:0 0 8px rgba(0,255,136,0.3)}
@@ -40,7 +38,7 @@ box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 12px rgba(0,255,136,0.15)}
 .bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#fff}
 </style></head><body>
 <div id=app>
-<div class=top><div style="display:flex;gap:10px;align-items:center"><img src="https://i.ibb.co/r2gL8YJB/1791014451654.jpg" class=logo><b>RUMAH GADANG AI</b></div><button onclick="location.href='/akun'" style="background:#fff;color:#000;border:0;padding:6px 14px;border-radius:20px;font-weight:800;font-size:12px">LOGIN</button></div>
+<div class=top><div style="display:flex;gap:10px;align-items:center"><img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png" class=logo><b>RUMAH GADANG AI</b></div><button id=topLoginBtn onclick="location.href='/akun'" style="background:#fff;color:#000;border:0;padding:6px 14px;border-radius:20px;font-weight:800;font-size:12px">LOGIN</button></div>
 <div class=box>
 <div class=inputRow>
 <input id=tulisIn class=txt placeholder="Tulis disini...">
@@ -54,35 +52,72 @@ box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 12px rgba(0,255,136,0.15)}
 </div>
 <div class=bot><a href="/" class=on>🏠<br><span style="font-size:10px">Home</span></a><a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a><a href="/video">🎬<br><span style="font-size:10px">Video</span></a><a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a><a href="/ai">🤖<br><span style="font-size:10px">AI</span></a><a href="/akun">👤<br><span style="font-size:10px">Akun</span></a></div>
 <script>
-const LOGO_FALLBACK="https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
+const LOGO_FALLBACK="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
 const ADMIN_EMAILS=["admin@rumahgadang-ai.my.id","naura@rumahgadang-ai.my.id"];
 let selectedImg="";
-function getEmail(){return (localStorage.getItem('rg_email')||"").toLowerCase().trim();}
-function getName(){return localStorage.getItem('rg_name')||"Dunsanak";}
-function getAvatar(){return localStorage.getItem('rg_avatar')||LOGO_FALLBACK;}
-function isLogged(){return !!getEmail();}
-function isAdmin(){return ADMIN_EMAILS.includes(getEmail());}
-function clearImg(){selectedImg="";document.getElementById('preview').style.display='none';document.getElementById('prevImg').src="";document.getElementById('fileIn').value="";}
+
+function getEmail(){
+  let e = localStorage.getItem('rg_email') || localStorage.getItem('email') || localStorage.getItem('user_email') || localStorage.getItem('userEmail') || localStorage.getItem('akun_email') || "";
+  if(!e){
+    try{
+      let u = JSON.parse(localStorage.getItem('rg_user')||localStorage.getItem('user')||localStorage.getItem('akun')||"null");
+      if(u) e = u.email || u.mail || u.user_email || "";
+    }catch{}
+  }
+  return (e||"").toLowerCase().trim();
+}
+function getName(){
+  let n = localStorage.getItem('rg_name') || localStorage.getItem('name') || localStorage.getItem('displayName') || localStorage.getItem('username') || "";
+  if(!n){
+    try{
+      let u = JSON.parse(localStorage.getItem('rg_user')||localStorage.getItem('user')||localStorage.getItem('akun')||"null");
+      if(u) n = u.name || u.displayName || u.username || u.nama || "";
+    }catch{}
+  }
+  return n || "Dunsanak";
+}
+function getAvatar(){
+  let a = localStorage.getItem('rg_avatar') || localStorage.getItem('avatar') || localStorage.getItem('picture') || localStorage.getItem('photo') || "";
+  if(!a){
+    try{
+      let u = JSON.parse(localStorage.getItem('rg_user')||localStorage.getItem('user')||localStorage.getItem('akun')||"null");
+      if(u) a = u.picture || u.avatar || u.photo || u.image || "";
+    }catch{}
+  }
+  return a || LOGO_FALLBACK;
+}
+function isLogged(){ return !!getEmail(); }
+function isAdmin(){ return ADMIN_EMAILS.includes(getEmail()); }
+function clearImg(){ selectedImg=""; document.getElementById('preview').style.display='none'; document.getElementById('prevImg').src=""; document.getElementById('fileIn').value=""; }
 
 function checkLoginUI(){
   let logged=isLogged();
   let inp=document.getElementById('tulisIn');
   let plus=document.querySelector('.btnPlus');
   let kirim=document.querySelector('.btnKirim');
-  let needLogin=()=>{ if(!logged){ alert("Login dulu Bos baru bisa nulis!"); location.href='/akun'; return false;} return true; };
+  let topBtn=document.getElementById('topLoginBtn');
+  let needLogin=()=>{
+    if(!isLogged()){
+      alert("Login dulu Bos baru bisa nulis!");
+      location.href='/akun';
+      return false;
+    }
+    return true;
+  };
   if(!logged){
     inp.placeholder="Login dulu Bos baru bisa tulis...";
     plus.onclick=needLogin; kirim.onclick=needLogin; inp.onclick=needLogin;
     kirim.style.opacity="0.6";
+    if(topBtn){ topBtn.innerText="LOGIN"; topBtn.onclick=()=>location.href='/akun'; }
   }else{
-    inp.placeholder="Tulis disini...";
+    inp.placeholder="Tulis disini Bos...";
     plus.onclick=()=>document.getElementById('fileIn').click();
     kirim.onclick=addTulis; inp.onclick=null;
     kirim.style.opacity="1";
+    if(topBtn){ topBtn.innerText=getName().toUpperCase().slice(0,12); topBtn.onclick=()=>location.href='/akun'; }
   }
 }
 
-// KOMPRES FOTO BERAPA MB PUN JADI KECIL BOS BIAR MASUK D1 BOS
 function compressImage(file, maxW=1280, quality=0.7){
   return new Promise((resolve,reject)=>{
     let r=new FileReader();
@@ -93,8 +128,7 @@ function compressImage(file, maxW=1280, quality=0.7){
         let w=img.width, h=img.height;
         if(w>maxW){ h=h*(maxW/w); w=maxW; }
         canvas.width=w; canvas.height=h;
-        let ctx=canvas.getContext('2d');
-        ctx.drawImage(img,0,0,w,h);
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
         resolve(canvas.toDataURL('image/jpeg', quality));
       };
       img.onerror=reject;
@@ -109,7 +143,6 @@ document.getElementById('fileIn').addEventListener('change',async function(e){
  let f=e.target.files[0]; if(!f) return;
  try{
    document.getElementById('preview').style.display='block';
-   document.getElementById('prevImg').src="https://i.gifer.com/ZZ5H.gif";
    selectedImg = await compressImage(f);
    document.getElementById('prevImg').src=selectedImg;
  }catch(err){
@@ -141,12 +174,14 @@ async function addTulis(){
  }catch(e){ alert("Gagal Bos: "+e.message); }
  btn.innerText="KIRIM"; btn.disabled=false;
 }
+
 async function hapusPost(id){
  if(!confirm("Hapus Bos?")) return;
  await fetch('/api/tulis/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});
  await fetch('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'tulis',id:id,email:getEmail()})});
  document.getElementById('post-'+id)?.remove();
 }
+
 checkLoginUI();
 loadTulis();
 <\/script></body></html>

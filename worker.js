@@ -62,31 +62,7 @@ export default {
     if(seg && !RESERVED.includes(seg) && !seg.includes(".") && seg.length >= 2 && seg.length <= 30){
       return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     }
-// ROUTE PROFIL @rumahgadang-ai.my.id Bos
-let path = url.pathname.replace(/^\/+/, '').toLowerCase();
-if (path && !RESERVED.includes(path) && !path.includes('.') && !path.startsWith('api/')) {
-  // cek user ada gak Bos di D1 Bos
-  try {
-    let user = await env.DB.prepare("SELECT * FROM rg_users WHERE email LIKE ? OR email = ? LIMIT 1").bind(path + "@%", path + "@rumahgadang-ai.my.id").first();
-    if (user) {
-      // balikin halaman profil Bos
-      return new Response(PROFILE_HTML(user, LOGO), {headers:{"Content-Type":"text/html;charset=utf-8"}});
-    }
-  } catch(e){}
-  // kalau gak ada, biarin jadi 404 atau home Bos
-}
 
-// Fungsi PROFILE_HTML Bos taruh bawah Bos:
-function PROFILE_HTML(user, LOGO){
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>@${user.email.split('@')[0]} - Rumah Gadang AI</title></head>
-  <body style="background:#000;color:#fff;font-family:sans-serif;text-align:center;padding:20px">
-  <img src="${user.picture||LOGO}" style="width:110px;height:110px;border-radius:50%;border:3px solid #00ff88">
-  <h2 style="margin-top:12px">@${user.email.split('@')[0]}</h2>
-  <div style="color:#888">${user.email}</div>
-  <div style="margin-top:8px">${user.name||'Dunsanak Minang'}</div>
-  <button onclick="location.href='/'" style="margin-top:20px;background:#00ff88;color:#000;border:0;padding:12px 20px;border-radius:20px;font-weight:900">Kembali ke Home Bos</button>
-  </body></html>`;
-}
     
     return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
   }

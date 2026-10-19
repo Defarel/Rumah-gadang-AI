@@ -1,4 +1,4 @@
-// KUNCI 5: AKUN BOS - REGISTER + FOLLOW + PROFILE + FOTO BOS!
+
 export const AKUN_API = {
   async handle(req, env, url, cors) {
     if(url.pathname==="/api/register-user" && req.method==="POST"){

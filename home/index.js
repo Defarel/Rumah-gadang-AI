@@ -26,7 +26,7 @@ box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 12px rgba(0,255,136,0.15)}
 #preview img{width:100%;border-radius:12px;max-height:320px;object-fit:cover;border:1px solid #00ff88}
 #preview span{position:absolute;top:8px;right:8px;background:#000;color:#fff;padding:6px 10px;border-radius:20px;cursor:pointer;border:1px solid #333}
 
-/* INI BOS GARIS HIJAU NEON TIAP BERITA BOS */
+/* INI GARIS HIJAU NEON TIAP BERITA */
 .post{padding:14px;display:flex;gap:10px;
 background:#0a0a0a;
 margin:10px 8px;

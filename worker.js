@@ -1,17 +1,3 @@
-import { LOGO, GLOBAL_VIDEOS, ADMIN_EMAILS } from './config.js';
-import { HOME_HTML } from './home/index.js';
-import { AI_HTML } from './ai/index.js';
-import { FOTO_HTML } from './foto/index.js';
-import { VIDEO_HTML } from './video/index.js';
-import { KANTOR_HTML } from './kantor/index.js';
-import { AKUN_HTML } from './akun/index.js';
-import { AI_API } from './ai/api-ai/api.js';
-import { AKUN_API } from './akun/api-akun/api.js';
-import { FOTO_API } from './foto/api-foto/api.js';
-import { TULIS_API } from './home/api-tulis/api.js';
-import { VIDEO_API } from './video/api-video/api.js';
-import { SITEMAP_API } from './api-sitemap/index.js';
-
 import { LOGO, GLOBAL_VIDEOS, isAdmin, getId, ADMIN_EMAILS } from './config.js';
 export default {
 async fetch(req, env) {

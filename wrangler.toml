@@ -9,7 +9,7 @@ not_found_handling = "none"
 [[d1_databases]]
 binding = "DB"
 database_name = "rumah-gadang-db"
-database_id = "01c4832d-950b-44f3-a447-e0a5ce326ba6"
+database_id = "01c4832d-950b-44f3-a447-e0a5c9a8b123"
 
 [vars]
-LOGO_FALLBACK = "https://i.ibb.co/r2gL8YJB/1791014451654.jpg"
+LOGO_FALLBACK = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png"

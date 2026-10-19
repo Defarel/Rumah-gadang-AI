@@ -1,20 +1,92 @@
-function getId(u){ if(!u) return null; u=u.trim(); let m=u.match(/(?:v=|youtu\.be\/|shorts\/)([^?&\/]{11})/); if(m) return m[1]; if(/^[A-Za-z0-9_-]{11}$/.test(u)) return u; return null; }
+export const TULIS_API = {
+  async handle(req, env, url, cors){
+    const h = {"Content-Type":"application/json", ...cors};
+    try{
+      const path = url.pathname;
 
-export async function handleHomeApi(req, env, url){
-  const cors={"Content-Type":"application/json","Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET,POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type"};
-  if(req.method==="OPTIONS") return new Response("",{headers:cors});
-  if(url.pathname==="/robots.txt") return new Response("User-agent: *\nAllow: /\nSitemap: https://www.rumahgadang-ai.my.id/sitemap.xml\n",{headers:{"Content-Type":"text/plain"}});
-  if(url.pathname==="/sitemap.xml"){ let last=new Date().toISOString().split('T')[0]; let pages=["/","/foto","/video","/ai","/akun","/kantor"]; let xml=pages.map(p=>` <url><loc>https://www.rumahgadang-ai.my.id${p}</loc><lastmod>${last}</lastmod></url>`).join("\n"); return new Response(`<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${xml}</urlset>`,{headers:{"Content-Type":"text/xml"}}); }
+      // --- GET /api/tulis BOS - BUAT HOME FEED BOS ---
+      if(path === "/api/tulis" && req.method === "GET"){
+        // BOS: SELECT * BIAR KOMPATIBEL TABEL LAMA & BARU BOS
+        let r = await env.DB.prepare("SELECT * FROM tulis ORDER BY id DESC LIMIT 100").all();
+        // BOS: NORMALISASI BIAR FRONTEND GAK ERROR BOS
+        let data = (r.results||[]).map(row=>{
+          return {
+            id: row.id,
+            text: row.text || row.isi || row.judul || "",
+            isi: row.isi || row.text || "",
+            judul: row.judul || (row.text||"").slice(0,40),
+            email: row.email || "",
+            name: row.name || row.nama || "Dunsanak",
+            picture: row.picture || row.avatar || "",
+            tulisImg: row.tulisImg || row.img || row.image || "",
+            img: row.img || row.tulisImg || "",
+            time: row.time || row.created_at || Date.now(),
+            likes: row.likes || 0
+          };
+        });
+        return new Response(JSON.stringify(data), {headers: h});
+      }
 
-  if(url.pathname==="/api/videos"){ let local=[]; let blocked=[]; try{ if(env.DB){ let r=await env.DB.prepare("SELECT id FROM local_videos ORDER BY created_at DESC").all(); local=r.results?.map(x=>x.id)||[]; let b=await env.DB.prepare("SELECT id FROM blocked_videos").all(); blocked=b.results?.map(x=>x.id)||[]; } }catch(e){} let all=[...new Set([...local,...GLOBAL_VIDEOS])].filter(id=>!blocked.includes(id)); return new Response(JSON.stringify(all),{headers:cors}); }
-  if(url.pathname==="/api/videos/add" && req.method==="POST"){ let b=await req.json(); let id=getId(b.ytUrl); if(!id) return new Response(JSON.stringify({ok:false,msg:"Link salah Bos"}),{headers:cors}); if(env.DB) await env.DB.prepare("INSERT OR IGNORE INTO local_videos (id,created_at) VALUES (?,?)").bind(id,Date.now()).run(); return new Response(JSON.stringify({ok:true,id}),{headers:cors}); }
-  if(url.pathname==="/api/tulis"){ let r=await env.DB.prepare("SELECT * FROM tulis ORDER BY time DESC LIMIT 50").all(); return new Response(JSON.stringify(r.results||[]),{headers:cors}); }
-  if(url.pathname==="/api/tulis/add"&&req.method==="POST"){ let j=await req.json(); await env.DB.prepare("INSERT INTO tulis (id,text,user_email,name,picture,tulisImg,likes,time) VALUES (?,?,?,?,?,?,?,?)").bind(Date.now(),j.text,j.email,j.name||"Anonim",j.picture||"",j.tulisImg||"",0,Date.now()).run(); return new Response(JSON.stringify({ok:true}),{headers:cors}); }
-  if(url.pathname==="/api/images"){ let r=await env.DB.prepare("SELECT * FROM images ORDER BY time DESC LIMIT 50").all(); return new Response(JSON.stringify(r.results||[]),{headers:cors}); }
-  if(url.pathname==="/api/images/add"&&req.method==="POST"){ let j=await req.json(); await env.DB.prepare("INSERT INTO images (url,likes,time) VALUES (?,?,?)").bind(j.url,0,Date.now()).run(); return new Response(JSON.stringify({ok:true}),{headers:cors}); }
-  if(url.pathname==="/api/ig-curated"){ let r=await env.DB.prepare("SELECT * FROM ig_curated ORDER BY time DESC LIMIT 100").all(); return new Response(JSON.stringify(r.results||[]),{headers:cors}); }
-  if(url.pathname==="/api/ig-curated/add" && req.method==="POST"){ let j=await req.json(); await env.DB.prepare("INSERT INTO ig_curated (akun,img,linkIG,caption,video,time) VALUES (?,?,?,?,?,?)").bind(j.akun||"minang",j.img,j.linkIG,j.caption||"",j.video||"",Date.now()).run(); return new Response(JSON.stringify({ok:true}),{headers:cors}); }
-  if(url.pathname==="/api/ig-preview"){ let igUrl=url.searchParams.get("url")||""; try{ let resp=await fetch(igUrl,{headers:{"User-Agent":"Mozilla/5.0 (iPhone) AppleWebKit"}}); let html=await resp.text(); let thumb=html.match(/property="og:image"\s+content="([^"]+)"/)?.[1]||""; let username=html.match(/"username":"([^"]+)"/)?.[1]||igUrl.split("/")[3]||"minang"; return new Response(JSON.stringify({thumbnail:thumb.replace(/&amp;/g,"&"),username,caption:"Dari @"+username}),{headers:cors}); }catch(e){ return new Response(JSON.stringify({error:"gagal"}),{headers:cors,status:500}); } }
-  if(url.pathname==="/api/ai"&&req.method==="POST"){ let j=await req.json(); let r=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+env.GROQ},body:JSON.stringify({model:"openai/gpt-oss-120b",messages:[{role:"system",content:"Kamu Rumah Gadang AI Bos, buatan Tim Rumah Gadang AI Padang Bos, bukan OpenAI Bos! WAJIB jawab PENDEK Bos, maksimal 2 kalimat Bos, pakai kata Bos!"},{role:"user",content:j.prompt}],max_tokens:120})}); let d=await r.json(); return new Response(JSON.stringify({reply:d.choices[0].message.content}),{headers:cors}); }
-  return null;
+      // --- POST /api/tulis/add BOS - INI YANG DIPAKE HOME FULL TADI BOS ---
+      if((path === "/api/tulis/add" || path === "/api/tulis") && req.method === "POST"){
+        let j = await req.json();
+        let list = Array.isArray(j) ? j : [j];
+
+        // BOS: CEK LOGIN, KALO GAK ADA EMAIL TOLAK BOS
+        for(let x of list){
+          let email = (x.email||"").toLowerCase().trim();
+          if(!email || email.includes('anon@')){
+            // BOS: KALO DARI HOME FULL TADI UDAH DI CEK DI FRONTEND BOS, TAPI BACKEND JUGA JAGA BOS
+            if(path === "/api/tulis/add" && !email){
+              return new Response(JSON.stringify({ok:false, error:"Login dulu Bos!"}), {headers:h, status:401});
+            }
+          }
+        }
+
+        for(let x of list){
+          let text = x.text || x.isi || x.content || "";
+          let judul = x.judul || x.title || text.slice(0,60) || "Berita";
+          let isi = x.isi || text || "";
+          let email = (x.email||"").toLowerCase().trim() || "anon@rg.id";
+          let name = x.name || x.nama || "Dunsanak";
+          let picture = x.picture || x.avatar || "";
+          let tulisImg = x.tulisImg || x.img || x.image || "";
+          let time = Date.now();
+
+          // BOS: COBA INSERT TABEL BARU DULU (text,email,name,picture,tulisImg,time,likes) BOS
+          try{
+            await env.DB.prepare(
+              "INSERT INTO tulis (text, judul, isi, email, name, picture, tulisImg, img, time, likes) VALUES (?,?,?,?,?,?,?,?,?,0)"
+            ).bind(text, judul, isi, email, name, picture, tulisImg, tulisImg, time).run();
+          }catch(e){
+            // BOS: FALLBACK KALO TABEL LAMA CUMA ADA (judul,isi,img) BOS
+            try{
+              await env.DB.prepare("INSERT INTO tulis (judul, isi, img, text, tulisImg, email, name, picture, time) VALUES (?,?,?,?,?,?,?,?,?)")
+                .bind(judul, isi, tulisImg, text, tulisImg, email, name, picture, time).run();
+            }catch(e2){
+              try{
+                await env.DB.prepare("INSERT INTO tulis (judul, isi, img) VALUES (?,?,?)").bind(judul, isi, tulisImg).run();
+              }catch(e3){
+                await env.DB.prepare("INSERT INTO tulis (isi) VALUES (?)").bind(isi || text).run();
+              }
+            }
+          }
+        }
+        return new Response(JSON.stringify({ok:true, count:list.length}), {headers: h});
+      }
+
+      // --- DELETE BOS ---
+      if((path === "/api/tulis/delete" || path === "/api/delete") && req.method === "POST"){
+        let j = await req.json();
+        let id = j.id || j.tulisId;
+        if(!id) return new Response(JSON.stringify({ok:false, error:"id kosong Bos"}), {headers:h, status:400});
+        await env.DB.prepare("DELETE FROM tulis WHERE id=?").bind(id).run();
+        return new Response(JSON.stringify({ok:true}), {headers: h});
+      }
+
+    }catch(err){
+      return new Response(JSON.stringify({ok:false, error: err.message}), {headers: h, status:500});
+    }
+    return null;
+  }
 }

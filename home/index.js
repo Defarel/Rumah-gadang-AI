@@ -25,18 +25,7 @@ box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 12px rgba(0,255,136,0.15)}
 #preview{margin-top:10px;display:none;position:relative}
 #preview img{width:100%;border-radius:12px;max-height:320px;object-fit:cover;border:1px solid #00ff88}
 #preview span{position:absolute;top:8px;right:8px;background:#000;color:#fff;padding:6px 10px;border-radius:20px;cursor:pointer;border:1px solid #333}
-
-/* INI BOS GARIS HIJAU NEON TIAP BERITA BOS */
-.post{padding:14px;display:flex;gap:10px;
-background:#0a0a0a;
-margin:10px 8px;
-border-radius:14px;
-border-left:2.5px solid #00ff88;
-border-right:2.5px solid #00ff88;
-border-bottom:2.5px solid #00ff88;
-border-top:1px solid #1a1a1a;
-box-shadow:0 0 10px rgba(0,255,136,0.35), 0 0 20px rgba(0,255,136,0.15);
-}
+.post{padding:14px;display:flex;gap:10px;background:#0a0a0a;margin:10px 8px;border-radius:14px;border-left:2.5px solid #00ff88;border-right:2.5px solid #00ff88;border-bottom:2.5px solid #00ff88;border-top:1px solid #1a1a1a;box-shadow:0 0 10px rgba(0,255,136,0.35), 0 0 20px rgba(0,255,136,0.15)}
 .post-av{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1.5px solid #00ff88;flex-shrink:0;box-shadow:0 0 6px rgba(0,255,136,0.5)}
 .post-body{flex:1;min-width:0}
 .post-name{font-weight:800;font-size:14px;color:#fff}
@@ -55,10 +44,10 @@ box-shadow:0 0 10px rgba(0,255,136,0.35), 0 0 20px rgba(0,255,136,0.15);
 <div class=box>
 <div class=inputRow>
 <input id=tulisIn class=txt placeholder="Tulis disini...">
-<button class=btnPlus onclick="document.getElementById('fileIn').click()">+</button>
+<button class=btnPlus>+</button>
 </div>
 <div id=preview><img id=prevImg><span onclick="clearImg()">✕</span></div>
-<button class=btnKirim onclick="addTulis()">KIRIM</button>
+<button class=btnKirim>KIRIM</button>
 <input type=file id=fileIn accept="image/*" style="display:none">
 </div>
 <div id=homeFeed style="padding:4px 0;color:#666">Loading Bos...</div>
@@ -71,15 +60,64 @@ let selectedImg="";
 function getEmail(){return (localStorage.getItem('rg_email')||"").toLowerCase().trim();}
 function getName(){return localStorage.getItem('rg_name')||"Dunsanak";}
 function getAvatar(){return localStorage.getItem('rg_avatar')||LOGO_FALLBACK;}
+function isLogged(){return !!getEmail();}
 function isAdmin(){return ADMIN_EMAILS.includes(getEmail());}
 function clearImg(){selectedImg="";document.getElementById('preview').style.display='none';document.getElementById('prevImg').src="";document.getElementById('fileIn').value="";}
-document.getElementById('fileIn').addEventListener('change',function(e){
+
+function checkLoginUI(){
+  let logged=isLogged();
+  let inp=document.getElementById('tulisIn');
+  let plus=document.querySelector('.btnPlus');
+  let kirim=document.querySelector('.btnKirim');
+  let needLogin=()=>{ if(!logged){ alert("Login dulu Bos baru bisa nulis!"); location.href='/akun'; return false;} return true; };
+  if(!logged){
+    inp.placeholder="Login dulu Bos baru bisa tulis...";
+    plus.onclick=needLogin; kirim.onclick=needLogin; inp.onclick=needLogin;
+    kirim.style.opacity="0.6";
+  }else{
+    inp.placeholder="Tulis disini...";
+    plus.onclick=()=>document.getElementById('fileIn').click();
+    kirim.onclick=addTulis; inp.onclick=null;
+    kirim.style.opacity="1";
+  }
+}
+
+// KOMPRES FOTO BERAPA MB PUN JADI KECIL BOS BIAR MASUK D1 BOS
+function compressImage(file, maxW=1280, quality=0.7){
+  return new Promise((resolve,reject)=>{
+    let r=new FileReader();
+    r.onload=(ev)=>{
+      let img=new Image();
+      img.onload=()=>{
+        let canvas=document.createElement('canvas');
+        let w=img.width, h=img.height;
+        if(w>maxW){ h=h*(maxW/w); w=maxW; }
+        canvas.width=w; canvas.height=h;
+        let ctx=canvas.getContext('2d');
+        ctx.drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror=reject;
+      img.src=ev.target.result;
+    };
+    r.onerror=reject;
+    r.readAsDataURL(file);
+  });
+}
+
+document.getElementById('fileIn').addEventListener('change',async function(e){
  let f=e.target.files[0]; if(!f) return;
- if(f.size>4*1024*1024){alert("Max 4MB Bos!");return;}
- let r=new FileReader();
- r.onload=function(ev){ selectedImg=ev.target.result; document.getElementById('prevImg').src=selectedImg; document.getElementById('preview').style.display='block'; };
- r.readAsDataURL(f);
+ try{
+   document.getElementById('preview').style.display='block';
+   document.getElementById('prevImg').src="https://i.gifer.com/ZZ5H.gif";
+   selectedImg = await compressImage(f);
+   document.getElementById('prevImg').src=selectedImg;
+ }catch(err){
+   alert("Gagal baca foto Bos: "+err.message);
+   clearImg();
+ }
 });
+
 async function loadTulis(){
  try{
   let r=await fetch('/api/tulis'); let d=await r.json();
@@ -91,12 +129,14 @@ async function loadTulis(){
   }).join('');
  }catch(e){ document.getElementById('homeFeed').innerHTML='Error Bos: '+e.message; }
 }
+
 async function addTulis(){
+ if(!isLogged()){ alert("Login dulu Bos!"); location.href='/akun'; return; }
  let txt=document.getElementById('tulisIn').value.trim();
  if(!txt && !selectedImg){ alert("Tulis dulu Bos!"); return; }
  let btn=document.querySelector('.btnKirim'); btn.innerText="MENGIRIM..."; btn.disabled=true;
  try{
-  await fetch('/api/tulis/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,email:getEmail()||'anon@rg.id',name:getName(),picture:getAvatar(),tulisImg:selectedImg})});
+  await fetch('/api/tulis/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,email:getEmail(),name:getName(),picture:getAvatar(),tulisImg:selectedImg})});
   document.getElementById('tulisIn').value=''; clearImg(); loadTulis();
  }catch(e){ alert("Gagal Bos: "+e.message); }
  btn.innerText="KIRIM"; btn.disabled=false;
@@ -107,6 +147,7 @@ async function hapusPost(id){
  await fetch('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'tulis',id:id,email:getEmail()})});
  document.getElementById('post-'+id)?.remove();
 }
+checkLoginUI();
 loadTulis();
 <\/script></body></html>
 `;

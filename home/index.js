@@ -68,45 +68,122 @@ box-shadow:0 0 10px rgba(0,255,136,0.35), 0 0 20px rgba(0,255,136,0.15);
 const LOGO_FALLBACK="https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
 const ADMIN_EMAILS=["admin@rumahgadang-ai.my.id","naura@rumahgadang-ai.my.id"];
 let selectedImg="";
-function getEmail(){return (localStorage.getItem('rg_email')||"").toLowerCase().trim();}
-function getName(){return localStorage.getItem('rg_name')||"Dunsanak";}
-function getAvatar(){return localStorage.getItem('rg_avatar')||LOGO_FALLBACK;}
-function isAdmin(){return ADMIN_EMAILS.includes(getEmail());}
-function clearImg(){selectedImg="";document.getElementById('preview').style.display='none';document.getElementById('prevImg').src="";document.getElementById('fileIn').value="";}
-document.getElementById('fileIn').addEventListener('change',function(e){
- let f=e.target.files[0]; if(!f) return;
- if(f.size>4*1024*1024){alert("Max 4MB Bos!");return;}
- let r=new FileReader();
- r.onload=function(ev){ selectedImg=ev.target.result; document.getElementById('prevImg').src=selectedImg; document.getElementById('preview').style.display='block'; };
- r.readAsDataURL(f);
+
+function getEmail(){ return (localStorage.getItem('rg_email')||"").toLowerCase().trim(); }
+function getName(){ return localStorage.getItem('rg_name')||"Dunsanak"; }
+function getAvatar(){ return localStorage.getItem('rg_avatar')||LOGO_FALLBACK; }
+function isAdmin(){ return ADMIN_EMAILS.includes(getEmail()); }
+
+function clearImg(){
+  selectedImg="";
+  document.getElementById('preview').style.display='none';
+  document.getElementById('prevImg').src="";
+  document.getElementById('fileIn').value="";
+}
+
+document.getElementById('fileIn').addEventListener('change', function(e){
+  let f = e.target.files[0];
+  if(!f) return;
+  if(f.size > 4*1024*1024){ alert("Max 4MB Bos!"); return; }
+  let r = new FileReader();
+  r.onload = function(ev){
+    selectedImg = ev.target.result;
+    document.getElementById('prevImg').src = selectedImg;
+    document.getElementById('preview').style.display = 'block';
+  };
+  r.readAsDataURL(f);
 });
+
 async function loadTulis(){
- try{
-  let r=await fetch('/api/tulis'); let d=await r.json();
-  let h=document.getElementById('homeFeed');
-  if(!d.length){ h.innerHTML='<div style="text-align:center;padding:40px;color:#777">Belum ada tulisan Bos</div>'; return;}
-  let admin=isAdmin();
-  h.innerHTML=d.map(x=>{
-   return '<div class=post id="post-'+x.id+'"><img class=post-av src="'+(x.picture||LOGO_FALLBACK)+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=post-body><div><span class=post-name>'+(x.name||'Anonim')+'</span><span class=post-time> • '+new Date(x.time).toLocaleString()+'</span></div><div class=post-text>'+(x.text||'')+'</div>'+(x.tulisImg?'<div class=post-img><img src="'+x.tulisImg+'" loading=lazy></div>':'')+'<div class=like-bar><span class=btn-like>❤️ '+(x.likes||0)+'</span><span class=btn-like>💬 Komen</span>'+(admin?'<button class=del onclick="hapusPost('+x.id+')">HAPUS</button>':'')+'</div></div></div>';
-  }).join('');
- }catch(e){ document.getElementById('homeFeed').innerHTML='Error Bos: '+e.message; }
+  try {
+    let r = await fetch('/api/tulis');
+    if(!r.ok) throw new Error("Gagal mengambil data dari server");
+    let d = await r.json();
+    let h = document.getElementById('homeFeed');
+    if(!Array.isArray(d) || !d.length){
+      h.innerHTML = '<div style="text-align:center;padding:40px;color:#777">Belum ada tulisan Bos</div>';
+      return;
+    }
+    let admin = isAdmin();
+    h.innerHTML = d.map(x => {
+      let avatar = x.picture || LOGO_FALLBACK;
+      let name = x.name || 'Anonim';
+      let time = x.time ? new Date(x.time).toLocaleString() : '';
+      let text = x.text || '';
+      let imgHtml = x.tulisImg ? '<div class="post-img"><img src="'+x.tulisImg+'" loading="lazy"></div>' : '';
+      let delBtn = admin ? '<button class="del" onclick="hapusPost('+x.id+')">HAPUS</button>' : '';
+      
+      return '<div class="post" id="post-'+x.id+'">' +
+        '<img class="post-av" src="'+avatar+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'">' +
+        '<div class="post-body">' +
+          '<div><span class="post-name">'+name+'</span><span class="post-time"> • '+time+'</span></div>' +
+          '<div class="post-text">'+text+'</div>' +
+          imgHtml +
+          '<div class="like-bar">' +
+            '<span class="btn-like">❤️ '+(x.likes||0)+'</span>' +
+            '<span class="btn-like">💬 Komen</span>' +
+            delBtn +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } catch(e) {
+    document.getElementById('homeFeed').innerHTML = '<div style="padding:20px;text-align:center;color:#ff4444">Error Bos: '+e.message+'</div>';
+  }
 }
+
 async function addTulis(){
- let txt=document.getElementById('tulisIn').value.trim();
- if(!txt && !selectedImg){ alert("Tulis dulu!"); return; }
- let btn=document.querySelector('.btnKirim'); btn.innerText="MENGIRIM..."; btn.disabled=true;
- try{
-  await fetch('/api/tulis/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,email:getEmail()||'anon@rg.id',name:getName(),picture:getAvatar(),tulisImg:selectedImg})});
-  document.getElementById('tulisIn').value=''; clearImg(); loadTulis();
- }catch(e){ alert("Gagal Bos: "+e.message); }
- btn.innerText="KIRIM"; btn.disabled=false;
+  let txt = document.getElementById('tulisIn').value.trim();
+  if(!txt && !selectedImg){ alert("Tulis dulu!"); return; }
+  
+  let btn = document.querySelector('.btnKirim');
+  btn.innerText = "MENGIRIM...";
+  btn.disabled = true;
+
+  try {
+    let response = await fetch('/api/tulis', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: txt,
+        email: getEmail() || 'anon@rg.id',
+        name: getName(),
+        picture: getAvatar(),
+        tulisImg: selectedImg
+      })
+    });
+
+    if(!response.ok) {
+      let errData = await response.json().catch(() => ({}));
+      throw new Error(errData.message || "Gagal menyimpan postingan");
+    }
+
+    document.getElementById('tulisIn').value = '';
+    clearImg();
+    await loadTulis();
+  } catch(e) {
+    alert("Gagal Bos: " + e.message);
+  } finally {
+    btn.innerText = "KIRIM";
+    btn.disabled = false;
+  }
 }
+
 async function hapusPost(id){
- if(!confirm("Hapus Bos?")) return;
- await fetch('/api/tulis/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});
- await fetch('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'tulis',id:id,email:getEmail()})});
- document.getElementById('post-'+id)?.remove();
+  if(!confirm("Hapus Bos?")) return;
+  try {
+    let res = await fetch('/api/tulis/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id, email: getEmail() })
+    });
+    if(!res.ok) throw new Error("Gagal menghapus");
+    document.getElementById('post-' + id)?.remove();
+  } catch(e) {
+    alert("Gagal hapus: " + e.message);
+  }
 }
+
 loadTulis();
 <\/script></body></html>
 `;

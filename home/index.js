@@ -101,7 +101,7 @@ async function loadTulis(){
     let d = await r.json();
     let h = document.getElementById('homeFeed');
     if(!Array.isArray(d) || !d.length){
-      h.innerHTML = '<div style="text-align:center;padding:40px;color:#777">Belum ada tulisan Bos</div>';
+      h.innerHTML = '<div style="text-align:center;padding:40px;color:#777">Belum ada tulis</div>';
       return;
     }
     let admin = isAdmin();

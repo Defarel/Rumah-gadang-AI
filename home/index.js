@@ -69,9 +69,9 @@ const LOGO_FALLBACK="https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
 const ADMIN_EMAILS=["admin@rumahgadang-ai.my.id","naura@rumahgadang-ai.my.id"];
 let selectedImg="";
 
-function getEmail(){ return (localStorage.getItem('rg_email')||"").toLowerCase().trim(); }
+function getEmail(){ return (localStorage.getItem('rg_email')||"anon@rg.id").toLowerCase().trim(); }
 function getName(){ return localStorage.getItem('rg_name')||"Dunsanak"; }
-function getAvatar(){ return localStorage.getItem('rg_avatar')||LOGO_FALLBACK; }
+function getAvatar(){ return localStorage.getItem('rg_avatar')||"https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png"; }
 function isAdmin(){ return ADMIN_EMAILS.includes(getEmail()); }
 
 function clearImg(){
@@ -133,36 +133,43 @@ async function loadTulis(){
 }
 
 async function addTulis(){
-  let txt = document.getElementById('tulisIn').value.trim();
-  if(!txt && !selectedImg){ alert("Tulis dulu!"); return; }
-  
+  const textInput = document.getElementById('tulisIn');
+  const text = textInput ? textInput.value.trim() : "";
+
+  if (!text && !selectedImg) {
+    alert("Tulis sesuatu dulu Bos!");
+    return;
+  }
+
   let btn = document.querySelector('.btnKirim');
   btn.innerText = "MENGIRIM...";
   btn.disabled = true;
 
   try {
-    let response = await fetch('/api/tulis', {
+    let res = await fetch('/api/tulis', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        text: txt,
-        email: getEmail() || 'anon@rg.id',
+        text: text,
+        email: getEmail(),
         name: getName(),
         picture: getAvatar(),
         tulisImg: selectedImg
       })
     });
 
-    if(!response.ok) {
-      let errData = await response.json().catch(() => ({}));
-      throw new Error(errData.message || "Gagal menyimpan postingan");
+    let d = await res.json().catch(() => ({}));
+    
+    if (res.ok && (d.ok || d.success || !d.error)) {
+      textInput.value = "";
+      clearImg();
+      alert("Berhasil posting!");
+      await loadTulis();
+    } else {
+      alert("Gagal Bos: " + (d.error || d.message || "Gagal menyimpan postingan"));
     }
-
-    document.getElementById('tulisIn').value = '';
-    clearImg();
-    await loadTulis();
-  } catch(e) {
-    alert("Gagal Bos: " + e.message);
+  } catch (e) {
+    alert("Kesalahan jaringan: " + e.message);
   } finally {
     btn.innerText = "KIRIM";
     btn.disabled = false;
@@ -170,7 +177,7 @@ async function addTulis(){
 }
 
 async function hapusPost(id){
-  if(!confirm("Hapus Bos?")) return;
+  if(!confirm("Hapus ?")) return;
   try {
     let res = await fetch('/api/tulis/delete', {
       method: 'POST',

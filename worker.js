@@ -1,3 +1,4 @@
+Woker
 import { LOGO, GLOBAL_VIDEOS, ADMIN_EMAILS } from './config.js';
 import { HOME_HTML } from './home/index.js';
 import { AI_HTML } from './ai/index.js';
@@ -21,20 +22,14 @@ export default {
 
     try{
       if(env.DB){
-        // BOS: TABEL LAMA BOS
         await env.DB.prepare("CREATE TABLE IF NOT EXISTS local_videos (id TEXT PRIMARY KEY, created_at INTEGER)").run();
         await env.DB.prepare("CREATE TABLE IF NOT EXISTS blocked_videos (id TEXT PRIMARY KEY)").run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, judul TEXT, isi TEXT, user_email TEXT, email TEXT, name TEXT, nama TEXT, picture TEXT, avatar TEXT, tulisImg TEXT, img TEXT, image TEXT, url TEXT, likes INTEGER DEFAULT 0, time INTEGER, created_at INTEGER)").run();
+        await env.DB.prepare("CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, user_email TEXT, name TEXT, picture TEXT, tulisImg TEXT, url TEXT, likes INTEGER DEFAULT 0, time INTEGER)").run();
         await env.DB.prepare("CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT, time INTEGER)").run();
         await env.DB.prepare("CREATE TABLE IF NOT EXISTS ig_curated (id INTEGER PRIMARY KEY AUTOINCREMENT, akun TEXT, img TEXT, linkIG TEXT, caption TEXT, video TEXT, time INTEGER)").run();
         await env.DB.prepare("CREATE TABLE IF NOT EXISTS rg_users (email TEXT PRIMARY KEY, pass TEXT, name TEXT, picture TEXT, time INTEGER)").run();
-        
-        // BOS: TABEL BARU BUAT AKUN BOS - INI YANG BIKIN ERROR KEMARIN BOS!
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, username TEXT, name TEXT, picture TEXT, created_at INTEGER)").run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS profiles (email TEXT PRIMARY KEY, username TEXT, name TEXT, picture TEXT, bio TEXT)").run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS follows (follower_id TEXT, following_id TEXT, PRIMARY KEY (follower_id, following_id))").run();
       }
-    }catch(e){ console.log("DB Error Bos:", e.message); }
+    }catch(e){}
 
     let r;
     r=await SITEMAP_API.handle(req,env,url); if(r) return r;
@@ -47,23 +42,12 @@ export default {
       return new Response(JSON.stringify([]),{headers:cors});
     }
 
-    // BOS: FIX ROUTING BOS - INI KUNCINYA BOS!
-    const RESERVED = ["home","foto","video","ai","kantor","akun","api","sitemap","robots","icon.png","favicon.ico"];
-    
     if(path==="/"||path.startsWith("/home")) return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     if(path.startsWith("/foto")) return new Response(FOTO_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     if(path.startsWith("/video")) return new Response(VIDEO_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     if(path.startsWith("/ai")) return new Response(AI_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     if(path.startsWith("/kantor")) return new Response(KANTOR_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     if(path.startsWith("/akun")) return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-
-    // BOS: JIKA PATH CUMA /namauser BOS, ARAHKAN KE AKUN_HTML BOS, BUKAN HOME BOS!
-    let seg = path.replace(/^\/+/, "").split("/")[0].toLowerCase();
-    if(seg && !RESERVED.includes(seg) && !seg.includes(".") && seg.length >= 2 && seg.length <= 30){
-      return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-    }
-
-    
     return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
   }
 }

@@ -12,13 +12,12 @@ export const AKUN_API = {
         
         let cleanEmail = (email || "").toLowerCase().trim();
         let cleanName = name || "Dunsanak";
-        let cleanPic = picture || "https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
+        let cleanPic = picture || "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
 
         if (!cleanEmail) {
           return new Response(JSON.stringify({ ok: false, error: "Email wajib diisi!" }), { headers: h, status: 400 });
         }
 
-        // Simpan atau update jika email sudah ada (UPSERT)
         await env.DB.prepare(`
           INSERT INTO users (email, name, picture, password, time) 
           VALUES (?, ?, ?, ?, ?)
@@ -42,9 +41,8 @@ export const AKUN_API = {
         ).bind(cleanEmail).first();
 
         if (!user) {
-          // Jika belum ada di DB, buatkan otomatis (Auto-register sederhana)
           let defaultName = cleanEmail.split('@')[0] || "Dunsanak";
-          let defaultPic = "https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
+          let defaultPic = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
 
           await env.DB.prepare(
             "INSERT INTO users (email, name, picture, password, time) VALUES (?, ?, ?, ?, ?)"
@@ -71,7 +69,7 @@ export const AKUN_API = {
       }
 
       // -------------------------------------------------------------
-      // 4. AMBIL DETAIL PROFIL & STATISTIK (POST, FOLLOWER, FOLLOWING)
+      // 4. AMBIL DETAIL PROFIL & STATISTIK
       // -------------------------------------------------------------
       if (path === "/api/akun/profile" && req.method === "GET") {
         let targetEmail = (url.searchParams.get("email") || "").toLowerCase().trim();
@@ -81,12 +79,10 @@ export const AKUN_API = {
           return new Response(JSON.stringify({ ok: false, error: "Email target tidak ada" }), { headers: h, status: 400 });
         }
 
-        // Ambil Data Pengguna
         let user = await env.DB.prepare(
           "SELECT email, name, picture FROM users WHERE email = ?"
         ).bind(targetEmail).first();
 
-        // Hitung Jumlah Postingan dari tabel 'tulis'
         let postCount = 0;
         try {
           let p = await env.DB.prepare(
@@ -95,7 +91,6 @@ export const AKUN_API = {
           postCount = p?.c || 0;
         } catch (e) {}
 
-        // Hitung Jumlah Follower & Following
         let followersCount = 0;
         let followingCount = 0;
         let isFollowing = false;
@@ -122,7 +117,7 @@ export const AKUN_API = {
         return new Response(JSON.stringify({
           email: targetEmail,
           name: user?.name || targetEmail.split('@')[0] || "Dunsanak",
-          picture: user?.picture || "https://i.ibb.co/r2gL8YJB/1791014451654.jpg",
+          picture: user?.picture || "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png",
           posts: postCount,
           followers: followersCount,
           following: followingCount,
@@ -131,7 +126,25 @@ export const AKUN_API = {
       }
 
       // -------------------------------------------------------------
-      // 5. API FOLLOW / UNFOLLOW
+      // 5. UPDATE PROFIL (NAMA & FOTO GALERI)
+      // -------------------------------------------------------------
+      if (path === "/api/akun/update" && req.method === "POST") {
+        let { email, name, picture } = await req.json();
+        let cleanEmail = (email || "").toLowerCase().trim();
+
+        if (!cleanEmail) {
+          return new Response(JSON.stringify({ ok: false, error: "Email tidak valid" }), { headers: h, status: 400 });
+        }
+
+        await env.DB.prepare(
+          "UPDATE users SET name = COALESCE(?, name), picture = COALESCE(?, picture) WHERE LOWER(email) = ?"
+        ).bind(name || null, picture || null, cleanEmail).run();
+
+        return new Response(JSON.stringify({ ok: true }), { headers: h });
+      }
+
+      // -------------------------------------------------------------
+      // 6. API FOLLOW / UNFOLLOW
       // -------------------------------------------------------------
       if (path === "/api/follow" && req.method === "POST") {
         let { follower, following } = await req.json();
@@ -142,46 +155,27 @@ export const AKUN_API = {
           return new Response(JSON.stringify({ ok: false, error: "Follow tidak valid" }), { headers: h, status: 400 });
         }
 
-        // Cek apakah sudah follow
         let existing = await env.DB.prepare(
           "SELECT id FROM follows WHERE LOWER(follower_email) = ? AND LOWER(following_email) = ?"
         ).bind(cleanFollower, cleanFollowing).first();
 
         if (existing) {
-          // Unfollow
           await env.DB.prepare(
             "DELETE FROM follows WHERE LOWER(follower_email) = ? AND LOWER(following_email) = ?"
           ).bind(cleanFollower, cleanFollowing).run();
           return new Response(JSON.stringify({ ok: true, status: "unfollowed" }), { headers: h });
         } else {
-          // Follow
           await env.DB.prepare(
             "INSERT INTO follows (follower_email, following_email, time) VALUES (?, ?, ?)"
           ).bind(cleanFollower, cleanFollowing, Date.now()).run();
           return new Response(JSON.stringify({ ok: true, status: "followed" }), { headers: h });
         }
-      
-      // --- 6. API UPDATE PROFIL ---
-if (path === "/api/akun/update" && req.method === "POST") {
-  let { email, name, picture } = await req.json();
-  let cleanEmail = (email || "").toLowerCase().trim();
-
-  if (!cleanEmail) {
-    return new Response(JSON.stringify({ ok: false, error: "Email tidak valid" }), { headers: h, status: 400 });
-  }
-}
-  // Update tabel users di database D1
-  await env.DB.prepare(
-    "UPDATE users SET name = COALESCE(?, name), picture = COALESCE(?, picture) WHERE LOWER(email) = ?"
-  ).bind(name || null, picture || null, cleanEmail).run();
-
-  return new Response(JSON.stringify({ ok: true }), { headers: h });
-}
+      }
 
     } catch (err) {
       return new Response(JSON.stringify({ ok: false, error: err.message }), { headers: h, status: 500 });
     }
 
-    return null; // Abaikan jika rute tidak cocok
+    return null;
   }
 };

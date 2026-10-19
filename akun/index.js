@@ -1,408 +1,454 @@
-export const AKUN_HTML = `<!DOCTYPE html>
-<html><head>
+export const HOME_HTML = `<!DOCTYPE html>
+<html lang="id">
+<head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Akun & Profil - Rumah Gadang AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rumah Gadang AI - Komunitas Minangkabau</title>
+<meta name="description" content="Rumah Gadang AI - Komunitas digital Minangkabau, berbagi foto video dan AI karya anak Minang.">
 <link rel="icon" href="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png">
+<link rel="canonical" href="https://www.rumahgadang-ai.my.id/">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-#app{max-width:520px;margin:0 auto;background:#000;min-height:100vh;padding-bottom:80px;border-left:2px solid #00ff88;border-right:2px solid #00ff88;border-bottom:2px solid #00ff88;box-shadow:0 0 12px rgba(0,255,136,0.6)}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+body { background: #000; color: #fff; display: flex; justify-content: center; }
 
-/* HEADER / TOP BAR */
-.top{padding:12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #111;position:sticky;top:0;background:#000;z-index:10}
-.logo-title{display:flex;gap:10px;align-items:center}
-.logo{width:36px;height:36px;border-radius:50%;border:2px solid #00ff88;object-fit:cover;box-shadow:0 0 8px #00ff88}
-.btn-home{background:#00ff88;color:#000;border:0;padding:8px 18px;border-radius:20px;font-weight:900;font-size:12px;cursor:pointer;box-shadow:0 0 8px rgba(0,255,136,0.6)}
+#app {
+  width: 100%;
+  max-width: 500px;
+  background: #000;
+  min-height: 100vh;
+  padding-bottom: 90px;
+  border-left: 2px solid #00ff88;
+  border-right: 2px solid #00ff88;
+  border-bottom: 2px solid #00ff88;
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+}
 
-/* LOGIN CARD */
-.login-card{margin:20px 16px;background:#fff;border-radius:24px;padding:24px;color:#000;border:2px solid #00ff88;box-shadow:0 0 20px rgba(0,255,136,0.8)}
-.login-title{font-size:22px;font-weight:800;margin-bottom:16px;color:#000}
-.tabs-auth{display:flex;gap:8px;margin-bottom:16px}
-.tab-btn{flex:1;padding:10px 4px;border-radius:12px;border:none;font-size:13px;font-weight:700;cursor:pointer;background:#ececec;color:#333;text-align:center}
-.tab-btn.active{background:#000;color:#fff}
-.input-field{width:100%;padding:14px 16px;background:#f3f3f3;border:1px solid #e0e0e0;border-radius:14px;font-size:14px;margin-bottom:12px;outline:none}
-.btn-submit{width:100%;padding:14px;background:#000;color:#fff;border:none;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;margin-top:4px}
-.gadang-img-box{margin:0 16px;border-radius:24px;overflow:hidden;border:2px solid #00ff88;box-shadow:0 0 15px rgba(0,255,136,0.5)}
-.gadang-img-box img{width:100%;display:block;max-height:300px;object-fit:cover}
+/* Header Navbar */
+.top-nav {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #000;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid #111;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #00ff88;
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.8);
+  object-fit: cover;
+}
+.brand span {
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+.btn-login {
+  background: #fff;
+  color: #000;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+}
 
-/* PROFIL HEADER */
-.profile-sec{padding:20px 16px 10px}
-.prof-top{display:flex;align-items:center;gap:16px;margin-bottom:16px}
-.avatar-wrap{position:relative;width:72px;height:72px;flex-shrink:0}
-.avatar-img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid #00ff88;background:#111}
-.avatar-badge{position:absolute;bottom:0;right:0;background:#fff;color:#000;border-radius:50%;width:20px;height:20px;display:grid;place-items:center;font-weight:bold;font-size:14px;border:1px solid #000;cursor:pointer}
-.music-bubble{position:absolute;top:-20px;left:-10px;background:#222;color:#aaa;padding:4px 8px;border-radius:10px;font-size:10px;border:1px solid #444;white-space:nowrap}
+/* Input Form Box */
+.create-box {
+  padding: 14px;
+  border-bottom: 2px solid #00ff88;
+  background: #000;
+}
+.input-row {
+  display: flex;
+  gap: 10px;
+}
+.input-txt {
+  flex: 1;
+  background: #0a0a0a;
+  border: 2px solid #00ff88;
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-size: 15px;
+  outline: none;
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
+}
+.input-txt::placeholder { color: #888; }
+.btn-add-file {
+  width: 46px;
+  height: 46px;
+  background: #181818;
+  border: 1px solid #333;
+  color: #fff;
+  border-radius: 12px;
+  font-size: 26px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.btn-submit {
+  width: 100%;
+  margin-top: 10px;
+  background: #00ff88;
+  color: #000;
+  border: none;
+  padding: 12px;
+  border-radius: 14px;
+  font-weight: 900;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.6);
+}
+#preview {
+  margin-top: 10px;
+  display: none;
+  position: relative;
+}
+#preview img {
+  width: 100%;
+  border-radius: 12px;
+  max-height: 250px;
+  object-fit: cover;
+  border: 1px solid #00ff88;
+}
+#preview .close-prev {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1px solid #444;
+}
 
-.stats-wrap{flex:1;display:flex;justify-content:space-around;text-align:center}
-.stat-num{font-size:18px;font-weight:800;color:#fff}
-.stat-label{font-size:12px;color:#888}
+/* Post Cards */
+.feed-container {
+  padding: 10px;
+}
+.post-card {
+  background: #080808;
+  border: 2px solid #00ff88;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+}
+.post-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.post-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1.5px solid #00ff88;
+  object-fit: cover;
+}
+.post-author {
+  font-weight: 800;
+  font-size: 15px;
+  color: #fff;
+}
+.post-date {
+  font-size: 12px;
+  color: #888;
+  font-weight: normal;
+  margin-left: 6px;
+}
+.post-content {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #eee;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 10px;
+}
+.post-image-box {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #222;
+  margin-bottom: 12px;
+}
+.post-image-box img {
+  width: 100%;
+  display: block;
+  max-height: 380px;
+  object-fit: cover;
+}
 
-.name-display{font-size:16px;font-weight:800;margin-bottom:12px;color:#fff}
+/* Post Actions Bar */
+.post-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.btn-action {
+  background: #121212;
+  border: 1px solid #2a2a2a;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.btn-delete {
+  background: #ff1a1a;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-left: auto;
+}
 
-/* ACTION BUTTONS */
-.action-bar{display:flex;gap:8px;margin-bottom:20px;align-items:center}
-.btn-action{flex:1;padding:12px;background:#222;color:#fff;border:1px solid #333;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;text-align:center}
-.btn-keluar{background:#ff3333!important;color:#fff!important;border:none!important;font-weight:800}
-.btn-follow{background:#00ff88!important;color:#000!important;border:none!important;font-weight:900}
-.btn-following{background:#333!important;color:#fff!important;border:1px solid #555!important}
-
-/* TAB MENU */
-.main-tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid #222;padding-bottom:12px}
-.m-tab{flex:1;padding:12px;border-radius:12px;background:#222;color:#888;text-align:center;font-weight:800;font-size:14px;cursor:pointer;border:1px solid #333}
-.m-tab.active{background:#3a86ff;color:#fff;border-color:#3a86ff;box-shadow:0 0 10px rgba(58,134,255,0.5)}
-
-/* CONTENT AREA */
-.content-area{padding:10px 0}
-.empty-box{text-align:center;padding:50px 20px;color:#666;font-size:14px}
-
-/* TEMAN LIST */
-.user-item{display:flex;align-items:center;justify-content:space-between;background:#111;padding:12px;border-radius:14px;margin-bottom:10px;border:1px solid #222}
-.user-info{display:flex;align-items:center;gap:12px;cursor:pointer}
-.user-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;border:1.5px solid #00ff88}
-.user-name{font-weight:800;font-size:14px;color:#fff}
-.user-email{font-size:11px;color:#777}
-
-/* NAV BOTTOM */
-.bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99;box-shadow:0 -4px 12px rgba(0,255,136,0.3)}
-.bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#fff}
+/* Bottom Nav Bar */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  max-width: 500px;
+  background: #000;
+  border-top: 2px solid #00ff88;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+  z-index: 999;
+  box-shadow: 0 -4px 12px rgba(0,255,136,0.3);
+}
+.bottom-nav a {
+  color: #777;
+  text-decoration: none;
+  text-align: center;
+  font-size: 18px;
+  flex: 1;
+}
+.bottom-nav a.active { color: #fff; }
+.bottom-nav span { display: block; font-size: 10px; margin-top: 2px; }
 </style>
 </head>
 <body>
+
 <div id="app">
-  <div class="top">
-    <div class="logo-title">
-      <img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png" class="logo" onerror="this.src='https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png'">
-      <b>RUMAH GADANG AI</b>
+  <!-- Top Bar -->
+  <div class="top-nav">
+    <div class="brand">
+      <img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png" alt="Logo">
+      <span>RUMAH GADANG AI</span>
     </div>
-    <button class="btn-home" onclick="location.href='/'">HOME</button>
+    <button class="btn-login" onclick="location.href='/akun'">LOGIN</button>
   </div>
 
-  <div id="viewContainer"></div>
+  <!-- Create Post Box -->
+  <div class="create-box">
+    <div class="input-row">
+      <input type="text" id="postInput" class="input-txt" placeholder="Tulis disini...">
+      <button class="btn-add-file" onclick="document.getElementById('fileInput').click()">+</button>
+    </div>
+    <div id="preview">
+      <img id="prevImg">
+      <span class="close-prev" onclick="clearImage()">✕</span>
+    </div>
+    <button class="btn-submit" onclick="submitPost()">KIRIM</button>
+    <input type="file" id="fileInput" accept="image/*" style="display:none">
+  </div>
+
+  <!-- Feed D1 Stream -->
+  <div id="feedList" class="feed-container">
+    <div style="text-align:center; padding:30px; color:#888;">Memuat postingan...</div>
+  </div>
 </div>
 
-<!-- INPUT FILE BEBAS DARI GALERI -->
-<input type="file" id="filePicker" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
-
-<div class="bot">
-  <a href="/">🏠<br><span style="font-size:10px">Home</span></a>
-  <a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a>
-  <a href="/video">🎬<br><span style="font-size:10px">Video</span></a>
-  <a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a>
-  <a href="/ai">🤖<br><span style="font-size:10px">AI</span></a>
-  <a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a>
+<!-- Bottom Navigation Bar -->
+<div class="bottom-nav">
+  <a href="/" class="active">🏠<span>Home</span></a>
+  <a href="/foto">🖼️<span>Foto</span></a>
+  <a href="/video">🎬<span>Video</span></a>
+  <a href="/kantor">🏢<span>Kantor</span></a>
+  <a href="/ai">🤖<span>AI</span></a>
+  <a href="/akun">👤<span>Akun</span></a>
 </div>
 
 <script>
-const LOGO_DEFAULT = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
-let authTab = "masuk";
-let activeMainTab = "foto";
-let viewingUserEmail = null;
+const DEFAULT_LOGO = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
+let selectedImageBase64 = "";
 
-function getMyEmail(){ return (localStorage.getItem('rg_email')||"").toLowerCase().trim(); }
-function getMyName(){ return localStorage.getItem('rg_name')||"Dunsanak"; }
-function getMyAvatar(){ 
-  let img = localStorage.getItem('rg_avatar');
-  return (img && img.trim() !== "") ? img : LOGO_DEFAULT; 
+// Cek Akun Login dari LocalStorage
+function getUserSession() {
+  return {
+    email: (localStorage.getItem('rg_email') || "").toLowerCase().trim(),
+    name: localStorage.getItem('rg_name') || "Dunsanak",
+    avatar: localStorage.getItem('rg_avatar') || DEFAULT_LOGO
+  };
 }
 
-function saveAuth(email, name, avatar){
-  localStorage.setItem('rg_email', email.toLowerCase().trim());
-  localStorage.setItem('rg_name', name || "Dunsanak");
-  localStorage.setItem('rg_avatar', (avatar && avatar.trim() !== "") ? avatar : LOGO_DEFAULT);
+// Reset pilihan gambar
+function clearImage() {
+  selectedImageBase64 = "";
+  document.getElementById('preview').style.display = 'none';
+  document.getElementById('prevImg').src = "";
+  document.getElementById('fileInput').value = "";
 }
 
-function logout(){
-  if(confirm("Keluar dari akun?")){
-    localStorage.removeItem('rg_email');
-    localStorage.removeItem('rg_name');
-    localStorage.removeItem('rg_avatar');
-    viewingUserEmail = null;
-    render();
+// Handler Pilih File Gambar
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 4 * 1024 * 1024) {
+    alert("Ukuran gambar maksimal 4MB!");
+    return;
   }
-}
-
-function triggerGallery(){
-  document.getElementById('filePicker').click();
-}
-
-// PROSES FILE GALERI (KAPASITAS TINGGI / BEBAS UKURAN)
-function handleFileSelect(event){
-  const file = event.target.files[0];
-  if(!file) return;
-
   const reader = new FileReader();
-  reader.onload = function(e){
-    const img = new Image();
-    img.onload = function(){
-      const canvas = document.createElement('canvas');
-      // Diatur maksimal 800px agar gambar sangat jernih namun ukurannya tetap aman masuk database SQL
-      const MAX_WIDTH = 800;
-      const MAX_HEIGHT = 800;
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height) {
-        if (width > MAX_WIDTH) {
-          height *= MAX_WIDTH / width;
-          width = MAX_WIDTH;
-        }
-      } else {
-        if (height > MAX_HEIGHT) {
-          width *= MAX_HEIGHT / height;
-          height = MAX_HEIGHT;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-
-      const base64String = canvas.toDataURL('image/jpeg', 0.9); // Kualitas tinggi 90%
-      updateProfileData(null, base64String);
-    };
-    img.src = e.target.result;
+  reader.onload = function(ev) {
+    selectedImageBase64 = ev.target.result;
+    document.getElementById('prevImg').src = selectedImageBase64;
+    document.getElementById('preview').style.display = 'block';
   };
   reader.readAsDataURL(file);
-}
+});
 
-async function editProfile(){
-  const currentName = getMyName();
-  const newName = prompt("Masukkan nama baru Anda:", currentName);
-  if(newName === null) return;
-
-  const wantPhoto = confirm("Ingin ambil foto profil baru dari galeri HP?");
-  if(wantPhoto){
-    triggerGallery();
-    if(newName.trim() !== "" && newName !== currentName){
-      updateProfileData(newName.trim(), null);
-    }
-  } else {
-    if(newName.trim() !== ""){
-      updateProfileData(newName.trim(), null);
-    }
-  }
-}
-
-async function updateProfileData(newName, newAvatar){
-  const email = getMyEmail();
-  if(!email) return;
-
-  const currentName = getMyName();
-  const currentAvatar = getMyAvatar();
-
-  const finalName = newName || currentName;
-  const finalAvatar = newAvatar || currentAvatar;
-
-  saveAuth(email, finalName, finalAvatar);
-  render();
-  alert("Profil berhasil diperbarui!");
-
+// Load Feed dari Database D1
+async function loadFeed() {
+  const feedContainer = document.getElementById('feedList');
   try {
-    await fetch('/api/akun/update', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name: finalName, picture: finalAvatar })
-    });
-  } catch(e){
-    console.log("Update lokal sukses.");
+    const res = await fetch('/api/tulis');
+    if (!res.ok) throw new Error("Gagal terhubung ke database D1");
+    const posts = await res.json();
+
+    if (!Array.isArray(posts) || posts.length === 0) {
+      feedContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">Belum ada postingan D1</div>';
+      return;
+    }
+
+    const session = getUserSession();
+    feedContainer.innerHTML = posts.map(item => {
+      const avatar = item.picture || DEFAULT_LOGO;
+      const authorName = item.name || "Anonim";
+      const postDate = item.time ? new Date(item.time).toLocaleString('id-ID') : '';
+      const contentText = item.text || '';
+      const imageTag = item.tulisImg ? '<div class="post-image-box"><img src="' + item.tulisImg + '" loading="lazy"></div>' : '';
+      
+      // Tombol hapus jika milik user login atau admin
+      const isOwner = session.email && (session.email === (item.email || '').toLowerCase().trim());
+      const deleteBtn = isOwner ? '<button class="btn-delete" onclick="deletePost(' + item.id + ')">HAPUS</button>' : '';
+
+      return '<div class="post-card" id="post-' + item.id + '">' +
+        '<div class="post-header">' +
+          '<img class="post-avatar" src="' + avatar + '" onerror="this.src=\\'' + DEFAULT_LOGO + '\\'">' +
+          '<div>' +
+            '<span class="post-author">' + authorName + '</span>' +
+            '<span class="post-date">• ' + postDate + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="post-content">' + contentText + '</div>' +
+        imageTag +
+        '<div class="post-actions">' +
+          '<button class="btn-action">❤️ ' + (item.likes || 0) + '</button>' +
+          '<button class="btn-action">💬 Komen</button>' +
+          deleteBtn +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+  } catch (err) {
+    feedContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#ff4444;">Error: ' + err.message + '</div>';
   }
 }
 
-async function render(){
-  const myEmail = getMyEmail();
-  const container = document.getElementById('viewContainer');
-
-  if(!myEmail && !viewingUserEmail){
-    renderLoginView(container);
+// Kirim Postingan Baru ke Database D1
+async function submitPost() {
+  const session = getUserSession();
+  
+  if (!session.email) {
+    alert("Silakan login akun Anda terlebih dahulu untuk membuat postingan!");
+    location.href = '/akun';
     return;
   }
 
-  const targetEmail = viewingUserEmail || myEmail;
-  const isMe = (targetEmail === myEmail);
-  renderProfileView(container, targetEmail, isMe);
-}
+  const textInput = document.getElementById('postInput');
+  const textContent = textInput.value.trim();
 
-function renderLoginView(container){
-  container.innerHTML = \`
-    <div class="login-card">
-      <div class="login-title">Rumah Gadang AI</div>
-      <div class="tabs-auth">
-        <button class="tab-btn \${authTab==='masuk'?'active':''}" onclick="switchAuthTab('masuk')">Masuk</button>
-        <button class="tab-btn \${authTab==='daftar'?'active':''}" onclick="switchAuthTab('daftar')">Buat Akun</button>
-        <button class="tab-btn \${authTab==='google'?'active':''}" onclick="switchAuthTab('google')">Google</button>
-      </div>
+  if (!textContent && !selectedImageBase64) {
+    alert("Tulis sesuatu atau pilih gambar terlebih dahulu!");
+    return;
+  }
 
-      <div id="authForm">
-        \${authTab === 'google' ? \`
-          <p style="text-align:center;font-size:13px;margin:20px 0;color:#555">Masuk cepat dengan akun Google Anda</p>
-          <button class="btn-submit" onclick="doGoogleLogin()">Lanjutkan dengan Google</button>
-        \` : \`
-          \${authTab === 'daftar' ? '<input id="nameIn" class="input-field" placeholder="nama kamu: Farel">' : ''}
-          <input id="emailIn" class="input-field" type="email" placeholder="email kamu: amanda@...">
-          <input id="passIn" class="input-field" type="password" placeholder="password (bebas)">
-          <button class="btn-submit" onclick="doAuth()">\${authTab==='masuk'?'Masuk':'Daftar Sekarang'}</button>
-        \`}
-      </div>
-    </div>
-
-    <div class="gadang-img-box">
-      <img src="\${LOGO_DEFAULT}" onerror="this.src='\${LOGO_DEFAULT}'">
-    </div>
-  \`;
-}
-
-function switchAuthTab(tab){
-  authTab = tab;
-  render();
-}
-
-async function doAuth(){
-  const email = document.getElementById('emailIn')?.value.trim();
-  const pass = document.getElementById('passIn')?.value.trim();
-  const name = document.getElementById('nameIn')?.value.trim() || "Dunsanak";
-
-  if(!email){ alert("Isi email dulu Bos!"); return; }
+  const btnSubmit = document.querySelector('.btn-submit');
+  btnSubmit.innerText = "MENGIRIM...";
+  btnSubmit.disabled = true;
 
   try {
-    await fetch('/api/akun/register', {
+    const res = await fetch('/api/tulis', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name, password: pass, picture: LOGO_DEFAULT })
+      body: JSON.stringify({
+        text: textContent,
+        email: session.email,
+        name: session.name,
+        picture: session.avatar,
+        tulisImg: selectedImageBase64
+      })
     });
-  } catch(e){}
 
-  saveAuth(email, name, LOGO_DEFAULT);
-  render();
-}
+    const result = await res.json().catch(() => ({}));
 
-function doGoogleLogin(){
-  const email = prompt("Masukkan email Google kamu:", "user@gmail.com");
-  if(email){
-    saveAuth(email, email.split('@')[0], LOGO_DEFAULT);
-    render();
+    if (res.ok && (result.ok || result.success || !result.error)) {
+      textInput.value = '';
+      clearImage();
+      await loadFeed();
+    } else {
+      alert("Gagal posting: " + (result.error || result.message || "Gagal menyimpan ke D1"));
+    }
+  } catch (err) {
+    alert("Kesalahan jaringan: " + err.message);
+  } finally {
+    btnSubmit.innerText = "KIRIM";
+    btnSubmit.disabled = false;
   }
 }
 
-async function renderProfileView(container, targetEmail, isMe){
-  container.innerHTML = \`<div style="text-align:center;padding:40px;color:#888">Memuat profil...</div>\`;
-
-  let profileData = { name: isMe ? getMyName() : "Dunsanak", picture: isMe ? getMyAvatar() : LOGO_DEFAULT, posts: 0, followers: 0, following: 0, isFollowing: false };
-
+// Hapus Postingan dari D1
+async function deletePost(id) {
+  if (!confirm("Apakah Anda yakin ingin menghapus postingan ini?")) return;
+  const session = getUserSession();
   try {
-    let res = await fetch('/api/akun/profile?email=' + encodeURIComponent(targetEmail) + '&me=' + encodeURIComponent(getMyEmail()));
-    if(res.ok){
-      let d = await res.json();
-      profileData = { ...profileData, ...d };
-      if(!profileData.picture || profileData.picture.trim() === "") profileData.picture = LOGO_DEFAULT;
-      if(isMe){
-        saveAuth(targetEmail, profileData.name, profileData.picture);
-      }
-    }
-  } catch(e){}
-
-  container.innerHTML = \`
-    <div class="profile-sec">
-      <div class="prof-top">
-        <div class="avatar-wrap">
-          <div class="music-bubble">Coba bagikan lagu...</div>
-          <img src="\${profileData.picture}" class="avatar-img" onerror="this.src='\${LOGO_DEFAULT}'">
-          <div class="avatar-badge" onclick="\${isMe?'triggerGallery()':''}">+</div>
-        </div>
-
-        <div class="stats-wrap">
-          <div><div class="stat-num">\${profileData.posts || 0}</div><div class="stat-label">postingan</div></div>
-          <div><div class="stat-num">\${profileData.followers || 0}</div><div class="stat-label">pengikut</div></div>
-          <div><div class="stat-num">\${profileData.following || 0}</div><div class="stat-label">mengikuti</div></div>
-        </div>
-      </div>
-
-      <div class="name-display">\${profileData.name || 'Dunsanak'}</div>
-
-      <div class="action-bar">
-        \${isMe ? \`
-          <button class="btn-action" onclick="editProfile()">Edit profil</button>
-          <button class="btn-action btn-keluar" onclick="logout()">Keluar</button>
-        \` : \`
-          <button class="btn-action \${profileData.isFollowing ? 'btn-following' : 'btn-follow'}" onclick="toggleFollow('\${targetEmail}')">
-            \${profileData.isFollowing ? 'Following' : 'Follow'}
-          </button>
-          <button class="btn-action" onclick="viewingUserEmail=null;render();">Kembali</button>
-        \`}
-      </div>
-
-      <div class="main-tabs">
-        <button class="m-tab \${activeMainTab==='foto'?'active':''}" onclick="switchMainTab('foto')">FOTO</button>
-        <button class="m-tab \${activeMainTab==='video'?'active':''}" onclick="switchMainTab('video')">video</button>
-        <button class="m-tab \${activeMainTab==='teman'?'active':''}" onclick="switchMainTab('teman')">Teman</button>
-      </div>
-
-      <div id="tabContent" class="content-area">Memuat isi...</div>
-    </div>
-  \`;
-
-  loadTabContent(targetEmail);
-}
-
-function switchMainTab(tab){
-  activeMainTab = tab;
-  render();
-}
-
-async function loadTabContent(targetEmail){
-  const box = document.getElementById('tabContent');
-  if(!box) return;
-
-  if(activeMainTab === 'teman'){
-    box.innerHTML = '<div style="text-align:center;color:#666">Mengambil daftar pendaftar D1...</div>';
-    try {
-      let res = await fetch('/api/akun/list');
-      let users = await res.json();
-      if(!Array.isArray(users) || !users.length){
-        box.innerHTML = '<div class="empty-box">Belum ada pengguna lain.</div>';
-        return;
-      }
-      box.innerHTML = users.map(u => \`
-        <div class="user-item">
-          <div class="user-info" onclick="viewUser('\${u.email}')">
-            <img src="\${u.picture || LOGO_DEFAULT}" class="user-avatar" onerror="this.src='\${LOGO_DEFAULT}'">
-            <div>
-              <div class="user-name">\${u.name || 'Dunsanak'}</div>
-              <div class="user-email">\${u.email}</div>
-            </div>
-          </div>
-          <button class="btn-action btn-follow" style="padding:6px 14px;font-size:11px" onclick="viewUser('\${u.email}')">Lihat</button>
-        </div>
-      \`).join('');
-    } catch(e) {
-      box.innerHTML = '<div style="color:#ff4444;text-align:center">Gagal memuat teman dari DB</div>';
-    }
-  } else {
-    box.innerHTML = '<div class="empty-box">Belum ada konten ' + activeMainTab + '.</div>';
+    const res = await fetch('/api/tulis/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id, email: session.email })
+    });
+    if (!res.ok) throw new Error("Gagal menghapus postingan");
+    document.getElementById('post-' + id)?.remove();
+  } catch (err) {
+    alert("Gagal menghapus: " + err.message);
   }
 }
 
-function viewUser(email){
-  viewingUserEmail = email;
-  render();
-}
-
-async function toggleFollow(targetEmail){
-  const myEmail = getMyEmail();
-  if(!myEmail){ alert("Login dulu!"); return; }
-
-  try {
-    let res = await fetch('/api/follow', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ follower: myEmail, following: targetEmail })
-    });
-  } catch(e){}
-  render();
-}
-
-render();
+// Load data awal
+loadFeed();
 <\/script>
 </body>
-</html>`;
+</html>
+`;

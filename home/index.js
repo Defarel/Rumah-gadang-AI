@@ -2,9 +2,10 @@ export const HOME_HTML = `<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Rumah Gadang AI - Home</title>
+<title>Rumah Gadang AI - Komunitas Minangkabau</title>
+<meta name="description" content="Rumah Gadang AI - Komunitas digital Minangkabau">
 <link rel="icon" href="/icon.png">
-<script src="https://cdn.tailwindcss.com"></script>
+<link rel="canonical" href="https://www.rumahgadang-ai.my.id/">
 <style>
 body{background:#000;color:#fff;font-family:system-ui,sans-serif}
 #app{max-width:520px;margin:0 auto;background:#000;min-height:100vh;padding-bottom:100px;border-left:2px solid #00ff88;border-right:2px solid #00ff88;border-bottom:2px solid #00ff88;box-shadow:0 0 18px rgba(0,255,136,0.5)}

@@ -8,14 +8,23 @@ export const AKUN_API = {
       // 1. REGISTER / SIMPAN AKUN BARU
       // -------------------------------------------------------------
       if (path === "/api/akun/register" && req.method === "POST") {
-        let { email, name, picture, password } = await req.json();
+        let { email, user, name, picture, password } = await req.json();
         
-        let cleanEmail = (email || "").toLowerCase().trim();
-        let cleanName = name || "Dunsanak";
+        let rawInput = email || user || "";
+        let cleanEmail = rawInput.includes("@") 
+          ? rawInput.toLowerCase().trim() 
+          : (rawInput ? rawInput.toLowerCase().trim() + "@rumahgadang-ai.my.id" : "");
+
+        let cleanName = name || rawInput.split('@')[0] || "Dunsanak";
         let cleanPic = picture || "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
 
         if (!cleanEmail) {
-          return new Response(JSON.stringify({ ok: false, error: "Email wajib diisi!" }), { headers: h, status: 400 });
+          return new Response(JSON.stringify({ ok: false, error: "Email atau Username wajib diisi!" }), { headers: h, status: 400 });
+        }
+
+        let existing = await env.DB.prepare("SELECT email FROM users WHERE email = ?").bind(cleanEmail).first();
+        if (existing) {
+          return new Response(JSON.stringify({ ok: false, error: "Akun dengan email tersebut sudah terdaftar!" }), { headers: h, status: 400 });
         }
 
         await env.DB.prepare(`
@@ -26,21 +35,29 @@ export const AKUN_API = {
             picture = COALESCE(NULLIF(excluded.picture, ''), users.picture)
         `).bind(cleanEmail, cleanName, cleanPic, password || "", Date.now()).run();
 
-        return new Response(JSON.stringify({ ok: true, message: "Berhasil daftar" }), { headers: h });
+        return new Response(JSON.stringify({ ok: true, message: "Berhasil daftar", email: cleanEmail }), { headers: h });
       }
 
       // -------------------------------------------------------------
       // 2. LOGIN USER
       // -------------------------------------------------------------
       if (path === "/api/akun/login" && req.method === "POST") {
-        let { email, password } = await req.json();
-        let cleanEmail = (email || "").toLowerCase().trim();
+        let { email, user, password } = await req.json();
+        let rawInput = email || user || "";
+        
+        let cleanEmail = rawInput.includes("@") 
+          ? rawInput.toLowerCase().trim() 
+          : (rawInput ? rawInput.toLowerCase().trim() + "@rumahgadang-ai.my.id" : "");
 
-        let user = await env.DB.prepare(
+        if (!cleanEmail) {
+          return new Response(JSON.stringify({ ok: false, error: "Email/Username wajib diisi!" }), { headers: h, status: 400 });
+        }
+
+        let dbUser = await env.DB.prepare(
           "SELECT email, name, picture FROM users WHERE email = ?"
         ).bind(cleanEmail).first();
 
-        if (!user) {
+        if (!dbUser) {
           let defaultName = cleanEmail.split('@')[0] || "Dunsanak";
           let defaultPic = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
 
@@ -54,11 +71,11 @@ export const AKUN_API = {
           }), { headers: h });
         }
 
-        return new Response(JSON.stringify({ ok: true, user }), { headers: h });
+        return new Response(JSON.stringify({ ok: true, user: dbUser }), { headers: h });
       }
 
       // -------------------------------------------------------------
-      // 3. DAFTAR SELURUH PENGGUNA (UNTUK TAB TEMAN)
+      // 3. DAFTAR SELURUH PENGGUNA (UNTUK TAB TEMAN / LIST)
       // -------------------------------------------------------------
       if (path === "/api/akun/list" && req.method === "GET") {
         let r = await env.DB.prepare(
@@ -72,8 +89,15 @@ export const AKUN_API = {
       // 4. AMBIL DETAIL PROFIL & STATISTIK
       // -------------------------------------------------------------
       if (path === "/api/akun/profile" && req.method === "GET") {
-        let targetEmail = (url.searchParams.get("email") || "").toLowerCase().trim();
-        let myEmail = (url.searchParams.get("me") || "").toLowerCase().trim();
+        let rawTarget = url.searchParams.get("email") || url.searchParams.get("user") || "";
+        let targetEmail = rawTarget.includes("@") 
+          ? rawTarget.toLowerCase().trim() 
+          : (rawTarget ? rawTarget.toLowerCase().trim() + "@rumahgadang-ai.my.id" : "");
+
+        let rawMy = url.searchParams.get("me") || "";
+        let myEmail = rawMy.includes("@") 
+          ? rawMy.toLowerCase().trim() 
+          : (rawMy ? rawMy.toLowerCase().trim() + "@rumahgadang-ai.my.id" : "");
 
         if (!targetEmail) {
           return new Response(JSON.stringify({ ok: false, error: "Email target tidak ada" }), { headers: h, status: 400 });
@@ -126,7 +150,7 @@ export const AKUN_API = {
       }
 
       // -------------------------------------------------------------
-      // 5. UPDATE PROFIL (NAMA & FOTO GALERI)
+      // 5. UPDATE PROFIL (NAMA & FOTO)
       // -------------------------------------------------------------
       if (path === "/api/akun/update" && req.method === "POST") {
         let { email, name, picture } = await req.json();
@@ -148,8 +172,14 @@ export const AKUN_API = {
       // -------------------------------------------------------------
       if (path === "/api/follow" && req.method === "POST") {
         let { follower, following } = await req.json();
-        let cleanFollower = (follower || "").toLowerCase().trim();
-        let cleanFollowing = (following || "").toLowerCase().trim();
+        
+        let cleanFollower = (follower || "").includes("@") 
+          ? follower.toLowerCase().trim() 
+          : (follower ? follower.toLowerCase().trim() + "@rumahgadang-ai.my.id" : "");
+          
+        let cleanFollowing = (following || "").includes("@") 
+          ? following.toLowerCase().trim() 
+          : (following ? following.toLowerCase().trim() + "@rumahgadang-ai.my.id" : "");
 
         if (!cleanFollower || !cleanFollowing || cleanFollower === cleanFollowing) {
           return new Response(JSON.stringify({ ok: false, error: "Follow tidak valid" }), { headers: h, status: 400 });
@@ -170,29 +200,31 @@ export const AKUN_API = {
           ).bind(cleanFollower, cleanFollowing, Date.now()).run();
           return new Response(JSON.stringify({ ok: true, status: "followed" }), { headers: h });
         }
-      
-// --- API POST /api/tulis ---
-if (path === "/api/tulis" && req.method === "POST") {
-  let { text, email, name, picture, tulisImg } = await req.json();
-  
-  let cleanEmail = (email || "anon@rg.id").toLowerCase().trim();
-  let cleanName = name || "Dunsanak";
-  let cleanPic = picture || "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
-  let cleanText = text || "";
-  let cleanImg = tulisImg || "";
-  let timeNow = Date.now();
+      }
 
-  try {
-    await env.DB.prepare(`
-      INSERT INTO tulis (text, email, name, picture, tulisImg, time, likes) 
-      VALUES (?, ?, ?, ?, ?, ?, 0)
-    `).bind(cleanText, cleanEmail, cleanName, cleanPic, cleanImg, timeNow).run();
+      // -------------------------------------------------------------
+      // 7. API POST /api/tulis
+      // -------------------------------------------------------------
+      if (path === "/api/tulis" && req.method === "POST") {
+        let { text, email, name, picture, tulisImg } = await req.json();
+        
+        let cleanEmail = (email || "anon").includes("@")
+          ? email.toLowerCase().trim()
+          : (email ? email.toLowerCase().trim() + "@rumahgadang-ai.my.id" : "anon@rumahgadang-ai.my.id");
+          
+        let cleanName = name || "Dunsanak";
+        let cleanPic = picture || "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
+        let cleanText = text || "";
+        let cleanImg = tulisImg || "";
+        let timeNow = Date.now();
 
-    return new Response(JSON.stringify({ ok: true, message: "Berhasil posting!" }), { headers: h });
-  } catch (err) {
-    return new Response(JSON.stringify({ ok: false, error: err.message }), { headers: h, status: 500 });
-  }
-}
+        await env.DB.prepare(`
+          INSERT INTO tulis (text, email, name, picture, tulisImg, time, likes) 
+          VALUES (?, ?, ?, ?, ?, ?, 0)
+        `).bind(cleanText, cleanEmail, cleanName, cleanPic, cleanImg, timeNow).run();
+
+        return new Response(JSON.stringify({ ok: true, message: "Berhasil posting!" }), { headers: h });
+      }
 
     } catch (err) {
       return new Response(JSON.stringify({ ok: false, error: err.message }), { headers: h, status: 500 });

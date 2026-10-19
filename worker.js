@@ -1,4 +1,3 @@
-Woker
 import { LOGO, GLOBAL_VIDEOS, ADMIN_EMAILS } from './config.js';
 import { HOME_HTML } from './home/index.js';
 import { AI_HTML } from './ai/index.js';

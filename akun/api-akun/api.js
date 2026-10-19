@@ -170,8 +170,31 @@ export const AKUN_API = {
           ).bind(cleanFollower, cleanFollowing, Date.now()).run();
           return new Response(JSON.stringify({ ok: true, status: "followed" }), { headers: h });
         }
-      }
+      
+// --- API POST /api/tulis ---
+if (path === "/api/tulis" && req.method === "POST") {
+  let { text, email, name, picture, tulisImg } = await req.json();
+  
+  let cleanEmail = (email || "anon@rg.id").toLowerCase().trim();
+  let cleanName = name || "Dunsanak";
+  let cleanPic = picture || "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
+  let cleanText = text || "";
+  let cleanImg = tulisImg || "";
+  let timeNow = Date.now();
 
+  try {
+    await env.DB.prepare(`
+      INSERT INTO tulis (text, email, name, picture, tulisImg, time, likes) 
+      VALUES (?, ?, ?, ?, ?, ?, 0)
+    `).bind(cleanText, cleanEmail, cleanName, cleanPic, cleanImg, timeNow).run();
+
+    return new Response(JSON.stringify({ ok: true, message: "Berhasil posting!" }), { headers: h });
+  } catch (err) {
+    return new Response(JSON.stringify({ ok: false, error: err.message }), { headers: h, status: 500 });
+  }
+}
+
+      
     } catch (err) {
       return new Response(JSON.stringify({ ok: false, error: err.message }), { headers: h, status: 500 });
     }

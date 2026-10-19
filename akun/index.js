@@ -15,7 +15,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .logo{width:36px;height:36px;border-radius:50%;border:2px solid #00ff88;object-fit:cover;box-shadow:0 0 8px #00ff88}
 .btn-home{background:#00ff88;color:#000;border:0;padding:8px 18px;border-radius:20px;font-weight:900;font-size:12px;cursor:pointer;box-shadow:0 0 8px rgba(0,255,136,0.6)}
 
-/* LOGIN / REGISTER CARD */
+/* LOGIN CARD */
 .login-card{margin:20px 16px;background:#fff;border-radius:24px;padding:24px;color:#000;border:2px solid #00ff88;box-shadow:0 0 20px rgba(0,255,136,0.8)}
 .login-title{font-size:22px;font-weight:800;margin-bottom:16px;color:#000}
 .tabs-auth{display:flex;gap:8px;margin-bottom:16px}
@@ -30,7 +30,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .profile-sec{padding:20px 16px 10px}
 .prof-top{display:flex;align-items:center;gap:16px;margin-bottom:16px}
 .avatar-wrap{position:relative;width:72px;height:72px;flex-shrink:0}
-.avatar-img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid #00ff88}
+.avatar-img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid #00ff88;background:#111}
 .avatar-badge{position:absolute;bottom:0;right:0;background:#fff;color:#000;border-radius:50%;width:20px;height:20px;display:grid;place-items:center;font-weight:bold;font-size:14px;border:1px solid #000;cursor:pointer}
 .music-bubble{position:absolute;top:-20px;left:-10px;background:#222;color:#aaa;padding:4px 8px;border-radius:10px;font-size:10px;border:1px solid #444;white-space:nowrap}
 
@@ -47,7 +47,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .btn-follow{background:#00ff88!important;color:#000!important;border:none!important;font-weight:900}
 .btn-following{background:#333!important;color:#fff!important;border:1px solid #555!important}
 
-/* TAB MENU (FOTO, VIDEO, TEMAN) */
+/* TAB MENU */
 .main-tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid #222;padding-bottom:12px}
 .m-tab{flex:1;padding:12px;border-radius:12px;background:#222;color:#888;text-align:center;font-weight:800;font-size:14px;cursor:pointer;border:1px solid #333}
 .m-tab.active{background:#3a86ff;color:#fff;border-color:#3a86ff;box-shadow:0 0 10px rgba(58,134,255,0.5)}
@@ -70,20 +70,20 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 </head>
 <body>
 <div id="app">
-  <!-- TOP BAR -->
   <div class="top">
     <div class="logo-title">
-      <img src="https://i.ibb.co/r2gL8YJB/1791014451654.jpg" class="logo">
+      <img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png" class="logo" onerror="this.src='https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png'">
       <b>RUMAH GADANG AI</b>
     </div>
     <button class="btn-home" onclick="location.href='/'">HOME</button>
   </div>
 
-  <!-- CONTAINER UTAMA -->
   <div id="viewContainer"></div>
 </div>
 
-<!-- NAVBAR BOTTOM -->
+<!-- INPUT FILE BEBAS DARI GALERI -->
+<input type="file" id="filePicker" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
+
 <div class="bot">
   <a href="/">🏠<br><span style="font-size:10px">Home</span></a>
   <a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a>
@@ -94,19 +94,22 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 </div>
 
 <script>
-const LOGO_FALLBACK = "https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
+const LOGO_DEFAULT = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
 let authTab = "masuk";
 let activeMainTab = "foto";
 let viewingUserEmail = null;
 
 function getMyEmail(){ return (localStorage.getItem('rg_email')||"").toLowerCase().trim(); }
 function getMyName(){ return localStorage.getItem('rg_name')||"Dunsanak"; }
-function getMyAvatar(){ return localStorage.getItem('rg_avatar')||LOGO_FALLBACK; }
+function getMyAvatar(){ 
+  let img = localStorage.getItem('rg_avatar');
+  return (img && img.trim() !== "") ? img : LOGO_DEFAULT; 
+}
 
 function saveAuth(email, name, avatar){
   localStorage.setItem('rg_email', email.toLowerCase().trim());
   localStorage.setItem('rg_name', name || "Dunsanak");
-  if(avatar) localStorage.setItem('rg_avatar', avatar);
+  localStorage.setItem('rg_avatar', (avatar && avatar.trim() !== "") ? avatar : LOGO_DEFAULT);
 }
 
 function logout(){
@@ -119,40 +122,94 @@ function logout(){
   }
 }
 
-// FUNGSI EDIT PROFIL (NAMA & FOTO)
+function triggerGallery(){
+  document.getElementById('filePicker').click();
+}
+
+// PROSES FILE GALERI (KAPASITAS TINGGI / BEBAS UKURAN)
+function handleFileSelect(event){
+  const file = event.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = function(){
+      const canvas = document.createElement('canvas');
+      // Diatur maksimal 800px agar gambar sangat jernih namun ukurannya tetap aman masuk database SQL
+      const MAX_WIDTH = 800;
+      const MAX_HEIGHT = 800;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const base64String = canvas.toDataURL('image/jpeg', 0.9); // Kualitas tinggi 90%
+      updateProfileData(null, base64String);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 async function editProfile(){
   const currentName = getMyName();
-  const currentAvatar = getMyAvatar();
-
   const newName = prompt("Masukkan nama baru Anda:", currentName);
-  if(newName === null) return; // Batal
+  if(newName === null) return;
 
-  const newAvatar = prompt("Masukkan URL foto profil baru (link gambar):", currentAvatar);
-  if(newAvatar === null) return; // Batal
-
-  const email = getMyEmail();
-  if(!email) return;
-
-  try {
-    let res = await fetch('/api/akun/update', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name: newName || currentName, picture: newAvatar || currentAvatar })
-    });
-    let d = await res.json();
-    if(d.ok){
-      saveAuth(email, newName || currentName, newAvatar || currentAvatar);
-      alert("Profil berhasil diperbarui!");
-      render();
-    } else {
-      alert("Gagal memperbarui profil: " + (d.error || "Kesalahan server"));
+  const wantPhoto = confirm("Ingin ambil foto profil baru dari galeri HP?");
+  if(wantPhoto){
+    triggerGallery();
+    if(newName.trim() !== "" && newName !== currentName){
+      updateProfileData(newName.trim(), null);
     }
-  } catch(e){
-    alert("Gagal koneksi ke server: " + e.message);
+  } else {
+    if(newName.trim() !== ""){
+      updateProfileData(newName.trim(), null);
+    }
   }
 }
 
-// ROUTER & RENDERER UTAMA
+async function updateProfileData(newName, newAvatar){
+  const email = getMyEmail();
+  if(!email) return;
+
+  const currentName = getMyName();
+  const currentAvatar = getMyAvatar();
+
+  const finalName = newName || currentName;
+  const finalAvatar = newAvatar || currentAvatar;
+
+  saveAuth(email, finalName, finalAvatar);
+  render();
+  alert("Profil berhasil diperbarui!");
+
+  try {
+    await fetch('/api/akun/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name: finalName, picture: finalAvatar })
+    });
+  } catch(e){
+    console.log("Update lokal sukses.");
+  }
+}
+
 async function render(){
   const myEmail = getMyEmail();
   const container = document.getElementById('viewContainer');
@@ -183,15 +240,15 @@ function renderLoginView(container){
           <button class="btn-submit" onclick="doGoogleLogin()">Lanjutkan dengan Google</button>
         \` : \`
           \${authTab === 'daftar' ? '<input id="nameIn" class="input-field" placeholder="nama kamu: Farel">' : ''}
-          <input id="emailIn" class="input-field" type="email" placeholder="Masukan email">
-          <input id="passIn" class="input-field" type="password" placeholder="password">
+          <input id="emailIn" class="input-field" type="email" placeholder="email kamu: amanda@...">
+          <input id="passIn" class="input-field" type="password" placeholder="password (bebas)">
           <button class="btn-submit" onclick="doAuth()">\${authTab==='masuk'?'Masuk':'Daftar Sekarang'}</button>
         \`}
       </div>
     </div>
 
     <div class="gadang-img-box">
-      <img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png" onerror="this.src='\${LOGO_FALLBACK}'">
+      <img src="\${LOGO_DEFAULT}" onerror="this.src='\${LOGO_DEFAULT}'">
     </div>
   \`;
 }
@@ -212,18 +269,18 @@ async function doAuth(){
     await fetch('/api/akun/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name, password: pass, picture: LOGO_FALLBACK })
+      body: JSON.stringify({ email, name, password: pass, picture: LOGO_DEFAULT })
     });
   } catch(e){}
 
-  saveAuth(email, name, LOGO_FALLBACK);
+  saveAuth(email, name, LOGO_DEFAULT);
   render();
 }
 
 function doGoogleLogin(){
   const email = prompt("Masukkan email Google kamu:", "user@gmail.com");
   if(email){
-    saveAuth(email, email.split('@')[0], LOGO_FALLBACK);
+    saveAuth(email, email.split('@')[0], LOGO_DEFAULT);
     render();
   }
 }
@@ -231,15 +288,16 @@ function doGoogleLogin(){
 async function renderProfileView(container, targetEmail, isMe){
   container.innerHTML = \`<div style="text-align:center;padding:40px;color:#888">Memuat profil...</div>\`;
 
-  let profileData = { name: isMe ? getMyName() : "Dunsanak", picture: isMe ? getMyAvatar() : LOGO_FALLBACK, posts: 0, followers: 0, following: 0, isFollowing: false };
+  let profileData = { name: isMe ? getMyName() : "Dunsanak", picture: isMe ? getMyAvatar() : LOGO_DEFAULT, posts: 0, followers: 0, following: 0, isFollowing: false };
 
   try {
     let res = await fetch('/api/akun/profile?email=' + encodeURIComponent(targetEmail) + '&me=' + encodeURIComponent(getMyEmail()));
     if(res.ok){
       let d = await res.json();
       profileData = { ...profileData, ...d };
+      if(!profileData.picture || profileData.picture.trim() === "") profileData.picture = LOGO_DEFAULT;
       if(isMe){
-        saveAuth(targetEmail, d.name, d.picture);
+        saveAuth(targetEmail, profileData.name, profileData.picture);
       }
     }
   } catch(e){}
@@ -249,8 +307,8 @@ async function renderProfileView(container, targetEmail, isMe){
       <div class="prof-top">
         <div class="avatar-wrap">
           <div class="music-bubble">Coba bagikan lagu...</div>
-          <img src="\${profileData.picture || LOGO_FALLBACK}" class="avatar-img" onerror="this.src='\${LOGO_FALLBACK}'">
-          <div class="avatar-badge" onclick="\${isMe?'editProfile()':''}">+</div>
+          <img src="\${profileData.picture}" class="avatar-img" onerror="this.src='\${LOGO_DEFAULT}'">
+          <div class="avatar-badge" onclick="\${isMe?'triggerGallery()':''}">+</div>
         </div>
 
         <div class="stats-wrap">
@@ -308,7 +366,7 @@ async function loadTabContent(targetEmail){
       box.innerHTML = users.map(u => \`
         <div class="user-item">
           <div class="user-info" onclick="viewUser('\${u.email}')">
-            <img src="\${u.picture || LOGO_FALLBACK}" class="user-avatar" onerror="this.src='\${LOGO_FALLBACK}'">
+            <img src="\${u.picture || LOGO_DEFAULT}" class="user-avatar" onerror="this.src='\${LOGO_DEFAULT}'">
             <div>
               <div class="user-name">\${u.name || 'Dunsanak'}</div>
               <div class="user-email">\${u.email}</div>
@@ -340,13 +398,8 @@ async function toggleFollow(targetEmail){
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ follower: myEmail, following: targetEmail })
     });
-    let d = await res.json();
-    if(d.ok){
-      render();
-    }
-  } catch(e){
-    alert("Gagal follow: " + e.message);
-  }
+  } catch(e){}
+  render();
 }
 
 render();

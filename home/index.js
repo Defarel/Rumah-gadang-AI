@@ -10,7 +10,6 @@ export const HOME_HTML = `<!DOCTYPE html>
 <meta property="og:image" content="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Rumah Gadang AI","url":"https://www.rumahgadang-ai.my.id","logo":"https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png"}</script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}body{background:#000;color:#fff;font-family:sans-serif}
 #app{max-width:520px;margin:0 auto;background:#000;min-height:100vh;padding-bottom:80px;
 border-left:2px solid #00ff88;border-right:2px solid #00ff88;border-bottom:2px solid #00ff88;
 box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 12px rgba(0,255,136,0.15)}
@@ -177,7 +176,7 @@ async function addTulis(){
 }
 
 async function hapusPost(id){
-  if(!confirm("Hapus ?")) return;
+  if(!confirm("Hapus Bos?")) return;
   try {
     let res = await fetch('/api/tulis/delete', {
       method: 'POST',

@@ -27,8 +27,9 @@ export default {
         await env.DB.prepare("CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT, time INTEGER)").run();
         await env.DB.prepare("CREATE TABLE IF NOT EXISTS ig_curated (id INTEGER PRIMARY KEY AUTOINCREMENT, akun TEXT, img TEXT, linkIG TEXT, caption TEXT, video TEXT, time INTEGER)").run();
         await env.DB.prepare("CREATE TABLE IF NOT EXISTS rg_users (email TEXT PRIMARY KEY, pass TEXT, name TEXT, picture TEXT, time INTEGER)").run();
+        await env.DB.prepare("CREATE TABLE IF NOT EXISTS rg_follows (follower TEXT, following TEXT, PRIMARY KEY (follower, following))").run();
       }
-    }catch(e){}
+    }catch(e){ console.log(e) }
 
     let r;
     r=await SITEMAP_API.handle(req,env,url); if(r) return r;

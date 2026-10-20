@@ -13,47 +13,46 @@ import { VIDEO_API } from './video/api-video/api.js';
 import { SITEMAP_API } from './api-sitemap/index.js';
 
 export default {
-  async fetch(req, env) {
-    const url = new URL(req.url);
-    const path = url.pathname;
-    const cors = { 'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Allow-Headers':'Content-Type' };
-    if(req.method==="OPTIONS") return new Response("",{headers:cors});
-
-    try{
-      if(env.DB){
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS local_videos (id TEXT PRIMARY KEY, created_at INTEGER)").run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS blocked_videos (id TEXT PRIMARY KEY)").run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, user_email TEXT, name TEXT, picture TEXT, tulisImg TEXT, url TEXT, likes INTEGER DEFAULT 0, time INTEGER)").run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT, time INTEGER)").run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS ig_curated (id INTEGER PRIMARY KEY AUTOINCREMENT, akun TEXT, img TEXT, linkIG TEXT, caption TEXT, video TEXT, time INTEGER)").run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS rg_users (email TEXT PRIMARY KEY, pass TEXT, name TEXT, picture TEXT, time INTEGER)").run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS rg_follows (follower TEXT, following TEXT, PRIMARY KEY (follower, following))").run();
-      }
-    }catch(e){ console.log(e) }
-
-      let r;
-  r = await SITEMAP_API.handle(req,env,url);
-  if(r) return r;
-  if(path.startsWith('/api/')){
-    r = await TULIS_API.handle(req,env,url,cors);
-    if(r) return r; // <-- INI KUNCINYA, kalau TULIS_API ada hasil langsung return
-    r = await FOTO_API.handle(req,env,url,cors);
-    if(r) return r;
-    r = await VIDEO_API.handle(req,env,url,cors);
-    if(r) return r;
-    r = await AI_API.handle(req,env,url,cors);
-    if(r) return r;
-    r = await AKUN_API.handle(req,env,url,cors);
-    if(r) return r;
-    return new Response(JSON.stringify({ok:true}), {headers: cors});
-  }
+  async fetch(request, env) {
+    const url = new URL(request.url);
     
-    if(path==="/"||path.startsWith("/home")) return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-    if(path.startsWith("/foto")) return new Response(FOTO_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-    if(path.startsWith("/video")) return new Response(VIDEO_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-    if(path.startsWith("/ai")) return new Response(AI_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-    if(path.startsWith("/kantor")) return new Response(KANTOR_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-    if(path.startsWith("/akun")) return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-    return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
+    // CORS
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' }});
+    }
+
+    // GET akun
+    if (url.pathname === '/api/akun' && request.method === 'GET') {
+      const userId = url.searchParams.get('id');
+      const user = await env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(userId).first();
+      return Response.json(user || {}, { headers: { 'Access-Control-Allow-Origin': '*' }});
+    }
+
+    // UPDATE akun - INI YANG BIKIN GAK BISA TADI BOS
+    if (url.pathname === '/api/akun' && (request.method === 'POST' || request.method === 'PUT')) {
+      try {
+        const body = await request.json();
+        const { id, name, email } = body;
+        
+        if (!id) return Response.json({ error: 'id wajib' }, { status: 400 });
+        
+        await env.DB.prepare("UPDATE users SET name = ?, email = ? WHERE id = ?")
+          .bind(name, email, id).run();
+          
+        // Kalau user belum ada, insert
+        const cek = await env.DB.prepare("SELECT id FROM users WHERE id = ?").bind(id).first();
+        if (!cek) {
+          await env.DB.prepare("INSERT INTO users (id, name, email) VALUES (?, ?, ?)")
+            .bind(id, name, email).run();
+        }
+
+        return Response.json({ ok: true, msg: 'Akun berhasil diupdate' }, 
+          { headers: { 'Access-Control-Allow-Origin': '*' }});
+      } catch (e) {
+        return Response.json({ error: e.message }, { status: 500 });
+      }
+    }
+
+    return fetch(request);
   }
 }

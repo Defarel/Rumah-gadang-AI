@@ -44,7 +44,7 @@ input{width:100%;background:#0a0a0a;border:1px solid #333;color:#fff;padding:12p
 </div>
 <div style="margin:14px 0;text-align:center;color:#444;font-size:11px">--- ATAU ---</div>
 <div style="background:#111;border:1px solid #333;border-radius:12px;padding:12px"><b style="font-size:12px">CARA 2: AUTO AMBIL DARI IG</b><button class="btn btn-w" onclick="previewIG()">🔍 AMBIL OTOMATIS</button><div id=igPrev style="display:none;margin-top:10px"><img id=igPrevImg style="width:100%;border-radius:8px;aspect-ratio:1/1;object-fit:cover"><div id=igPrevAkun style="color:#00ff88;font-size:12px;margin-top:6px"></div><button class="btn btn-g" onclick="saveIG()">+ SIMPAN OTOMATIS</button></div></div>
-<div style="margin-top:14px;border-top:1px solid #222;padding-top:12px"><input id=fFile type=file accept="image/*"><button class="btn btn-w" onclick="upFoto()">📤 UPLOAD FOTO BIASA</button></div>
+<div style="margin-top:14px;border-top:1px solid #222;padding-top:12px"><input id=fFile type=file accept="image/*"><button class="btn btn-w" onclick="upFoto()">📤 UPLOAD FOTO BIASA</button><div id=upInfo style="font-size:10px;color:#00ff88;margin-top:6px;text-align:center"></div></div>
 </div></div>
 <div id=modal><div style="padding:10px;display:flex;justify-content:space-between"><span id=mCount style="font-size:12px;color:#888">1/6</span><span id=mAkun style="color:#00ff88;font-size:12px"></span><button onclick="closeM()" style="background:#222;color:#fff;border:0;padding:6px 14px;border-radius:20px">Tutup X</button></div><div id=swipeWrap></div><div style="padding:10px;border-top:1px solid #222;display:flex;gap:8px;background:#111"><button onclick="swipe(-1)" style="flex:1;background:#222;color:#fff;border:1px solid #333;padding:12px;border-radius:10px">←</button><a id=mLink target=_blank style="flex:2;background:#00ff88;color:#000;text-align:center;padding:12px;border-radius:10px;font-weight:900;text-decoration:none">Buka di IG ↗</a><button onclick="swipe(1)" style="flex:1;background:#222;color:#fff;border:1px solid #333;padding:12px;border-radius:10px">→</button></div></div>
 <div class=bot><a href="/">🏠</a><a href="/foto" class=on>🖼️</a><a href="/video">🎬</a><a href="/kantor">🏢</a><a href="/ai">🤖</a><a href="/akun">👤</a></div>
@@ -54,7 +54,6 @@ function toggleUp(){let p=document.getElementById('upPanel'); p.style.display=p.
 async function loadFoto(){
  let r=await fetch('/api/ig-curated'); let d1=await r.json();
  let r2=await fetch('/api/images'); let d2=await r2.json();
- // FIX BOS: d2 dari /api/images itu id 12 lu Bos! Yang tadi hitam karena frontend lama pakai /api/foto Bos!
  allData=[...d1.map(x=>({akun:x.akun,img:x.img,linkIG:x.linkIG||'',id:x.id,type:'ig'})), ...d2.map(x=>({akun:'user',img:x.url,caption:'Foto user Bos',linkIG:x.url,id:x.id,type:'foto'}))];
  document.getElementById('fcnt').innerText=allData.length+' FOTO';
  let g=document.getElementById('fg');
@@ -63,14 +62,84 @@ async function loadFoto(){
 }
 function getEmbed(l){ let e=l.split('?')[0]; if(!e.endsWith('/')) e+='/'; e+='embed/'; return e; }
 function openAt(idx){ curIdx=idx; let wrap=document.getElementById('swipeWrap'); wrap.innerHTML=allData.map((x,i)=>{ return '<div class=slide><div class=slideMedia onclick="playThis('+i+')"><img class=thumb src="'+x.img+'"><div class=bigPlay><div>▶️</div></div></div></div>'; }).join(''); document.getElementById('modal').style.display='flex'; setTimeout(()=>wrap.children[idx]?.scrollIntoView({inline:'start'}),100); }
-function playThis(i){ let x=allData[i]; let el=wrap.children[i].querySelector('.slideMedia'); if(x.linkIG.includes('instagram.com')) el.innerHTML='<iframe src="'+getEmbed(x.linkIG)+'" allowfullscreen></iframe>'; else el.innerHTML='<img class=thumb src="'+x.img+'" style="object-fit:contain">'; }
+function playThis(i){ let x=allData[i]; let el=document.getElementById('swipeWrap').children[i].querySelector('.slideMedia'); if(x.linkIG.includes('instagram.com')) el.innerHTML='<iframe src="'+getEmbed(x.linkIG)+'" allowfullscreen></iframe>'; else el.innerHTML='<img class=thumb src="'+x.img+'" style="object-fit:contain">'; }
 function swipe(d){ curIdx=Math.max(0,Math.min(allData.length-1,curIdx+d)); document.getElementById('swipeWrap').children[curIdx]?.scrollIntoView({behavior:'smooth',inline:'start'}); }
 function closeM(){ document.getElementById('modal').style.display='none'; }
-document.getElementById('fThumb').addEventListener('change',e=>{ let f=e.target.files[0]; if(!f) return; let rd=new FileReader(); rd.onload=ev=>{ let img=new Image(); img.onload=()=>{ let c=document.createElement('canvas'); c.width=600;c.height=600; let ctx=c.getContext('2d'); let s=Math.min(img.width,img.height); ctx.drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,600,600); manualThumb=c.toDataURL('image/jpeg',0.75); document.getElementById('thumbBox').innerHTML='<img src="'+manualThumb+'">'; }; img.src=ev.target.result; }; rd.readAsDataURL(f); });
+
+// ===== OTAK KOMPRES BOS - TAMBAHAN BARU BOS! TAMPILAN TETAP SAMA BOS! =====
+function kompresImage(imgEl, maxW, quality){
+  return new Promise(res=>{
+    const c=document.createElement('canvas');
+    let w=imgEl.width, h=imgEl.height;
+    // MAX 1024 BOS BIAR 80KB BOS!
+    if(w>maxW || h>maxW){
+      if(w>h){ h*=maxW/w; w=maxW; } else { w*=maxW/h; h=maxW; }
+    }
+    c.width=w; c.height=h;
+    c.getContext('2d').drawImage(imgEl,0,0,w,h);
+    res(c.toDataURL('image/jpeg', quality));
+  });
+}
+
+document.getElementById('fThumb').addEventListener('change',e=>{ 
+  let f=e.target.files[0]; if(!f) return; 
+  let rd=new FileReader(); 
+  rd.onload=ev=>{ 
+    let img=new Image(); 
+    img.onload=async()=>{ 
+      // KOMPRES THUMB BOS: 600x600 BOS, QUALITY 0.65 BOS = 60KB BOS!
+      let c=document.createElement('canvas'); c.width=600;c.height=600; 
+      let ctx=c.getContext('2d'); 
+      let s=Math.min(img.width,img.height); 
+      ctx.drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,600,600); 
+      // KOMPRES LAGI BOS BIAR KECIL BOS!
+      let tempImg=new Image();
+      tempImg.onload=async()=>{
+        manualThumb=await kompresImage(tempImg, 600, 0.65);
+        document.getElementById('thumbBox').innerHTML='<img src="'+manualThumb+'"><div style=position:absolute;bottom:2px;left:2px;background:#00ff88;color:#000;font-size:8px;padding:1px 4px;border-radius:4px>'+Math.round(manualThumb.length*0.75/1024)+'KB ✅</div>'; 
+      };
+      tempImg.src=c.toDataURL('image/jpeg',0.65);
+    }; 
+    img.src=ev.target.result; 
+  }; 
+  rd.readAsDataURL(f); 
+});
+
 async function saveManual(){ let url=document.getElementById('igUrl').value.trim(); if(!manualThumb) return alert('Pilih thumb dulu Bos!'); if(!url) return alert('Paste link IG!'); let akun=url.split("/")[3]||'minang'; let res=await fetch('/api/ig-curated/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({akun,img:manualThumb,linkIG:url})}); if((await res.json()).ok){toggleUp(); loadFoto();} }
 async function previewIG(){ let url=document.getElementById('igUrl').value.trim(); if(!url) return alert('Paste link IG'); try{ let r=await fetch('/api/ig-preview?url='+encodeURIComponent(url)); let j=await r.json(); tempIG={akun:j.username||'minang',img:j.thumbnail,linkIG:url}; document.getElementById('igPrev').style.display='block'; document.getElementById('igPrevImg').src=j.thumbnail; document.getElementById('igPrevAkun').innerText='@'+tempIG.akun; }catch{} }
 async function saveIG(){ if(!tempIG.linkIG) return alert('Ambil dulu Bos'); let r=await fetch('/api/ig-curated/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(tempIG)}); if((await r.json()).ok){toggleUp(); loadFoto();} }
-async function upFoto(){ let el=document.getElementById('fFile'); if(!el.files[0]) return alert('Pilih foto'); let rd=new FileReader(); rd.onload=e=>{ let img=new Image(); img.onload=async()=>{ let c=document.createElement('canvas'); c.width=600; c.height=600*img.height/img.width; c.getContext('2d').drawImage(img,0,0,c.width,c.height); let d=c.toDataURL('image/jpeg',0.6); await fetch('/api/images/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:d})}); alert('OK Bos!'); toggleUp(); loadFoto(); }; img.src=e.target.result; }; rd.readAsDataURL(el.files[0]); }
+
+// UPLOAD FOTO BIASA - UDAH KOMPRES BOS! TAMPILAN SAMA BOS!
+async function upFoto(){ 
+  let el=document.getElementById('fFile'); 
+  if(!el.files[0]) return alert('Pilih foto'); 
+  let info=document.getElementById('upInfo');
+  info.innerText='Kompres Bos...';
+  let f=el.files[0];
+  let origKB=Math.round(f.size/1024);
+  let rd=new FileReader(); 
+  rd.onload=e=>{ 
+    let img=new Image(); 
+    img.onload=async()=>{ 
+      // KOMPRES BOS: MAX 1024PX, QUALITY 0.6 = 80KB BOS! DARI 3MB BOS!
+      let compressed=await kompresImage(img, 1024, 0.6);
+      let compKB=Math.round(compressed.length*0.75/1024);
+      info.innerText='Upload Bos... '+origKB+'KB → '+compKB+'KB ✅';
+      await fetch('/api/images/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:compressed})}); 
+      // JUGA MASUK KE /api/foto/upload BOS BIAR BISA DILIHAT ORANG BOS!
+      try{
+        let myEmail=localStorage.getItem('rg_email')||'anon@rumahgadang-ai.my.id';
+        await fetch('/api/foto/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:myEmail, img:compressed})});
+      }catch{}
+      alert('OK BOS! '+origKB+'KB → '+compKB+'KB! HEMAT BOS!');
+      toggleUp(); 
+      loadFoto(); 
+      info.innerText='';
+    }; 
+    img.src=e.target.result; 
+  }; 
+  rd.readAsDataURL(f); 
+}
 loadFoto();
 <\/script></body></html>
 `;

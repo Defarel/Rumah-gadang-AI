@@ -5,7 +5,7 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "rumahgadang-db"
-database_id = "01c4832d-950b-44f3-a447-e0a5c"
+database_id = "01c4832d-950b-44f3-a447-e0a5ce326ba"
 
 [vars]
 LOGO_FALLBACK = "https://i.ibb.co/r2gL8YJB/1791014451654.jpg"

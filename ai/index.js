@@ -7,10 +7,10 @@ export const AI_HTML = `<!DOCTYPE html>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;overflow:hidden}
-.bg{position:fixed;inset:0;background:url('https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/ai/RumahGadangAI1.jpg') center/cover no-repeat;filter:brightness(0.55);z-index:-2}
+.bg{position:fixed;inset:0;background:#111 center/cover no-repeat;filter:brightness(0.55);z-index:-2}
 .overlay{position:fixed;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.88));z-index:-1}
 #header{position:fixed;top:0;left:0;right:0;height:54px;display:flex;align-items:center;gap:10px;padding:0 14px;background:rgba(0,0,0,0.75);border-bottom:1px solid #222;z-index:10}
-#header img{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid #00ff88}
+#header img{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid #00ff88;background:#222}
 #chat{position:absolute;top:54px;bottom:132px;left:0;right:0;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
 .bubble{max-width:84%;padding:11px 14px;border-radius:16px;font-size:14px;line-height:1.5;white-space:pre-wrap}
 .user{align-self:flex-end;background:#22c55e;color:#000;font-weight:600;border-bottom-right-radius:4px}
@@ -29,79 +29,16 @@ body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;ov
 </head>
 <body>
 <div class="bg"></div><div class="overlay"></div>
-<div id="header"><img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/ai/RumahGadangAI1.jpg"><b>RUMAH GADANG AI</b></div>
-<div id="musicBar"><button id="musicBtn" class="miniBtn">🔊 Mencoba hidup...</button><button class="miniBtn" onclick="location.href='/'">🏠 Home</button></div>
-<audio id="bgMusic" loop preload="auto" autoplay crossorigin="anonymous"><source src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/ai/RumahGadangV1.m4a" type="audio/mp4"></audio>
-<div id="chat"><div class="bubble ai">Halo Dunsanak! 👋 Saya Rumah Gadang AI. Musik Rumah Gadang langsung hidup ya Bos!</div></div>
+<div id="header"><b>RUMAH GADANG AI</b></div>
+<div id="musicBar"><button class="miniBtn" onclick="location.href='/'">🏠 Home</button></div>
+<div id="chat"><div class="bubble ai">Halo Dunsanak! 👋 Saya Rumah Gadang AI.</div></div>
 <div id="inputBar"><div style="display:flex;gap:8px;width:100%"><input id="inp" placeholder="Tanya ke rumah gadang AI..."><button id="send">KIRIM</button></div></div>
 <div class="bot"><a href="/">🏠<br><span>Home</span></a><a href="/foto">🖼️<br><span>Foto</span></a><a href="/video">🎬<br><span>Video</span></a><a href="/kantor">🏢<br><span>Kantor</span></a><a href="/ai" class="on">🤖<br><span>AI</span></a><a href="/akun">👤<br><span>Akun</span></a></div>
 <script>
 const chat = document.getElementById('chat');
 const inp = document.getElementById('inp');
 const sendBtn = document.getElementById('send');
-const music = document.getElementById('bgMusic');
-const musicBtn = document.getElementById('musicBtn');
-music.volume = 0.6;
-let isMusicPlaying = false;
-
 function addBubble(t, txt){ const d=document.createElement('div'); d.className='bubble '+t; d.innerText=txt; chat.appendChild(d); chat.scrollTop=chat.scrollHeight; }
-
-function setMusicOn(){
-  isMusicPlaying = true;
-  musicBtn.innerText='🔊 Musik ON';
-  musicBtn.classList.add('on');
-}
-function setMusicOff(){
-  isMusicPlaying = false;
-  musicBtn.innerText='🔇 Musik OFF';
-  musicBtn.classList.remove('on');
-}
-
-async function tryPlay(){
-  try{
-    await music.play();
-    setMusicOn();
-    return true;
-  }catch(e){ return false; }
-}
-
-// 1. Coba langsung hidup pas load
-window.addEventListener('load', async ()=>{
-  let ok = await tryPlay();
-  if(!ok){
-    musicBtn.innerText='🎵 Tap layar buat hidupin musik';
-  }
-});
-
-// 2. Kalau diblokir, hidupin di sentuhan PERTAMA user dimana aja
-let firstInteractionDone = false;
-async function firstTouch(){
-  if(firstInteractionDone) return;
-  firstInteractionDone = true;
-  if(!isMusicPlaying){
-    await tryPlay();
-  }
-  // hapus listener setelah berhasil
-  document.removeEventListener('click', firstTouch);
-  document.removeEventListener('touchstart', firstTouch);
-  document.removeEventListener('keydown', firstTouch);
-  document.removeEventListener('scroll', firstTouch);
-}
-document.addEventListener('click', firstTouch);
-document.addEventListener('touchstart', firstTouch);
-document.addEventListener('keydown', firstTouch);
-document.addEventListener('scroll', firstTouch, {once:true});
-
-// 3. Tombol manual tetap bisa ON/OFF
-musicBtn.onclick = async (e)=>{
-  e.stopPropagation();
-  if(isMusicPlaying){ music.pause(); setMusicOff(); firstInteractionDone = true; }
-  else { 
-    let ok = await tryPlay();
-    if(ok) firstInteractionDone = true;
-  }
-};
-
 async function kirim(){
   const p=inp.value.trim(); if(!p) return;
   addBubble('user',p); inp.value='';

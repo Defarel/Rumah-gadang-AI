@@ -7,13 +7,13 @@ export const AI_HTML = `<!DOCTYPE html>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;overflow:hidden}
-.bg{position:fixed;inset:0;background:url('/ai/RumahGadangAI1.jpg') center/cover no-repeat;filter:brightness(0.55);z-index:-2}
+.bg{position:fixed;inset:0;background:url('https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/ai/RumahGadangAI1.jpg') center/cover no-repeat;filter:brightness(0.55);z-index:-2}
 .overlay{position:fixed;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.85));z-index:-1}
 #header{position:fixed;top:0;left:0;right:0;height:54px;display:flex;align-items:center;gap:10px;padding:0 14px;background:rgba(0,0,0,0.7);border-bottom:1px solid #222;z-index:10}
-#header img{width:32px;height:32px;border-radius:50%}
+#header img{width:32px;height:32px;border-radius:50%;object-fit:cover}
 #header b{font-size:14px}
 #chat{position:absolute;top:54px;bottom:132px;left:0;right:0;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
-.bubble{max-width:82%;padding:11px 14px;border-radius:16px;font-size:14px;line-height:1.5;white-space:pre-wrap}
+.bubble{max-width:82%;padding:11px 14px;border-radius:16px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
 .user{align-self:flex-end;background:#22c55e;color:#000;font-weight:600;border-bottom-right-radius:4px}
 .ai{align-self:flex-start;background:rgba(40,40,40,0.9);border:1px solid #333;border-bottom-left-radius:4px}
 #inputBar{position:fixed;bottom:62px;left:0;right:0;padding:10px 12px;background:rgba(0,0,0,0.9);border-top:1px solid #222;display:flex;flex-direction:column;gap:8px;z-index:20}
@@ -35,19 +35,21 @@ body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;ov
 <div class="overlay"></div>
 
 <div id="header">
-  <img src="/ai/RumahGadangAI1.jpg">
+  <img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/ai/RumahGadangAI1.jpg" onerror="this.src='https://i.ibb.co/r2gL8YJB/1791014451654.jpg'">
   <b>RUMAH GADANG AI</b>
 </div>
 
 <div id="musicBar">
-  <button id="musicBtn" class="miniBtn">🔊 RG Musik</button>
+  <button id="musicBtn" class="miniBtn">🔇 Musik OFF</button>
   <button class="miniBtn" onclick="location.href='/'">🏠 Home</button>
 </div>
 
-<audio id="bgMusic" loop preload="auto"><source src="/ai/RumahGadangV1.m4a" type="audio/mp4"></audio>
+<audio id="bgMusic" loop preload="auto" crossorigin="anonymous">
+  <source src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/ai/RumahGadangV1.m4a" type="audio/mp4">
+</audio>
 
 <div id="chat">
-  <div class="bubble ai">Halo Dunsanak! 👋 Saya Rumah Gadang AI. Tanya pakai bahasa indonesia dulu ya, masih dalam tahap pengembangkan ke bahasa minang</div>
+  <div class="bubble ai">Halo Dunsanak! 👋 Saya Rumah Gadang AI. Tanya pakai bahasa indonesia dulu ya, masih dalam tahap pengembangan ke bahasa minang</div>
 </div>
 
 <div id="inputBar">
@@ -82,11 +84,19 @@ function addBubble(type, text){
   chat.scrollTop = chat.scrollHeight;
 }
 
-musicBtn.onclick = () => {
+musicBtn.onclick = (e) => {
+  e.stopPropagation();
   if(music.paused){
-    music.play().then(()=>{ musicBtn.innerText='🔊 Musik ON'; musicBtn.classList.add('on'); }).catch(()=>{ addBubble('ai','Bos klik sekali lagi buat aktifin musik Bos, browser blokir autoplay Bos!'); });
+    music.play().then(()=>{ 
+      musicBtn.innerText='🔊 Musik ON'; 
+      musicBtn.classList.add('on'); 
+    }).catch((err)=>{ 
+      addBubble('ai','Klik lagi Bos, browser masih blokir audio: ' + err.message); 
+    });
   } else {
-    music.pause(); musicBtn.innerText='🔇 Musik OFF'; musicBtn.classList.remove('on');
+    music.pause(); 
+    musicBtn.innerText='🔇 Musik OFF'; 
+    musicBtn.classList.remove('on');
   }
 };
 
@@ -95,7 +105,11 @@ async function kirim(){
   if(!prompt) return;
   addBubble('user', prompt);
   inp.value = '';
-  addBubble('ai','Rumah Gadang AI mikir dulu Bos...');
+  const loading = document.createElement('div');
+  loading.className = 'bubble ai';
+  loading.innerText = 'Rumah Gadang AI mikir dulu...';
+  chat.appendChild(loading);
+  chat.scrollTop = chat.scrollHeight;
   try{
     const r = await fetch('/api/ai',{
       method:'POST',
@@ -103,18 +117,16 @@ async function kirim(){
       body: JSON.stringify({prompt})
     });
     const j = await r.json();
-    chat.lastChild.remove();
-    addBubble('ai', j.reply || 'Maaf dunsanak, AI error Bos');
+    loading.remove();
+    addBubble('ai', j.reply || 'Maaf dunsanak, AI error');
   }catch(e){
-    chat.lastChild.remove();
-    addBubble('ai','Error koneksi Bos: ' + e.message);
+    loading.remove();
+    addBubble('ai','Error koneksi: ' + e.message);
   }
 }
 
 sendBtn.onclick = kirim;
 inp.onkeydown = e => { if(e.key==='Enter') kirim(); };
-
-document.body.addEventListener('click',()=>{ if(music.paused && !musicBtn.classList.contains('on')){ music.play().catch(()=>{}); } },{once:true});
-</script>
+<\/script>
 </body>
 </html>`;

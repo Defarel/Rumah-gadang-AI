@@ -21,52 +21,54 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .btn-submit{width:100%;padding:14px;background:#000;color:#fff;border:none;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;margin-top:4px}
 .gadang-img-box{margin:16px;border-radius:20px;overflow:hidden;border:2px solid #00ff88}
 .gadang-img-box img{width:100%;display:block;max-height:300px;object-fit:cover}
-
-/* Profil Utama */
 .profile-sec{padding:16px}
 .prof-top{display:flex;align-items:center;gap:16px;margin-bottom:16px}
-.avatar-wrap{position:relative;width:76px;height:76px;flex-shrink:0;cursor:pointer}
-.avatar-img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid #00ff88}
-.avatar-badge{position:absolute;bottom:0;right:0;background:#00ff88;color:#000;border-radius:50%;width:24px;height:24px;display:grid;place-items:center;font-weight:900;font-size:16px;border:2px solid #000;box-shadow:0 0 6px #00ff88}
+.avatar-wrap{position:relative;width:84px;height:84px;flex-shrink:0;cursor:pointer}
+.avatar-img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2.5px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,0.4)}
+.avatar-badge{position:absolute;bottom:0;right:0;background:#00ff88;color:#000;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-weight:900;font-size:18px;border:2px solid #000;box-shadow:0 0 6px #00ff88}
 .stats-wrap{flex:1;display:flex;justify-content:space-around;text-align:center}
 .stat-num{font-size:18px;font-weight:800;color:#fff}
 .stat-label{font-size:12px;color:#888}
-.name-display{font-size:18px;font-weight:800;margin-bottom:14px;color:#fff}
-.action-bar{display:flex;gap:10px;margin-bottom:16px;align-items:center}
+.name-display{font-size:16px;font-weight:800;margin-bottom:12px;color:#fff}
+.action-bar{display:flex;gap:8px;margin-bottom:16px;align-items:center}
 .btn-action{flex:1;padding:10px;background:#222;color:#fff;border:1px solid #333;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;text-align:center}
 .btn-keluar{background:#ff3333!important;color:#fff!important;border:none!important;font-weight:800}
-
-/* Navigasi Tab (FOTO, Video, Teman) */
-.main-tabs{display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid #222;padding-bottom:12px}
-.m-tab{flex:1;padding:10px;border-radius:12px;background:#181818;color:#888;text-align:center;font-weight:800;font-size:14px;cursor:pointer;border:1px solid #282828}
-.m-tab.active{background:#1877f2;color:#fff;border-color:#1877f2}
+.btn-follow{background:#00ff88!important;color:#000!important;border:none!important;font-weight:900}
+.btn-following{background:#333!important;color:#fff!important;border:1px solid #555!important}
+.main-tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid #222;padding-bottom:12px}
+.m-tab{flex:1;padding:10px;border-radius:12px;background:#222;color:#888;text-align:center;font-weight:800;font-size:14px;cursor:pointer;border:1px solid #333}
+.m-tab.active{background:#3a86ff;color:#fff;border-color:#3a86ff}
 .content-area{padding:10px 0}
+.empty-box{text-align:center;padding:40px 20px;color:#aaa}
+.empty-box h3{color:#fff;font-size:18px;margin-bottom:8px}
+.btn-blue{background:#4d61ff;color:#fff;border:none;padding:12px 28px;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;margin-top:16px}
 
-/* Grid Foto (Maksimal 12) */
-.gallery-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.gallery-count{font-size:12px;color:#00ff88;font-weight:bold}
-.btn-add-photo{background:#00ff88;color:#000;border:none;padding:8px 14px;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
-.photo-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:8px}
-.photo-item{position:relative;width:100%;padding-top:100%;border-radius:12px;overflow:hidden;background:#111;border:1px solid #222}
-.photo-item img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
-.photo-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:#ff4444;border:none;border-radius:50%;width:22px;height:22px;font-weight:bold;cursor:pointer}
+/* FOTO GRID 12 */
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.photo-item{position:relative;aspect-ratio:1/1;border-radius:12px;overflow:hidden;border:1px solid #222;background:#111}
+.photo-item img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:#fff;border:none;width:22px;height:22px;border-radius:50%;font-size:12px;cursor:pointer}
+.btn-add-photo{width:100%;padding:12px;background:#00ff88;color:#000;border:none;border-radius:12px;font-weight:900;font-size:14px;cursor:pointer;margin-bottom:12px}
 
-/* List Teman (Gaya Foto 2 / Facebook) */
-.friend-title{font-size:16px;font-weight:800;color:#fff;margin-bottom:14px}
-.friend-card{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #1a1a1a}
-.friend-avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0;cursor:pointer}
-.friend-info{flex:1}
-.friend-name{font-weight:700;font-size:15px;color:#fff;margin-bottom:2px;cursor:pointer}
-.friend-mutual{font-size:12px;color:#999;margin-bottom:8px;display:flex;align-items:center;gap:4px}
-.friend-mutual-img{width:16px;height:16px;border-radius:50%;object-fit:cover}
-.friend-actions{display:flex;flex-direction:column;gap:6px}
-.btn-add-friend{background:#1877f2;color:#fff;border:none;padding:8px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;width:100%;text-align:center}
-.btn-remove-friend{background:#3a3b3c;color:#e4e6eb;border:none;padding:8px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;width:100%;text-align:center}
+/* TEMAN STYLE FB FOTO 2 */
+.fb-header{font-size:20px;font-weight:800;color:#000;padding:0 4px 12px}
+.fb-friend-card{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #eee}
+.fb-friend-avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid #ddd}
+.fb-friend-info{flex:1}
+.fb-friend-name{font-weight:700;font-size:16px;color:#000;margin-bottom:2px}
+.fb-mutual{display:flex;align-items:center;gap:4px;font-size:13px;color:#777;margin-bottom:8px}
+.fb-mutual img{width:18px;height:18px;border-radius:50%}
+.btn-fb-add{width:100%;padding:10px;background:#0866ff;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;margin-bottom:6px}
+.btn-fb-hapus{width:100%;padding:10px;background:#e4e6eb;color:#000;border:none;border-radius:8px;font-weight:600;font-size:15px;cursor:pointer}
+.teman-wrap{background:#fff;border-radius:16px;padding:12px;color:#000}
+.teman-title-dark{color:#fff;font-size:20px;font-weight:800;margin-bottom:12px}
 
-/* Modal Edit Profil */
-.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px}
-.modal-box{background:#181818;border:1px solid #00ff88;border-radius:20px;padding:20px;width:100%;max-width:400px;color:#fff}
-.modal-title{font-size:18px;font-weight:800;margin-bottom:16px;color:#00ff88}
+/* EDIT MODAL */
+#editModal{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;display:none;place-items:center;padding:16px}
+#editModal.show{display:grid}
+.modal-box{background:#111;border:2px solid #00ff88;border-radius:20px;padding:20px;width:100%;max-width:380px}
+.modal-box h3{color:#fff;margin-bottom:14px}
+.preview-avatar{width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #00ff88;display:block;margin:0 auto 12px}
 
 .bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99}
 .bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#fff}
@@ -84,9 +86,19 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
   <div id="viewContainer"></div>
 </div>
 
-<!-- Input File Tersembunyi untuk Galeri -->
-<input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarSelect(event)">
-<input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhotoSelect(event)">
+<div id="editModal">
+  <div class="modal-box">
+    <h3>Edit Profil</h3>
+    <img id="editPreview" class="preview-avatar" src="">
+    <input id="editName" class="input-field" placeholder="Nama baru">
+    <input id="editFile" type="file" accept="image/*" class="input-field" style="background:#222;color:#fff;border-color:#333">
+    <p style="font-size:11px;color:#888;margin-bottom:10px">Foto akan dikompres otomatis, max 12 foto di galeri</p>
+    <div style="display:flex;gap:8px">
+      <button class="btn-action" onclick="closeEdit()">Batal</button>
+      <button class="btn-action btn-follow" onclick="saveEditProfile()">Simpan</button>
+    </div>
+  </div>
+</div>
 
 <div class="bot">
   <a href="/">🏠<br><span style="font-size:10px">Home</span></a>
@@ -97,47 +109,41 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
   <a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a>
 </div>
 
+<input id="galleryInput" type="file" accept="image/*" multiple style="display:none">
+
 <script>
 const LOGO_FALLBACK = "https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
 let authTab = "masuk";
 let activeMainTab = "foto";
 let viewingUserEmail = null;
-let userPhotos = [];
+let pendingAvatarBase64 = null;
 
 function getMyEmail(){ return (localStorage.getItem('rg_email')||"").toLowerCase().trim(); }
-function getMyName(){ return localStorage.getItem('rg_name')||"Farel"; }
+function getMyName(){ return localStorage.getItem('rg_name')||"Dunsanak"; }
 function getMyAvatar(){ return localStorage.getItem('rg_avatar')||LOGO_FALLBACK; }
-
+function getMyPhotos(){ try{ return JSON.parse(localStorage.getItem('rg_photos')||"[]"); }catch{ return []; } }
+function setMyPhotos(arr){ localStorage.setItem('rg_photos', JSON.stringify(arr)); }
 function saveAuth(email, name, avatar){
   localStorage.setItem('rg_email', email.toLowerCase().trim());
   localStorage.setItem('rg_name', name || "Dunsanak");
   if(avatar) localStorage.setItem('rg_avatar', avatar);
 }
-
 function logout(){
   if(confirm("Keluar dari akun?")){
-    localStorage.removeItem('rg_email');
-    localStorage.removeItem('rg_name');
-    localStorage.removeItem('rg_avatar');
-    viewingUserEmail = null;
-    render();
+    localStorage.removeItem('rg_email'); localStorage.removeItem('rg_name'); localStorage.removeItem('rg_avatar');
+    viewingUserEmail = null; render();
   }
 }
-
 async function render(){
   const myEmail = getMyEmail();
   const container = document.getElementById('viewContainer');
-  if(!myEmail && !viewingUserEmail){
-    renderLoginView(container);
-    return;
-  }
+  if(!myEmail && !viewingUserEmail){ renderLoginView(container); return; }
   const targetEmail = viewingUserEmail || myEmail;
   const isMe = (targetEmail === myEmail);
   renderProfileView(container, targetEmail, isMe);
 }
-
 function renderLoginView(container){
-  container.innerHTML = `
+  container.innerHTML = \`
     <div class="login-card">
       <div class="login-title">Rumah Gadang AI</div>
       <div class="tabs-auth">
@@ -158,53 +164,40 @@ function renderLoginView(container){
       </div>
     </div>
     <div class="gadang-img-box">
-      <img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png" onerror="this.src='\${LOGO_FALLBACK}'" alt="Rumah Gadang AI Neon">
+      <img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png" onerror="this.src='\${LOGO_FALLBACK}'">
     </div>
-  `;
+  \`;
 }
-
 function switchAuthTab(tab){ authTab = tab; render(); }
-
 async function doAuth(){
   const email = document.getElementById('emailIn')?.value.trim();
   const pass = document.getElementById('passIn')?.value.trim();
   const name = document.getElementById('nameIn')?.value.trim() || "Dunsanak";
-  if(!email){ alert("Isi email dulu!"); return; }
-  try {
-    await fetch('/api/akun/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name, password: pass, picture: LOGO_FALLBACK })
-    });
-  } catch(e) {}
-  saveAuth(email, name, LOGO_FALLBACK);
-  render();
+  if(!email){ alert("Isi email dulu Bos!"); return; }
+  try{ await fetch('/api/akun/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,name,password:pass,picture:LOGO_FALLBACK})}); }catch(e){}
+  saveAuth(email,name,LOGO_FALLBACK); render();
 }
-
 function doGoogleLogin(){
   const email = prompt("Masukkan email Google kamu:", "user@gmail.com");
-  if(email){
-    saveAuth(email, email.split('@')[0], LOGO_FALLBACK);
-    render();
-  }
+  if(email){ saveAuth(email,email.split('@')[0],LOGO_FALLBACK); render(); }
 }
-
 async function renderProfileView(container, targetEmail, isMe){
-  let profileData = { name: isMe ? getMyName() : "Dunsanak", picture: isMe ? getMyAvatar() : LOGO_FALLBACK, posts: 0, followers: 0, following: 0 };
-  try {
-    let res = await fetch('/api/akun/profile?email=' + encodeURIComponent(targetEmail) + '&me=' + encodeURIComponent(getMyEmail()));
-    if(res.ok){ let d = await res.json(); profileData = { ...profileData, ...d }; }
-  } catch(e){}
-
-  container.innerHTML = `
+  container.innerHTML = \`<div style="text-align:center;padding:40px;color:#888">Memuat profil...</div>\`;
+  let profileData = { name: isMe ? getMyName() : "Dunsanak", picture: isMe ? getMyAvatar() : LOGO_FALLBACK, posts: getMyPhotos().length, followers: 0, following: 0, isFollowing: false };
+  try{
+    let res = await fetch('/api/akun/profile?email='+encodeURIComponent(targetEmail)+'&me='+encodeURIComponent(getMyEmail()));
+    if(res.ok){ let d = await res.json(); profileData = { ...profileData, ...d }; if(!isMe) profileData.picture = d.picture||LOGO_FALLBACK; }
+  }catch(e){}
+  if(isMe) profileData.posts = getMyPhotos().length;
+  container.innerHTML = \`
     <div class="profile-sec">
       <div class="prof-top">
-        <div class="avatar-wrap" onclick="\${isMe ? 'triggerAvatarSelect()' : ''}">
+        <div class="avatar-wrap" onclick="\${isMe ? 'openEdit()' : ''}">
           <img src="\${profileData.picture || LOGO_FALLBACK}" class="avatar-img" onerror="this.src='\${LOGO_FALLBACK}'">
           \${isMe ? '<div class="avatar-badge">+</div>' : ''}
         </div>
         <div class="stats-wrap">
-          <div><div class="stat-num" id="statPosts">\${profileData.posts || 0}</div><div class="stat-label">postingan</div></div>
+          <div><div class="stat-num">\${profileData.posts || 0}</div><div class="stat-label">postingan</div></div>
           <div><div class="stat-num">\${profileData.followers || 0}</div><div class="stat-label">pengikut</div></div>
           <div><div class="stat-num">\${profileData.following || 0}</div><div class="stat-label">mengikuti</div></div>
         </div>
@@ -212,252 +205,128 @@ async function renderProfileView(container, targetEmail, isMe){
       <div class="name-display">\${profileData.name || 'Dunsanak'}</div>
       <div class="action-bar">
         \${isMe ? \`
-          <button class="btn-action" onclick="openEditModal()">Edit profil</button>
+          <button class="btn-action" onclick="openEdit()">Edit profil</button>
           <button class="btn-action btn-keluar" onclick="logout()">Keluar</button>
         \` : \`
-          <button class="btn-action" style="background:#1877f2" onclick="alert('Permintaan pertemanan terkirim')">Tambah Teman</button>
+          <button id="followBtn" class="btn-action \${profileData.isFollowing ? 'btn-following' : 'btn-follow'}" onclick="toggleFollow('\${targetEmail}')">
+            \${profileData.isFollowing ? 'Mengikuti' : 'Ikuti'}
+          </button>
           <button class="btn-action" onclick="viewingUserEmail=null;render();">Kembali</button>
         \`}
       </div>
       <div class="main-tabs">
         <button class="m-tab \${activeMainTab==='foto'?'active':''}" onclick="switchMainTab('foto')">FOTO</button>
-        <button class="m-tab \${activeMainTab==='video'?'active':''}" onclick="switchMainTab('video')">video</button>
-        <button class="m-tab \${activeMainTab==='teman'?'active':''}" onclick="switchMainTab('teman')">Teman</button>
+        <button class="m-tab \${activeMainTab==='video'?'active':''}" onclick="switchMainTab('video')">VIDEO</button>
+        <button class="m-tab \${activeMainTab==='teman'?'active':''}" onclick="switchMainTab('teman')">TEMAN</button>
       </div>
       <div id="tabContent" class="content-area">Memuat isi...</div>
     </div>
-  `;
+  \`;
   loadTabContent(targetEmail, isMe);
 }
-
 function switchMainTab(tab){ activeMainTab = tab; render(); }
 
-/* Edit Profil Modal */
-function openEditModal(){
-  const currentName = getMyName();
-  const modalHTML = `
-    <div class="modal-overlay" id="editModal">
-      <div class="modal-box">
-        <div class="modal-title">Edit Profil</div>
-        <div style="margin-bottom:12px">
-          <label style="font-size:12px;color:#aaa;display:block;margin-bottom:4px">Nama</label>
-          <input id="editNameInput" class="input-field" value="\${currentName}" style="margin-bottom:0">
-        </div>
-        <div style="margin-bottom:16px">
-          <label style="font-size:12px;color:#aaa;display:block;margin-bottom:4px">Foto Profil</label>
-          <button class="btn-action" style="width:100%" onclick="triggerAvatarSelect()">Pilih dari Galeri</button>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn-action" style="background:#333" onclick="closeEditModal()">Batal</button>
-          <button class="btn-action" style="background:#00ff88;color:#000;font-weight:900" onclick="saveProfileChanges()">Simpan</button>
-        </div>
-      </div>
-    </div>
-  `;
-  document.body.insertAdjacentHTML('beforeend', modalHTML);
-}
-
-function closeEditModal(){
-  const m = document.getElementById('editModal');
-  if(m) m.remove();
-}
-
-function triggerAvatarSelect(){
-  document.getElementById('avatarInput').click();
-}
-
-function handleAvatarSelect(e){
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(evt){
-    const base64 = evt.target.result;
-    localStorage.setItem('rg_avatar', base64);
-    syncProfileToD1(getMyName(), base64);
-    render();
-  };
-  reader.readAsDataURL(file);
-}
-
-function saveProfileChanges(){
-  const newName = document.getElementById('editNameInput')?.value.trim() || getMyName();
-  localStorage.setItem('rg_name', newName);
-  syncProfileToD1(newName, getMyAvatar());
-  closeEditModal();
-  render();
-}
-
-async function syncProfileToD1(name, picture){
-  try {
-    await fetch('/api/akun/update', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: getMyEmail(), name, picture })
-    });
-  } catch(e){}
-}
-
-/* Tab Content Handler */
 async function loadTabContent(targetEmail, isMe){
-  const box = document.getElementById('tabContent');
-  if(!box) return;
-
+  const box = document.getElementById('tabContent'); if(!box) return;
   if(activeMainTab === 'foto'){
-    await loadPhotoTab(box, targetEmail, isMe);
-  } else if(activeMainTab === 'teman'){
-    await loadFriendList(box);
-  } else {
-    box.innerHTML = `
-      <div style="text-align:center;padding:40px 20px;color:#aaa">
-        <h3>Belum ada video</h3>
-        <p style="font-size:13px;margin-top:6px">Video yang Anda bagikan akan muncul di sini.</p>
-      </div>
-    `;
-  }
-}
-
-/* Galeri Foto (Maksimal 12) masuk ke d1consule */
-async function loadPhotoTab(box, targetEmail, isMe){
-  box.innerHTML = '<div style="text-align:center;color:#666">Memuat foto...</div>';
-  try {
-    let res = await fetch('/api/akun/photos?email=' + encodeURIComponent(targetEmail));
-    if(res.ok){
-      userPhotos = await res.json();
-    } else {
-      userPhotos = JSON.parse(localStorage.getItem('rg_photos_' + targetEmail) || "[]");
+    const photos = isMe ? getMyPhotos() : [];
+    if(!isMe){
+      box.innerHTML = '<div class="empty-box"><h3>Belum ada foto</h3></div>'; return;
     }
-  } catch(e){
-    userPhotos = JSON.parse(localStorage.getItem('rg_photos_' + targetEmail) || "[]");
-  }
-
-  const count = userPhotos.length;
-  const statEl = document.getElementById('statPosts');
-  if(statEl) statEl.innerText = count;
-
-  let html = `
-    <div class="gallery-header">
-      <span class="gallery-count">Foto Galeri (\${count}/12)</span>
-      \${(isMe && count < 12) ? '<button class="btn-add-photo" onclick="triggerPhotoSelect()"><span>+</span> Tambah Foto</button>' : ''}
-    </div>
-  `;
-
-  if(count === 0){
-    html += `
-      <div style="text-align:center;padding:30px 20px;color:#777">
-        <p>Belum ada foto di galeri.</p>
-        \${isMe ? '<p style="font-size:12px;margin-top:4px;color:#00ff88">Anda dapat menambahkan hingga 12 foto.</p>' : ''}
-      </div>
-    `;
-  } else {
-    html += '<div class="photo-grid">';
-    userPhotos.forEach((imgSrc, idx) => {
-      html += `
-        <div class="photo-item">
-          <img src="\${imgSrc}" alt="Foto \${idx+1}">
-          \${isMe ? \`<button class="photo-del" onclick="deletePhoto(\${idx})">✕</button>\` : ''}
+    let html = \`<button class="btn-add-photo" onclick="openGallery()" \${photos.length>=12?'disabled style="opacity:0.5"':''}> \${photos.length>=12 ? 'Maksimal 12 foto' : '+ Tambah Foto dari Galeri ('+photos.length+'/12)'} </button>\`;
+    if(photos.length===0){
+      html += '<div class="empty-box"><h3>Belum ada foto</h3><p>Tambahkan sampai 12 foto, masuk ke D1 consule</p></div>';
+    } else {
+      html += '<div class="photo-grid">' + photos.map((p,i)=>\`
+        <div class="photo-item"><img src="\${p}" loading="lazy"><button class="photo-del" onclick="deletePhoto(\${i})">✕</button></div>
+      \`).join('') + '</div>';
+    }
+    box.innerHTML = html;
+  } else if(activeMainTab === 'teman'){
+    box.innerHTML = '<div class="teman-wrap"><div class="fb-header">Orang yang mungkin Anda kenal</div><div style="text-align:center;color:#888;padding:20px">Mengambil daftar...</div></div>';
+    try{
+      let res = await fetch('/api/akun/list'); let users = await res.json();
+      if(!Array.isArray(users) || !users.length){
+        box.innerHTML = '<div class="teman-wrap"><div class="fb-header">Orang yang mungkin Anda kenal</div><div style="text-align:center;padding:20px;color:#666">Belum ada pengguna lain</div></div>'; return;
+      }
+      const filtered = users.filter(u=>u.email.toLowerCase()!==getMyEmail());
+      box.innerHTML = '<div class="teman-wrap"><div class="fb-header">Orang yang mungkin Anda kenal</div>' + filtered.map(u=>\`
+        <div class="fb-friend-card" id="user-\${u.email}">
+          <img src="\${u.picture || LOGO_FALLBACK}" class="fb-friend-avatar" onerror="this.src='\${LOGO_FALLBACK}'">
+          <div class="fb-friend-info">
+            <div class="fb-friend-name">\${u.name||'Dunsanak'}</div>
+            <div class="fb-mutual"><img src="\${LOGO_FALLBACK}"><span>1 teman bersama</span></div>
+            <button class="btn-fb-add" onclick="toggleFollow('\${u.email}', this)">Tambah jadi teman</button>
+            <button class="btn-fb-hapus" onclick="removeFriendCard('\${u.email}')">Hapus</button>
+          </div>
         </div>
-      `;
-    });
-    html += '</div>';
+      \`).join('') + '</div>';
+    }catch(e){
+      box.innerHTML = '<div class="teman-wrap" style="color:#ff4444;text-align:center">Gagal memuat teman dari D1</div>';
+    }
+  } else {
+    box.innerHTML = '<div class="empty-box"><h3>Video belum tersedia</h3></div>';
   }
-  box.innerHTML = html;
 }
 
-function triggerPhotoSelect(){
-  if(userPhotos.length >= 12){
-    alert("Maksimal 12 foto sudah tercapai!");
-    return;
-  }
-  document.getElementById('photoInput').click();
-}
-
-function handlePhotoSelect(e){
-  const file = e.target.files[0];
-  if(!file) return;
-  if(userPhotos.length >= 12){
-    alert("Maksimal 12 foto aja!");
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = async function(evt){
-    const base64 = evt.target.result;
-    userPhotos.push(base64);
-    const myEmail = getMyEmail();
-    localStorage.setItem('rg_photos_' + myEmail, JSON.stringify(userPhotos));
-    
-    // Sinkronisasi ke database d1consule
-    try {
-      await fetch('/api/akun/photos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: myEmail, photos: userPhotos })
-      });
-    } catch(err){}
-
-    render();
+// EDIT PROFIL
+function openEdit(){
+  document.getElementById('editPreview').src = getMyAvatar();
+  document.getElementById('editName').value = getMyName();
+  document.getElementById('editModal').classList.add('show');
+  pendingAvatarBase64 = null;
+  document.getElementById('editFile').onchange = (e)=>{
+    const f = e.target.files[0]; if(!f) return;
+    const r = new FileReader(); r.onload = ev=>{ pendingAvatarBase64 = ev.target.result; document.getElementById('editPreview').src = pendingAvatarBase64; }; r.readAsDataURL(f);
   };
-  reader.readAsDataURL(file);
+}
+function closeEdit(){ document.getElementById('editModal').classList.remove('show'); }
+async function saveEditProfile(){
+  const newName = document.getElementById('editName').value.trim() || getMyName();
+  const newAvatar = pendingAvatarBase64 || getMyAvatar();
+  localStorage.setItem('rg_name', newName);
+  localStorage.setItem('rg_avatar', newAvatar);
+  try{
+    await fetch('/api/akun/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(), name:newName, picture:newAvatar})});
+  }catch(e){}
+  closeEdit(); render();
 }
 
-async function deletePhoto(idx){
-  if(!confirm("Hapus foto ini dari galeri?")) return;
-  userPhotos.splice(idx, 1);
-  const myEmail = getMyEmail();
-  localStorage.setItem('rg_photos_' + myEmail, JSON.stringify(userPhotos));
-  try {
-    await fetch('/api/akun/photos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: myEmail, photos: userPhotos })
-    });
-  } catch(err){}
+// GALERI 12 FOTO -> D1
+function openGallery(){ if(getMyPhotos().length>=12){ alert('Maksimal 12 foto!'); return; } document.getElementById('galleryInput').click(); }
+document.getElementById('galleryInput').addEventListener('change', async (e)=>{
+  const files = Array.from(e.target.files||[]); if(!files.length) return;
+  let photos = getMyPhotos();
+  const sisa = 12 - photos.length;
+  const toAdd = files.slice(0, sisa);
+  if(files.length > sisa) alert('Hanya '+sisa+' foto lagi yang bisa ditambah (max 12)');
+  for(let f of toAdd){
+    const b64 = await fileToBase64(f);
+    photos.push(b64);
+  }
+  setMyPhotos(photos);
+  try{
+    await fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(), photos: photos, table: 'd1consule'})});
+  }catch(err){ console.log('D1 save fail', err); }
+  e.target.value=''; render();
+});
+function fileToBase64(file){ return new Promise(res=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.readAsDataURL(file); }); }
+function deletePhoto(idx){
+  if(!confirm('Hapus foto ini?')) return;
+  let photos = getMyPhotos(); photos.splice(idx,1); setMyPhotos(photos);
+  fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(), photos: photos, table:'d1consule'})}).catch(()=>{});
   render();
 }
-
-/* List Teman (Sesuai Foto 2 Facebook) */
-async function loadFriendList(box){
-  box.innerHTML = '<div style="text-align:center;color:#666">Memuat daftar teman...</div>';
-  let users = [];
-  try {
-    let res = await fetch('/api/akun/list');
-    users = await res.json();
-  } catch(e){}
-
-  if(!Array.isArray(users) || users.length === 0){
-    users = [
-      { name: "Ana Mariana", email: "ana@gmail.com", picture: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150", mutual: "1 teman bersama" },
-      { name: "Selvi Ana", email: "selvi@gmail.com", picture: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150", mutual: "1 teman bersama" },
-      { name: "Cut Eka", email: "cut@gmail.com", picture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150", mutual: "" },
-      { name: "Dewii Dewi", email: "dewi@gmail.com", picture: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150", mutual: "" },
-      { name: "Diana Mayah", email: "diana@gmail.com", picture: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150", mutual: "1 teman bersama" }
-    ];
-  }
-
-  let html = '<div class="friend-title">Orang yang mungkin Anda kenal</div>';
-  users.forEach((u) => {
-    html += `
-      <div class="friend-card">
-        <img src="\${u.picture || LOGO_FALLBACK}" class="friend-avatar" onerror="this.src='\${LOGO_FALLBACK}'" onclick="viewUser('\${u.email}')">
-        <div class="friend-info">
-          <div class="friend-name" onclick="viewUser('\${u.email}')">\${u.name || 'Pengguna'}</div>
-          <div class="friend-mutual">
-            \${u.mutual ? \`<img src="\${u.picture || LOGO_FALLBACK}" class="friend-mutual-img"> \${u.mutual}\` : ''}
-          </div>
-          <div class="friend-actions">
-            <button class="btn-add-friend" onclick="alert('Permintaan pertemanan dikirim')">Tambah jadi teman</button>
-            <button class="btn-remove-friend" onclick="this.closest('.friend-card').remove()">Hapus</button>
-          </div>
-        </div>
-      </div>
-    `;
-  });
-
-  box.innerHTML = html;
-}
-
+function removeFriendCard(email){ const el=document.getElementById('user-'+email); if(el) el.style.display='none'; }
 function viewUser(email){ viewingUserEmail = email; render(); }
-
+async function toggleFollow(targetEmail, btn){
+  const myEmail = getMyEmail(); if(!myEmail){ alert("Login dulu!"); return; }
+  if(btn){ btn.textContent='Meminta...'; btn.disabled=true; }
+  try{
+    let res = await fetch('/api/follow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({follower:myEmail, following:targetEmail})});
+    let d = await res.json(); if(d.ok){ if(btn){ btn.textContent='Berteman'; btn.style.background='#e4e6eb'; btn.style.color='#000'; } else { render(); } }
+  }catch(e){ alert("Gagal: "+e.message); if(btn){ btn.textContent='Tambah jadi teman'; btn.disabled=false; } }
+}
 render();
 <\/script>
 </body>

@@ -3,31 +3,35 @@ export const HOME_HTML = `<!DOCTYPE html>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{background:#000;color:#fff;font-family:sans-serif}
 #app{max-width:520px;margin:0 auto;background:#000;min-height:100vh;padding-bottom:80px;
-border-left:2px solid #00ff88;border-right:2px solid #00ff88;border-bottom:2px solid #00ff88;
-box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 12px rgba(0,255,136,0.15)}
-.top{padding:12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #111;position:sticky;top:0;background:#000;z-index:10}
+border-left:2px solid #00ff88;border-right:2px solid #00ff88;
+box-shadow:0 0 15px rgba(0,255,136,0.5)}
+.top{padding:12px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #00ff88;position:sticky;top:0;background:#000;z-index:10;box-shadow:0 0 12px rgba(0,255,136,0.4)}
 .logo{width:36px;height:36px;border-radius:50%;border:2px solid #00ff88;object-fit:cover;box-shadow:0 0 8px #00ff88}
-.box{padding:12px;background:#0a0a0a;border-bottom:1px solid #222}
+.box{padding:12px;background:#000;border-bottom:2px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,0.2)}
 .inputRow{display:flex;gap:8px;align-items:center}
-.txt{flex:1;background:#111;border:2px solid #00ff88;color:#fff;padding:14px 16px;border-radius:14px;font-size:15px;outline:none;box-shadow:0 0 10px rgba(0,255,136,0.5), inset 0 0 6px rgba(0,255,136,0.1)}
+.txt{flex:1;background:#111;border:2px solid #00ff88;color:#fff;padding:14px 16px;border-radius:14px;font-size:15px;outline:none;box-shadow:0 0 10px rgba(0,255,136,0.5)}
 .txt::placeholder{color:#aaa}
-.txt:focus{border-color:#00ff88;box-shadow:0 0 15px rgba(0,255,136,0.8)}
-.btnPlus{width:48px;height:48px;background:#222;border:1px solid #333;color:#fff;border-radius:12px;font-size:28px;font-weight:900;display:grid;place-items:center;cursor:pointer;flex-shrink:0}
-.btnPlus:active{background:#00ff88;color:#000}
-.btnKirim{width:100%;margin-top:10px;background:#00ff88;color:#000;border:0;padding:14px;border-radius:14px;font-weight:900;font-size:15px;cursor:pointer;box-shadow:0 0 12px rgba(0,255,136,0.6)}
+.txt:focus{box-shadow:0 0 15px rgba(0,255,136,0.9)}
+.btnPlus{width:48px;height:48px;background:#222;border:2px solid #333;color:#fff;border-radius:12px;font-size:28px;font-weight:900;display:grid;place-items:center;cursor:pointer;flex-shrink:0}
+.btnKirim{width:100%;margin-top:10px;background:#00ff88;color:#000;border:0;padding:14px;border-radius:14px;font-weight:900;font-size:15px;cursor:pointer;box-shadow:0 0 15px rgba(0,255,136,0.7)}
 #preview{margin-top:10px;display:none;position:relative}
-#preview img{width:100%;border-radius:12px;max-height:320px;object-fit:cover;border:1px solid #00ff88}
+#preview img{width:100%;border-radius:12px;max-height:320px;object-fit:cover;border:2px solid #00ff88}
 #preview span{position:absolute;top:8px;right:8px;background:#000;color:#fff;padding:6px 10px;border-radius:20px;cursor:pointer;border:1px solid #333}
-.post{padding:14px;border-bottom:1px solid #151515;display:flex;gap:10px}
-.post-av{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid #333;flex-shrink:0}
+
+/* INI BOS YANG BIKIN KAYAK FOTO 2 BOS - POST KOTAK NEON HIJAU */
+.post{margin:12px;padding:14px;background:#0a0a0a;display:flex;gap:10px;
+border:2px solid #00ff88;
+border-radius:18px;
+box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 8px rgba(0,255,136,0.1)}
+.post-av{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #00ff88;flex-shrink:0;box-shadow:0 0 6px #00ff88}
 .post-body{flex:1;min-width:0}
 .post-name{font-weight:800;font-size:14px;color:#fff}
 .post-time{font-size:11px;color:#888;margin-left:6px}
 .post-text{margin-top:6px;font-size:14px;line-height:1.5;color:#fff;white-space:pre-wrap;word-break:break-word}
-.post-img{margin-top:10px;border-radius:12px;overflow:hidden;border:1.5px solid #222}
+.post-img{margin-top:10px;border-radius:12px;overflow:hidden;border:1.5px solid #00ff88}
 .post-img img{width:100%;display:block}
 .like-bar{margin-top:10px;display:flex;gap:8px}
-.btn-like{background:#111;border:1px solid #222;color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer}
+.btn-like{background:#111;border:1px solid #333;color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer}
 .del{background:#ff1a1a;color:#fff;border:0;padding:6px 12px;border-radius:20px;font-size:11px;cursor:pointer;margin-left:8px}
 .bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99;box-shadow:0 -4px 12px rgba(0,255,136,0.3)}
 .bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#fff}
@@ -45,7 +49,7 @@ box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 12px rgba(0,255,136,0.15)}
 <input type=file id=fileIn accept="image/*" style="display:none">
 </div>
 
-<div id=homeFeed style="padding:10px;color:#666">Loading Bos...</div>
+<div id=homeFeed style="padding:4px;color:#666">Loading Bos...</div>
 </div>
 
 <div class=bot><a href="/" class=on>🏠<br><span style="font-size:10px">Home</span></a><a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a><a href="/video">🎬<br><span style="font-size:10px">Video</span></a><a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a><a href="/ai">🤖<br><span style="font-size:10px">AI</span></a><a href="/akun">👤<br><span style="font-size:10px">Akun</span></a></div>

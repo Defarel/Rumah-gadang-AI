@@ -1,76 +1,70 @@
-import { SITEMAP_API } from './api/sitemap.js';
-import { TULIS_API } from './api/tulis.js';
-import { FOTO_API } from './api/foto.js';
-import { VIDEO_API } from './api/video.js';
-import { AI_API } from './api/ai.js';
-import { AKUN_API } from './api/akun.js';
-
-import { HOME_HTML } from './html/home.js';
-import { FOTO_HTML } from './html/foto.js';
-import { VIDEO_HTML } from './html/video.js';
-import { AI_HTML } from './html/ai.js';
-import { KANTOR_HTML } from './html/kantor.js';
-import { AKUN_HTML } from './html/akun.js';
-
 export default {
-  async fetch(req, env) {
-    const url = new URL(req.url);
+  async fetch(request, env) {
+    const url = new URL(request.url);
     const path = url.pathname;
-    const cors = { 
-      'Content-Type':'application/json',
-      'Access-Control-Allow-Origin':'*',
-      'Access-Control-Allow-Methods':'GET,POST,OPTIONS',
-      'Access-Control-Allow-Headers':'Content-Type' 
+    const cors = {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET,POST,PUT,OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type'
     };
-    if(req.method==="OPTIONS") return new Response("",{headers:cors});
+    if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
 
-    try{
-      if(env.DB){
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, user_email TEXT, name TEXT, picture TEXT, tulisImg TEXT, url TEXT, likes INTEGER DEFAULT 0, time INTEGER)").run();
+    // init tabel
+    try {
+      if (env.DB) {
         await env.DB.prepare("CREATE TABLE IF NOT EXISTS rg_users (email TEXT PRIMARY KEY, pass TEXT, name TEXT, picture TEXT, time INTEGER)").run();
-        await env.DB.prepare("CREATE TABLE IF NOT EXISTS rg_follows (follower TEXT, following TEXT, PRIMARY KEY (follower, following))").run();
+        await env.DB.prepare("CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, user_email TEXT, name TEXT, picture TEXT, tulisImg TEXT, url TEXT, likes INTEGER DEFAULT 0, time INTEGER)").run();
+        await env.DB.prepare("CREATE TABLE IF NOT EXISTS local_videos (id TEXT PRIMARY KEY, created_at INTEGER)").run();
+        await env.DB.prepare("CREATE TABLE IF NOT EXISTS blocked_videos (id TEXT PRIMARY KEY)").run();
+        await env.DB.prepare("CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT, time INTEGER)").run();
       }
-    }catch(e){}
+    } catch (e) {}
 
     try {
-      let r;
-      if (typeof SITEMAP_API !== 'undefined') {
-        r = await SITEMAP_API.handle(req,env,url);
-        if(r) return r;
+      // API AKUN - KODE LU BOS
+      if (path === '/api/akun') {
+        if (request.method === 'GET') {
+          const id = url.searchParams.get('id') || url.searchParams.get('email');
+          if (!id) return Response.json({ok:false, error:'id wajib'}, {status:400, headers:cors});
+          const user = await env.DB.prepare("SELECT * FROM rg_users WHERE email = ?").bind(id).first();
+          return Response.json(user || {}, {headers:cors});
+        }
+        if (request.method === 'POST' || request.method === 'PUT') {
+          const body = await request.json();
+          const finalEmail = body.email || body.id;
+          if (!finalEmail) return Response.json({error:'email wajib'}, {status:400, headers:cors});
+          const cek = await env.DB.prepare("SELECT email FROM rg_users WHERE email = ?").bind(finalEmail).first();
+          if (cek) {
+            await env.DB.prepare("UPDATE rg_users SET name=?, picture=? WHERE email=?").bind(body.name, body.picture, finalEmail).run();
+          } else {
+            await env.DB.prepare("INSERT INTO rg_users (email, name, picture, time) VALUES (?,?,?,?)").bind(finalEmail, body.name, body.picture, Date.now()).run();
+          }
+          return Response.json({ok:true, msg:'Akun berhasil diupdate'}, {headers:cors});
+        }
       }
-      if(path.startsWith('/api/')){
-        if (typeof TULIS_API !== 'undefined') {
-          r = await TULIS_API.handle(req,env,url,cors);
-          if(r) return r;
+
+      // API TULIS - BIAR HIJAU UPLOAD
+      if (path.startsWith('/api/tulis')) {
+        if (request.method === 'POST') {
+          const b = await request.json();
+          await env.DB.prepare("INSERT INTO tulis (text, user_email, name, picture, tulisImg, time) VALUES (?,?,?,?,?,?)")
+            .bind(b.text||b.isi, b.user_email||b.email, b.name, b.picture, b.tulisImg, Date.now()).run();
+          return Response.json({ok:true, msg:'Tulisan ke-upload'}, {headers:cors});
         }
-        if (typeof FOTO_API !== 'undefined') {
-          r = await FOTO_API.handle(req,env,url,cors);
-          if(r) return r;
+        if (request.method === 'GET') {
+          const {results} = await env.DB.prepare("SELECT * FROM tulis ORDER BY time DESC LIMIT 50").all();
+          return Response.json(results||[], {headers:cors});
         }
-        if (typeof VIDEO_API !== 'undefined') {
-          r = await VIDEO_API.handle(req,env,url,cors);
-          if(r) return r;
-        }
-        if (typeof AI_API !== 'undefined') {
-          r = await AI_API.handle(req,env,url,cors);
-          if(r) return r;
-        }
-        if (typeof AKUN_API !== 'undefined') {
-          r = await AKUN_API.handle(req,env,url,cors);
-          if(r) return r;
-        }
-        return new Response(JSON.stringify({ok:true, msg:"API Ready Bos"}), {headers: cors});
       }
-      
-      if(path==="/"||path.startsWith("/home")) return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-      if(path.startsWith("/foto")) return new Response(FOTO_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-      if(path.startsWith("/video")) return new Response(VIDEO_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-      if(path.startsWith("/ai")) return new Response(AI_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-      if(path.startsWith("/kantor")) return new Response(KANTOR_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-      if(path.startsWith("/akun")) return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-      return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
+
+      if (path.startsWith('/api/')) {
+        return Response.json({ok:true, status:'API Ready Bos'}, {headers:cors});
+      }
+
+      return new Response("<h1>Rumah Gadang AI - Worker HIJAU Bos</h1><p>API /api/akun dan /api/tulis aktif</p>", {headers:{"Content-Type":"text/html;charset=utf-8"}});
     } catch (err) {
-      return new Response(JSON.stringify({ok:false, error: err.message, stack: err.stack}), {status:500, headers: cors});
+      return Response.json({ok:false, error:err.message}, {status:500, headers:cors});
     }
   }
 }

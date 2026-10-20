@@ -1,21 +1,24 @@
+// KUNCI 1: TULIS BOS - VERSI AMAN GAK HAPUS DATA
 export const TULIS_API = {
-  async handle(req, env, url, cors){
+  async handle(req, env, url, cors) {
     const h = {"Content-Type":"application/json", ...cors};
     try{
-      // 1. BIKIN TABEL DULU - INI YANG BIKIN GAK GAGAL SIMPAN KEMARIN
-      await env.DB.prepare(`
-        CREATE TABLE IF NOT EXISTS tulis (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          judul TEXT, isi TEXT, text TEXT,
-          email TEXT, user_email TEXT,
-          name TEXT, picture TEXT,
-          tulisImg TEXT, img TEXT,
-          time INTEGER, created_at INTEGER,
-          likes INTEGER DEFAULT 0
-        )
-      `).run();
+      // 1. BIKIN TABEL KALAU BELUM ADA + TAMBAH KOLOM BARU TANPA HAPUS DATA LAMA
+      if(env.DB){
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS tulis (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            text TEXT, email TEXT, name TEXT, picture TEXT, tulisImg TEXT, time INTEGER, likes INTEGER DEFAULT 0
+          )
+        `).run();
+        // tambah kolom yang baru di kode hijau lu kemarin, kalau udah ada ya di-skip
+        let newCols = ["judul TEXT","isi TEXT","user_email TEXT","img TEXT","created_at INTEGER"];
+        for(let c of newCols){
+          try{ await env.DB.prepare(`ALTER TABLE tulis ADD COLUMN ${c}`).run(); }catch(e){}
+        }
+      }
 
-      // 2. GET - AMBIL FEED BUAT HOME
+      // 2. GET - AMBIL FEED BUAT HOME (data lama tetap kebaca)
       if(url.pathname==="/api/tulis" && req.method==="GET"){
         let r = await env.DB.prepare("SELECT * FROM tulis ORDER BY id DESC LIMIT 100").all();
         return new Response(JSON.stringify(r.results || []), {headers: h});
@@ -23,7 +26,7 @@ export const TULIS_API = {
 
       // 3. POST - KIRIM POSTINGAN + LOGIN @rumahgadang-ai.my.id
       if((url.pathname==="/api/tulis" || url.pathname==="/api/tulis/add") && req.method==="POST"){
-        let j = await req.json();
+        let j = await req.json().catch(()=>({}));
         let list = Array.isArray(j) ? j : [j];
 
         for(let x of list){
@@ -43,11 +46,11 @@ export const TULIS_API = {
           let img = x.tulisImg || x.img || x.image || "";
           let pic = x.picture || "https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
           let now = Date.now();
-
           if(!text && !img) continue;
 
+          // INSERT pakai kolom yang pasti ada di tabel lama + baru
           await env.DB.prepare(`
-            INSERT INTO tulis (judul, isi, text, email, user_email, name, picture, tulisImg, img, time, created_at, likes) 
+            INSERT INTO tulis (judul, isi, text, email, user_email, name, picture, tulisImg, img, time, created_at, likes)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
           `).bind(text.slice(0,50), text, text, email, email, name, pic, img, img, now, now).run();
         }
@@ -56,7 +59,7 @@ export const TULIS_API = {
 
       // 4. DELETE - KHUSUS ADMIN
       if(url.pathname==="/api/tulis/delete" && req.method==="POST"){
-        let j = await req.json();
+        let j = await req.json().catch(()=>({}));
         if(j.id){
           await env.DB.prepare("DELETE FROM tulis WHERE id=?").bind(j.id).run();
         }

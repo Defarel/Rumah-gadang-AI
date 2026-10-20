@@ -69,7 +69,7 @@ box-shadow:0 0 15px rgba(0,255,136,0.35), inset 0 0 0 1px rgba(0,255,136,0.2);
 <div class="bot"><a href="/">🏠<br><span style="font-size:10px">Home</span></a><a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a><a href="/video">🎬<br><span style="font-size:10px">Video</span></a><a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a><a href="/ai">🤖<br><span style="font-size:10px">AI</span></a><a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a></div>
 <div id=toast></div>
 <script>
-const LOGO_DEFAULT="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
+const LOGO_DEFAULT="https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
 let activeMainTab="tulis";
 let viewingUserEmail=null;
 let loginMode='masuk';
@@ -108,7 +108,7 @@ if(!my&&!viewingUserEmail){
 </div>
 <div class="cardLogo">
 <div class="brick"></div>
-<div class="rgWrap"><img src="https://i.ibb.co/3m0Jd6yY/rg-neon.png" onerror="this.src='https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png'" alt="RG AI"></div>
+<div class="rgWrap"><img src="https://i.ibb.co/r2gL8YJB/1791014451654.jpg" onerror="this.src='https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png'" alt="RG AI"></div>
 <div class="buka">Buka situs web</div>
 </div>\`;
 return;

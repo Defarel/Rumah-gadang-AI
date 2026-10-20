@@ -18,7 +18,10 @@ const KANTOR = KANTOR_M.default || KANTOR_M.KANTOR_HTML || Object.values(KANTOR_
 const AI = AI_M.default || AI_M.AI_HTML || Object.values(AI_M)[0];
 const AKUN = AKUN_M.default || AKUN_M.AKUN_HTML || Object.values(AKUN_M)[0];
 
-const TULIS_API = TULIS_M.handle || TULIS_M.default || TULIS_M.TULIS_API || Object.values(TULIS_M)[0];
+// INI KUNCINYA BOS, TULIS_API lu itu object ada .handle nya
+const TULIS_MOD = TULIS_M.TULIS_API || TULIS_M.default || TULIS_M;
+const TULIS_API = TULIS_MOD.handle ? TULIS_MOD.handle.bind(TULIS_MOD) : (TULIS_M.handle || Object.values(TULIS_M)[0]);
+
 const FOTO_API = FOTO_API_M.handle || FOTO_API_M.default || Object.values(FOTO_API_M)[0];
 const VIDEO_API = VIDEO_API_M.handle || VIDEO_API_M.default || Object.values(VIDEO_API_M)[0];
 const AKUN_API = AKUN_API_M.handle || AKUN_API_M.default || Object.values(AKUN_API_M)[0];
@@ -30,17 +33,18 @@ export default {
     const path = url.pathname;
     const cors = {'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Allow-Headers':'Content-Type'};
     if(req.method==="OPTIONS") return new Response("",{headers:cors});
-    try{
-      await env.DB.prepare("CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, user_email TEXT, name TEXT, picture TEXT, tulisImg TEXT, url TEXT, time INTEGER)").run();
-      await env.DB.prepare("CREATE TABLE IF NOT EXISTS rg_users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER)").run();
-    }catch(e){}
+
+    if(path.startsWith('/api/tulis')){
+      let r = await TULIS_API(req, env, url, cors);
+      if(r) return r;
+      return new Response(JSON.stringify([]),{headers:cors});
+    }
     if(path.startsWith('/api/')){
       let r;
-      if(TULIS_API){ r = await TULIS_API(req,env,url,cors); if(r) return r; }
-      if(FOTO_API){ r = await FOTO_API(req,env,url,cors); if(r) return r; }
-      if(VIDEO_API){ r = await VIDEO_API(req,env,url,cors); if(r) return r; }
-      if(AKUN_API){ r = await AKUN_API(req,env,url,cors); if(r) return r; }
-      if(AI_API){ r = await AI_API(req,env,url,cors); if(r) return r; }
+      if(FOTO_API){ try{ r = await FOTO_API(req,env,url,cors); if(r) return r; }catch(e){} }
+      if(VIDEO_API){ try{ r = await VIDEO_API(req,env,url,cors); if(r) return r; }catch(e){} }
+      if(AKUN_API){ try{ r = await AKUN_API(req,env,url,cors); if(r) return r; }catch(e){} }
+      if(AI_API){ try{ r = await AI_API(req,env,url,cors); if(r) return r; }catch(e){} }
       return new Response(JSON.stringify({ok:true}),{headers:cors});
     }
     if(path==="/"||path.startsWith("/home")) return new Response(HOME,{headers:{"Content-Type":"text/html;charset=utf-8"}});

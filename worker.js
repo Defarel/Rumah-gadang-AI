@@ -59,7 +59,7 @@ export default {
     if(path.startsWith('/api/')){
       try{
         if(path.startsWith('/api/tulis') && TULIS_API){ let r=await TULIS_API(req,env,url,cors); if(r) return r; }
-        if(path.startsWith('/api/foto') && FOTO_API){ let r=await FOTO_API(req,env,url,cors); if(r) return r; }
+        if(path.startsWith('/api/foto') || path.startsWith('/api/images') || path.startsWith('/api/ig-curated') || path.startsWith('/api/ig-preview') || path.startsWith('/api/delete')) && FOTO_API){ let r=await FOTO_API(req,env,url,cors); if(r) return r; }
         if(path.startsWith('/api/video') && VIDEO_API){ let r=await VIDEO_API(req,env,url,cors); if(r) return r; }
         if((path.startsWith('/api/akun') || path.startsWith('/api/follow') || path.startsWith('/api/followers') || path.startsWith('/api/following')) && AKUN_API){ let r=await AKUN_API(req,env,url,cors); if(r) return r; }
         if(path.startsWith('/api/ai') && AI_API){ let r=await AI_API(req,env,url,cors); if(r) return r; }

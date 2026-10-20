@@ -96,28 +96,50 @@ export const AKUN_API = {
         return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
-      // 6. FOLLOW / UNFOLLOW REAL BOS - PAKAI created_at BUKAN time, GAK ADA id
-      if (path === "/api/follow" && req.method === "POST") {
-        let { follower, following } = await req.json();
-        let cleanFollower = (follower || "").toLowerCase().trim();
-        let cleanFollowing = (following || "").toLowerCase().trim();
+      // GANTI FUNGSI FOLLOW & PROFILE JADI INI BOS
+if (path === "/api/akun/profile" && req.method === "GET") {
+  let targetEmail = (url.searchParams.get("email") || "").toLowerCase().trim();
+  let myEmail = (url.searchParams.get("me") || "").toLowerCase().trim();
+  let user = await env.DB.prepare("SELECT email, name, picture FROM users WHERE email = ?").bind(targetEmail).first();
+  let postCount = 0;
+  try {
+    let p = await env.DB.prepare("SELECT COUNT(*) as c FROM tulis WHERE email = ? OR user_email = ?").bind(targetEmail, targetEmail).first();
+    postCount = p?.c || 0;
+  } catch(e){}
+  let followersCount = 0, followingCount = 0, isFollowing = false;
+  try {
+    let f1 = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE following_email = ?").bind(targetEmail).first();
+    followersCount = f1?.c || 0;
+    let f2 = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE follower_email = ?").bind(targetEmail).first();
+    followingCount = f2?.c || 0;
+    if(myEmail){
+      let isF = await env.DB.prepare("SELECT follower_email FROM follows WHERE follower_email = ? AND following_email = ?").bind(myEmail, targetEmail).first();
+      isFollowing = !!isF;
+    }
+  } catch(e){}
+  return new Response(JSON.stringify({
+    email: targetEmail,
+    name: user?.name || targetEmail.split('@')[0],
+    picture: user?.picture || "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png",
+    posts: postCount, followers: followersCount, following: followingCount, isFollowing
+  }), { headers: h });
+}
 
-        if (!cleanFollower || !cleanFollowing || cleanFollower === cleanFollowing) {
-          return new Response(JSON.stringify({ ok: false, error: "Follow tidak valid" }), { headers: h, status: 400 });
-        }
-
-        let existing = await env.DB.prepare("SELECT follower_email FROM follows WHERE follower_email = ? AND following_email = ?").bind(cleanFollower, cleanFollowing).first();
-
-        if (existing) {
-          await env.DB.prepare("DELETE FROM follows WHERE follower_email = ? AND following_email = ?").bind(cleanFollower, cleanFollowing).run();
-          let f1 = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE following_email = ?").bind(cleanFollowing).first();
-          return new Response(JSON.stringify({ ok: true, status: "unfollowed", followers: f1?.c || 0 }), { headers: h });
-        } else {
-          await env.DB.prepare("INSERT INTO follows (follower_email, following_email, created_at) VALUES (?, ?, ?)").bind(cleanFollower, cleanFollowing, Date.now()).run();
-          let f1 = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE following_email = ?").bind(cleanFollowing).first();
-          return new Response(JSON.stringify({ ok: true, status: "followed", followers: f1?.c || 0 }), { headers: h });
-        }
-      }
+if (path === "/api/follow" && req.method === "POST") {
+  let { follower, following } = await req.json();
+  let cleanFollower = (follower || "").toLowerCase().trim();
+  let cleanFollowing = (following || "").toLowerCase().trim();
+  if(!cleanFollower || !cleanFollowing || cleanFollower===cleanFollowing) return new Response(JSON.stringify({ok:false}), {headers:h, status:400});
+  
+  let existing = await env.DB.prepare("SELECT follower_email FROM follows WHERE follower_email = ? AND following_email = ?").bind(cleanFollower, cleanFollowing).first();
+  if(existing){
+    await env.DB.prepare("DELETE FROM follows WHERE follower_email = ? AND following_email = ?").bind(cleanFollower, cleanFollowing).run();
+    return new Response(JSON.stringify({ ok: true, status: "unfollowed" }), { headers: h });
+  } else {
+    await env.DB.prepare("INSERT INTO follows (follower_email, following_email, created_at) VALUES (?, ?, ?)").bind(cleanFollower, cleanFollowing, Date.now()).run();
+    return new Response(JSON.stringify({ ok: true, status: "followed" }), { headers: h });
+  }
+}
 
     } catch (err) {
       return new Response(JSON.stringify({ ok: false, error: err.message }), { headers: h, status: 500 });

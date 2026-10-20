@@ -31,17 +31,23 @@ export default {
       }
     }catch(e){ console.log(e) }
 
-    let r;
-    r=await SITEMAP_API.handle(req,env,url); if(r) return r;
-    if(path.startsWith('/api/')){
-      r=await TULIS_API.handle(req,env,url,cors); if(r) return r;
-      r=await FOTO_API.handle(req,env,url,cors); if(r) return r;
-      r=await VIDEO_API.handle(req,env,url,cors); if(r) return r;
-      r=await AI_API.handle(req,env,url,cors); if(r) return r;
-      r=await AKUN_API.handle(req,env,url,cors); if(r) return r;
-      return new Response(JSON.stringify([]),{headers:cors});
-    }
-
+      let r;
+  r = await SITEMAP_API.handle(req,env,url);
+  if(r) return r;
+  if(path.startsWith('/api/')){
+    r = await TULIS_API.handle(req,env,url,cors);
+    if(r) return r; // <-- INI KUNCINYA, kalau TULIS_API ada hasil langsung return
+    r = await FOTO_API.handle(req,env,url,cors);
+    if(r) return r;
+    r = await VIDEO_API.handle(req,env,url,cors);
+    if(r) return r;
+    r = await AI_API.handle(req,env,url,cors);
+    if(r) return r;
+    r = await AKUN_API.handle(req,env,url,cors);
+    if(r) return r;
+    return new Response(JSON.stringify({ok:true}), {headers: cors});
+  }
+    
     if(path==="/"||path.startsWith("/home")) return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     if(path.startsWith("/foto")) return new Response(FOTO_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     if(path.startsWith("/video")) return new Response(VIDEO_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});

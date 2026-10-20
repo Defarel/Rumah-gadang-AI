@@ -160,7 +160,3 @@ render();
 </body>
 </html>
 `;
-
-**Udah Bos, ini full final Bos, tinggal deploy Bos!**
-
-Yang bikin `{"ok":true}` di screenshot lu tadi udah nyambung ke tombol Follow yang ini Bos. Abis deploy buka `rumahgadang-ai.my.id/akun?profil=naura@rumahgadang-ai.my.id&v=final123` Bos, klik Follow, harusnya langsung jadi `✓ Mengikuti` Bos dan di D1 `SELECT * FROM follows;` ada datanya Bos!

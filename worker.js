@@ -37,8 +37,7 @@ export default {
         if(path.startsWith('/api/tulis')){
           let m=getApi(TULIS_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
         }
-        // FIX UTAMA BOS - DARI TADI NO HANDLER DI SINI BOS!
-        if(path.startsWith('/api/foto') || path.startsWith('/api/images') || path.startsWith('/api/ig-curated') || path.startsWith('/api/ig-preview') || path.startsWith('/api/delete') || path.startsWith('/api/foto/') || path.startsWith('/api/images/')){
+        if(path.startsWith('/api/foto') || path.startsWith('/api/images') || path.startsWith('/api/ig-curated') || path.startsWith('/api/ig-preview') || path.startsWith('/api/delete')){
           let m=getApi(FOTO_API_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
         }
         if(path.startsWith('/api/video')){
@@ -66,7 +65,6 @@ export default {
     if(path.startsWith("/kantor")) return new Response(KANTOR_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     if(path.startsWith("/akun")) return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     
-    // Handle username
     let seg=path.replace(/^\/+/,"").split("/")[0];
     if(seg && !["home","foto","video","ai","kantor","akun","api","sitemap","robots","icon.png","favicon.ico"].includes(seg) && !seg.includes(".") && seg.length>=2){
       return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});

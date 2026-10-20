@@ -1,34 +1,48 @@
 export const HOME_HTML = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rumah Gadang AI - Komunitas Minangkabau</title>
+<meta name="description" content="Rumah Gadang AI - Komunitas digital Minangkabau, berbagi foto video dan AI karya anak Minang.">
+<meta name="robots" content="index, follow">
+<link rel="icon" href="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png">
+<link rel="canonical" href="https://www.rumahgadang-ai.my.id/">
+<meta property="og:image" content="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Rumah Gadang AI","url":"https://www.rumahgadang-ai.my.id","logo":"https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png"}</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{background:#000;color:#fff;font-family:sans-serif}
 #app{max-width:520px;margin:0 auto;background:#000;min-height:100vh;padding-bottom:80px;
-border-left:2px solid #00ff88;border-right:2px solid #00ff88;
-box-shadow:0 0 15px rgba(0,255,136,0.5)}
-.top{padding:12px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #00ff88;position:sticky;top:0;background:#000;z-index:10;box-shadow:0 0 12px rgba(0,255,136,0.4)}
+border-left:2px solid #00ff88;border-right:2px solid #00ff88;border-bottom:2px solid #00ff88;
+box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 12px rgba(0,255,136,0.15)}
+.top{padding:12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #111;position:sticky;top:0;background:#000;z-index:10}
 .logo{width:36px;height:36px;border-radius:50%;border:2px solid #00ff88;object-fit:cover;box-shadow:0 0 8px #00ff88}
-.box{padding:12px;background:#000;border-bottom:2px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,0.2)}
+.box{padding:12px;background:#0a0a0a;border-bottom:2px solid #00ff88;box-shadow:0 0 8px rgba(0,255,136,0.3)}
 .inputRow{display:flex;gap:8px;align-items:center}
 .txt{flex:1;background:#111;border:2px solid #00ff88;color:#fff;padding:14px 16px;border-radius:14px;font-size:15px;outline:none;box-shadow:0 0 10px rgba(0,255,136,0.5)}
 .txt::placeholder{color:#aaa}
-.txt:focus{box-shadow:0 0 15px rgba(0,255,136,0.9)}
-.btnPlus{width:48px;height:48px;background:#222;border:2px solid #333;color:#fff;border-radius:12px;font-size:28px;font-weight:900;display:grid;place-items:center;cursor:pointer;flex-shrink:0}
-.btnKirim{width:100%;margin-top:10px;background:#00ff88;color:#000;border:0;padding:14px;border-radius:14px;font-weight:900;font-size:15px;cursor:pointer;box-shadow:0 0 15px rgba(0,255,136,0.7)}
+.btnPlus{width:48px;height:48px;background:#222;border:1px solid #333;color:#fff;border-radius:12px;font-size:28px;font-weight:900;display:grid;place-items:center;cursor:pointer;flex-shrink:0}
+.btnKirim{width:100%;margin-top:10px;background:#00ff88;color:#000;border:0;padding:14px;border-radius:14px;font-weight:900;font-size:15px;cursor:pointer;box-shadow:0 0 12px rgba(0,255,136,0.6)}
 #preview{margin-top:10px;display:none;position:relative}
-#preview img{width:100%;border-radius:12px;max-height:320px;object-fit:cover;border:2px solid #00ff88}
+#preview img{width:100%;border-radius:12px;max-height:320px;object-fit:cover;border:1px solid #00ff88}
 #preview span{position:absolute;top:8px;right:8px;background:#000;color:#fff;padding:6px 10px;border-radius:20px;cursor:pointer;border:1px solid #333}
 
-/* INI BOS YANG BIKIN KAYAK FOTO 2 BOS - POST KOTAK NEON HIJAU */
-.post{margin:12px;padding:14px;background:#0a0a0a;display:flex;gap:10px;
-border:2px solid #00ff88;
-border-radius:18px;
-box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 8px rgba(0,255,136,0.1)}
-.post-av{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #00ff88;flex-shrink:0;box-shadow:0 0 6px #00ff88}
+/* INI BOS GARIS HIJAU NEON TIAP BERITA BOS */
+.post{padding:14px;display:flex;gap:10px;
+background:#0a0a0a;
+margin:10px 8px;
+border-radius:14px;
+border-left:2.5px solid #00ff88;
+border-right:2.5px solid #00ff88;
+border-bottom:2.5px solid #00ff88;
+border-top:1px solid #1a1a1a;
+box-shadow:0 0 10px rgba(0,255,136,0.35), 0 0 20px rgba(0,255,136,0.15);
+}
+.post-av{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1.5px solid #00ff88;flex-shrink:0;box-shadow:0 0 6px rgba(0,255,136,0.5)}
 .post-body{flex:1;min-width:0}
 .post-name{font-weight:800;font-size:14px;color:#fff}
 .post-time{font-size:11px;color:#888;margin-left:6px}
 .post-text{margin-top:6px;font-size:14px;line-height:1.5;color:#fff;white-space:pre-wrap;word-break:break-word}
-.post-img{margin-top:10px;border-radius:12px;overflow:hidden;border:1.5px solid #00ff88}
+.post-img{margin-top:10px;border-radius:12px;overflow:hidden;border:1.5px solid #222}
 .post-img img{width:100%;display:block}
 .like-bar{margin-top:10px;display:flex;gap:8px}
 .btn-like{background:#111;border:1px solid #333;color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer}
@@ -38,7 +52,6 @@ box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 8px rgba(0,255,136,0.1)}
 </style></head><body>
 <div id=app>
 <div class=top><div style="display:flex;gap:10px;align-items:center"><img src="https://i.ibb.co/r2gL8YJB/1791014451654.jpg" class=logo><b>RUMAH GADANG AI</b></div><button onclick="location.href='/akun'" style="background:#fff;color:#000;border:0;padding:6px 14px;border-radius:20px;font-weight:800;font-size:12px">LOGIN</button></div>
-
 <div class=box>
 <div class=inputRow>
 <input id=tulisIn class=txt placeholder="Tulis disini...">
@@ -48,12 +61,9 @@ box-shadow:0 0 12px rgba(0,255,136,0.6), inset 0 0 8px rgba(0,255,136,0.1)}
 <button class=btnKirim onclick="addTulis()">KIRIM</button>
 <input type=file id=fileIn accept="image/*" style="display:none">
 </div>
-
-<div id=homeFeed style="padding:4px;color:#666">Loading Bos...</div>
+<div id=homeFeed style="padding:4px 0;color:#666">Tunggu sanak</div>
 </div>
-
 <div class=bot><a href="/" class=on>🏠<br><span style="font-size:10px">Home</span></a><a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a><a href="/video">🎬<br><span style="font-size:10px">Video</span></a><a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a><a href="/ai">🤖<br><span style="font-size:10px">AI</span></a><a href="/akun">👤<br><span style="font-size:10px">Akun</span></a></div>
-
 <script>
 const LOGO_FALLBACK="https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
 const ADMIN_EMAILS=["admin@rumahgadang-ai.my.id","naura@rumahgadang-ai.my.id"];
@@ -83,7 +93,7 @@ async function loadTulis(){
 }
 async function addTulis(){
  let txt=document.getElementById('tulisIn').value.trim();
- if(!txt && !selectedImg){ alert("Tulis dulu Bos!"); return; }
+ if(!txt && !selectedImg){ alert("Tulis dulu!"); return; }
  let btn=document.querySelector('.btnKirim'); btn.innerText="MENGIRIM..."; btn.disabled=true;
  try{
   await fetch('/api/tulis/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,email:getEmail()||'anon@rg.id',name:getName(),picture:getAvatar(),tulisImg:selectedImg})});

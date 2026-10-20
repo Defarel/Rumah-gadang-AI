@@ -2,12 +2,9 @@ name = "purple-firefly-d778"
 main = "worker.js"
 compatibility_date = "2024-01-01"
 
-[assets]
-directory = "./"
-not_found_handling = "none"
-
 [[d1_databases]]
 binding = "DB"
+database_name = "rumahgadang-db"
 database_id = "01c4832d-950b-44f3-a447-e0a5ce326ba6"
 
 [vars]

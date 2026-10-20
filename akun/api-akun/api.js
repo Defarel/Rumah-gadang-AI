@@ -1,84 +1,75 @@
 export const AKUN_API = {
-  async handle(req, env, url, cors) {
-    const h = { "Content-Type": "application/json", ...cors };
+  async handle(req, env, url, corsHeaders) {
+    const h = { "Content-Type": "application/json", ...corsHeaders };
     const path = url.pathname;
+    const method = req.method;
 
     try {
-      // 1. REGISTER
-      if (path === "/api/akun/register" && req.method === "POST") {
-        let { email, name, picture, password } = await req.json();
-        let cleanEmail = (email || "").toLowerCase().trim();
-        let cleanName = name || "Dunsanak";
-        let cleanPic = picture || "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
-        if (!cleanEmail) return new Response(JSON.stringify({ ok: false, error: "Email wajib!" }), { headers: h, status: 400 });
-
-        await env.DB.prepare(`
-          INSERT INTO users (email, name, picture, password, time) 
-          VALUES (?, ?, ?, ?, ?)
-          ON CONFLICT(email) DO UPDATE SET
-            name = excluded.name,
-            picture = COALESCE(NULLIF(excluded.picture, ''), users.picture)
-        `).bind(cleanEmail, cleanName, cleanPic, password || "", Date.now()).run();
-
+      // REGISTER / LOGIN
+      if (path === "/api/akun/register" && method === "POST") {
+        const { email, name, picture } = await req.json();
+        const cleanEmail = (email || "").toLowerCase().trim();
+        if (!cleanEmail) return new Response(JSON.stringify({ ok: false, error: "email kosong" }), { headers: h, status: 400 });
+        
+        const finalName = name || cleanEmail.split('@')[0];
+        const finalPic = picture || "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
+        
+        await env.DB.prepare(
+          `INSERT INTO users (email, name, picture, time) VALUES (?,?,?,?) 
+           ON CONFLICT(email) DO UPDATE SET name=excluded.name, picture=COALESCE(NULLIF(excluded.picture,''),users.picture), time=excluded.time`
+        ).bind(cleanEmail, finalName, finalPic, Date.now()).run();
+        
         return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
-      // 2. LOGIN
-      if (path === "/api/akun/login" && req.method === "POST") {
-        let { email, password } = await req.json();
-        let cleanEmail = (email || "").toLowerCase().trim();
-        let user = await env.DB.prepare("SELECT email, name, picture FROM users WHERE email = ?").bind(cleanEmail).first();
-        if (!user) {
-          let defaultName = cleanEmail.split('@')[0] || "Dunsanak";
-          let defaultPic = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
-          await env.DB.prepare("INSERT INTO users (email, name, picture, password, time) VALUES (?, ?, ?, ?, ?)").bind(cleanEmail, defaultName, defaultPic, password || "", Date.now()).run();
-          return new Response(JSON.stringify({ ok: true, user: { email: cleanEmail, name: defaultName, picture: defaultPic } }), { headers: h });
-        }
-        return new Response(JSON.stringify({ ok: true, user }), { headers: h });
+      // LIST SEMUA AKUN @rumahgadang-ai.my.id
+      if (path === "/api/akun/list" && method === "GET") {
+        const result = await env.DB.prepare(
+          "SELECT email, name, picture FROM users WHERE email LIKE '%@rumahgadang-ai.my.id' ORDER BY time DESC LIMIT 100"
+        ).all();
+        return new Response(JSON.stringify(result.results || []), { headers: h });
       }
 
-      // 3. LIST TEMAN @rumahgadang-ai.my.id
-      if (path === "/api/akun/list" && req.method === "GET") {
-        let r = await env.DB.prepare("SELECT email, name, picture FROM users WHERE email LIKE '%@rumahgadang-ai.my.id' ORDER BY time DESC LIMIT 100").all();
-        return new Response(JSON.stringify(r.results || []), { headers: h });
-      }
+      // PROFILE - INI YANG BIKIN 0 0 0 DI VIDEO LU BOS
+      if (path === "/api/akun/profile" && method === "GET") {
+        const targetEmail = (url.searchParams.get("email") || "").toLowerCase().trim();
+        const myEmail = (url.searchParams.get("me") || "").toLowerCase().trim();
+        if (!targetEmail) return new Response(JSON.stringify({ ok: false }), { headers: h, status: 400 });
 
-      // 4. PROFILE + REAL FOLLOWER COUNT DARI D1
-      if (path === "/api/akun/profile" && req.method === "GET") {
-        let targetEmail = (url.searchParams.get("email") || "").toLowerCase().trim();
-        let myEmail = (url.searchParams.get("me") || "").toLowerCase().trim();
-        if (!targetEmail) return new Response(JSON.stringify({ ok: false, error: "Email target tidak ada" }), { headers: h, status: 400 });
+        const user = await env.DB.prepare("SELECT email, name, picture FROM users WHERE email = ?").bind(targetEmail).first();
 
-        let user = await env.DB.prepare("SELECT email, name, picture FROM users WHERE email = ?").bind(targetEmail).first();
-
+        // HITUNG TULISAN - FIX BIAR GAK 0 LAGI BOS, CEK 2 KOLOM
         let postCount = 0;
         try {
-          let p = await env.DB.prepare("SELECT COUNT(*) as c FROM tulis WHERE LOWER(email) = ?").bind(targetEmail).first();
+          // coba user_email dan email
+          const p = await env.DB.prepare("SELECT COUNT(*) as c FROM tulis WHERE LOWER(email) = ? OR LOWER(user_email) = ?").bind(targetEmail, targetEmail).first();
           postCount = p?.c || 0;
-        } catch (e) {}
+        } catch (e) {
+          try {
+            const p2 = await env.DB.prepare("SELECT COUNT(*) as c FROM tulis WHERE email = ?").bind(targetEmail).first();
+            postCount = p2?.c || 0;
+          } catch (e2) {}
+        }
 
-        // INI YANG REAL BOS, DARI TABEL follows YANG BARU
-        let followersCount = 0;
-        let followingCount = 0;
-        let isFollowing = false;
+        // HITUNG FOLLOWERS / FOLLOWING
+        let followersCount = 0, followingCount = 0, isFollowing = false;
         try {
-          let f1 = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE following_email = ?").bind(targetEmail).first();
+          const f1 = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE following_email = ?").bind(targetEmail).first();
           followersCount = f1?.c || 0;
-
-          let f2 = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE follower_email = ?").bind(targetEmail).first();
+          const f2 = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE follower_email = ?").bind(targetEmail).first();
           followingCount = f2?.c || 0;
-
+          
           if (myEmail) {
-            let isF = await env.DB.prepare("SELECT follower_email FROM follows WHERE follower_email = ? AND following_email = ?").bind(myEmail, targetEmail).first();
-            isFollowing = !!isF;
+            const check = await env.DB.prepare("SELECT follower_email FROM follows WHERE follower_email = ? AND following_email = ?").bind(myEmail, targetEmail).first();
+            isFollowing = !!check;
           }
         } catch (e) {
-          console.log("follow error", e.message);
+          // kalau tabel follows belum ada, biarin 0
         }
 
         return new Response(JSON.stringify({
           email: targetEmail,
-          name: user?.name || targetEmail.split('@')[0] || "Dunsanak",
+          name: user?.name || targetEmail.split('@')[0],
           picture: user?.picture || "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png",
           posts: postCount,
           followers: followersCount,
@@ -87,63 +78,52 @@ export const AKUN_API = {
         }), { headers: h });
       }
 
-      // 5. UPDATE PROFIL
-      if (path === "/api/akun/update" && req.method === "POST") {
-        let { email, name, picture } = await req.json();
-        let cleanEmail = (email || "").toLowerCase().trim();
-        if (!cleanEmail) return new Response(JSON.stringify({ ok: false, error: "Email tidak valid" }), { headers: h, status: 400 });
+      // UPDATE PROFILE
+      if (path === "/api/akun/update" && method === "POST") {
+        const { email, name, picture } = await req.json();
+        const cleanEmail = (email || "").toLowerCase().trim();
         await env.DB.prepare("UPDATE users SET name = COALESCE(?, name), picture = COALESCE(?, picture) WHERE email = ?").bind(name || null, picture || null, cleanEmail).run();
         return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
-      // GANTI FUNGSI FOLLOW & PROFILE JADI INI BOS
-if (path === "/api/akun/profile" && req.method === "GET") {
-  let targetEmail = (url.searchParams.get("email") || "").toLowerCase().trim();
-  let myEmail = (url.searchParams.get("me") || "").toLowerCase().trim();
-  let user = await env.DB.prepare("SELECT email, name, picture FROM users WHERE email = ?").bind(targetEmail).first();
-  let postCount = 0;
-  try {
-    let p = await env.DB.prepare("SELECT COUNT(*) as c FROM tulis WHERE email = ? OR user_email = ?").bind(targetEmail, targetEmail).first();
-    postCount = p?.c || 0;
-  } catch(e){}
-  let followersCount = 0, followingCount = 0, isFollowing = false;
-  try {
-    let f1 = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE following_email = ?").bind(targetEmail).first();
-    followersCount = f1?.c || 0;
-    let f2 = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE follower_email = ?").bind(targetEmail).first();
-    followingCount = f2?.c || 0;
-    if(myEmail){
-      let isF = await env.DB.prepare("SELECT follower_email FROM follows WHERE follower_email = ? AND following_email = ?").bind(myEmail, targetEmail).first();
-      isFollowing = !!isF;
-    }
-  } catch(e){}
-  return new Response(JSON.stringify({
-    email: targetEmail,
-    name: user?.name || targetEmail.split('@')[0],
-    picture: user?.picture || "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png",
-    posts: postCount, followers: followersCount, following: followingCount, isFollowing
-  }), { headers: h });
-}
+      // FOLLOW / UNFOLLOW - INI YANG BIKIN LOADING TERUS BALIK LAGI DI VIDEO LU BOS
+      if (path === "/api/follow" && method === "POST") {
+        const { follower, following } = await req.json();
+        const cleanFollower = (follower || "").toLowerCase().trim();
+        const cleanFollowing = (following || "").toLowerCase().trim();
 
-if (path === "/api/follow" && req.method === "POST") {
-  let { follower, following } = await req.json();
-  let cleanFollower = (follower || "").toLowerCase().trim();
-  let cleanFollowing = (following || "").toLowerCase().trim();
-  if(!cleanFollower || !cleanFollowing || cleanFollower===cleanFollowing) return new Response(JSON.stringify({ok:false}), {headers:h, status:400});
-  
-  let existing = await env.DB.prepare("SELECT follower_email FROM follows WHERE follower_email = ? AND following_email = ?").bind(cleanFollower, cleanFollowing).first();
-  if(existing){
-    await env.DB.prepare("DELETE FROM follows WHERE follower_email = ? AND following_email = ?").bind(cleanFollower, cleanFollowing).run();
-    return new Response(JSON.stringify({ ok: true, status: "unfollowed" }), { headers: h });
-  } else {
-    await env.DB.prepare("INSERT INTO follows (follower_email, following_email, created_at) VALUES (?, ?, ?)").bind(cleanFollower, cleanFollowing, Date.now()).run();
-    return new Response(JSON.stringify({ ok: true, status: "followed" }), { headers: h });
-  }
-}
+        if (!cleanFollower || !cleanFollowing) {
+          return new Response(JSON.stringify({ ok: false, error: "email kosong" }), { headers: h, status: 400 });
+        }
+        if (cleanFollower === cleanFollowing) {
+          return new Response(JSON.stringify({ ok: false, error: "gak bisa follow diri sendiri" }), { headers: h, status: 400 });
+        }
+
+        const existing = await env.DB.prepare("SELECT follower_email FROM follows WHERE follower_email = ? AND following_email = ?").bind(cleanFollower, cleanFollowing).first();
+
+        if (existing) {
+          await env.DB.prepare("DELETE FROM follows WHERE follower_email = ? AND following_email = ?").bind(cleanFollower, cleanFollowing).run();
+          return new Response(JSON.stringify({ ok: true, status: "unfollowed" }), { headers: h });
+        } else {
+          // Coba insert pakai created_at dulu, kalau gagal coba pakai time (biar tahan banting)
+          try {
+            await env.DB.prepare("INSERT INTO follows (follower_email, following_email, created_at) VALUES (?,?,?)").bind(cleanFollower, cleanFollowing, Date.now()).run();
+          } catch (e) {
+            try {
+              await env.DB.prepare("INSERT INTO follows (follower_email, following_email, time) VALUES (?,?,?)").bind(cleanFollower, cleanFollowing, Date.now()).run();
+            } catch (e2) {
+              // last fallback tanpa timestamp
+              await env.DB.prepare("INSERT INTO follows (follower_email, following_email) VALUES (?,?)").bind(cleanFollower, cleanFollowing).run();
+            }
+          }
+          return new Response(JSON.stringify({ ok: true, status: "followed" }), { headers: h });
+        }
+      }
 
     } catch (err) {
       return new Response(JSON.stringify({ ok: false, error: err.message }), { headers: h, status: 500 });
     }
-    return null;
+
+    return null; // biar worker lain yang handle
   }
 };

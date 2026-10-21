@@ -25,10 +25,9 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     let path = url.pathname.toLowerCase();
-    const cors = {'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Allow-Headers':'Content-Type'};
+    const cors = {'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET,POST,OPTIONS,DELETE','Access-Control-Allow-Headers':'Content-Type'};
     if(req.method==="OPTIONS") return new Response("",{headers:cors});
 
-    // === TAMBAHAN BOS - SITEMAP + ROBOTS - CUMA TAMBAH BOS ===
     if(path === "/sitemap.xml" || path === "/sitemap/" || path === "/sitemap"){
       try{
         let m=getApi(SITEMAP_M);
@@ -41,7 +40,33 @@ export default {
     if(path === "/robots.txt" || path === "/robots" || path === "/robots/"){
       return new Response(`User-agent: *\nAllow: /\nSitemap: https://rumahgadang-ai.my.id/sitemap.xml`,{headers:{"Content-Type":"text/plain;charset=utf-8"}});
     }
-    // === END TAMBAHAN BOS ===
+
+    if(path==="/api/ig-curated/delete" || path==="/api/images/delete" || path==="/api/foto/delete" || path==="/api/delete" || path==="/api/tulis/delete"){
+      try{
+        let body={}; try{ body=await req.json(); }catch{}
+        let idDel = String(body.id||url.searchParams.get('id')||'');
+        if(!idDel) return new Response(JSON.stringify({ok:false,error:"id kosong Bos"}),{headers:cors,status:400});
+        for(let kvName of Object.keys(env)){
+          let kv = env[kvName];
+          if(!kv || typeof kv.get !== 'function') continue;
+          try{
+            for(let key of ['curated','images','list','IG_CURATED','FOTO','HOME_TULIS','tulis']){
+              let raw = await kv.get(key).catch(()=>null);
+              if(!raw) continue;
+              let arr = JSON.parse(raw);
+              if(Array.isArray(arr)){
+                let filtered = arr.filter(x=> String(x.id||x._id||'') !== idDel);
+                if(filtered.length !== arr.length){ await kv.put(key, JSON.stringify(filtered)); }
+              }
+            }
+            await kv.delete(idDel).catch(()=>{});
+          }catch{}
+        }
+        return new Response(JSON.stringify({ok:true,deleted:idDel}),{headers:cors});
+      }catch(e){
+        return new Response(JSON.stringify({ok:false,error:e.message}),{headers:cors,status:500});
+      }
+    }
 
     if(path==="/f"||path==="/f/") path="/foto";
     if(path==="/v"||path==="/v/") path="/video";
@@ -86,4 +111,4 @@ export default {
     }
     return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
   }
-}
+  }

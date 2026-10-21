@@ -1,40 +1,51 @@
 export const AI_HTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RUMAH GADANG AI</title>
 <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#000;color:#fff;height:100dvh;overflow:hidden}
-.bg{position:fixed;inset:0;background-image:url('https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@main/ai/RumahGadangAI1.jpg');background-position:center;background-size:cover;background-repeat:no-repeat;z-index:-2}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:-1}
+.bg{position:fixed;inset:0;background-color:#111;background-image:url('https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/ai/RumahGadangAI1.jpg');background-position:center;background-size:cover;z-index:-2}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:-1}
 #header{position:fixed;top:0;left:0;right:0;height:54px;display:flex;align-items:center;gap:10px;padding:0 14px;background:#000;border-bottom:2px solid #00ff88;z-index:10}
 #chat{position:absolute;top:56px;bottom:132px;left:0;right:0;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
 .bubble{max-width:85%;padding:12px;border-radius:18px;font-size:14px}.user{align-self:flex-end;background:#00ff88;color:#000;font-weight:800}.ai{align-self:flex-start;background:#111;border:1px solid #00ff88}
 #inputBar{position:fixed;bottom:62px;left:0;right:0;padding:10px;background:#000;display:flex;gap:8px;z-index:20}
-#inp{flex:1;background:#111;color:#fff;border:1.5px solid #00ff88;border-radius:24px;height:48px;padding:0 16px;outline:none}
-#send{background:#00ff88;color:#000;font-weight:900;border:0;height:48px;padding:0 22px;border-radius:24px;cursor:pointer}
+#inp{flex:1;background:#111;color:#fff;border:1.5px solid #00ff88;border-radius:24px;height:48px;padding:0 16px}
+#send{background:#00ff88;color:#000;font-weight:900;border:0;height:48px;padding:0 22px;border-radius:24px}
 .bot{position:fixed;bottom:0;left:0;right:0;height:62px;background:#000;border-top:2px solid #00ff88;display:flex;z-index:40}.bot a{flex:1;text-align:center;padding:6px 0;color:#666;text-decoration:none}.bot a.on{color:#00ff88}
-#playBtn{position:fixed;top:60px;right:10px;z-index:30;background:#00ff88;color:#000;border:0;padding:12px 20px;border-radius:25px;font-weight:900;box-shadow:0 0 20px #00ff88;cursor:pointer}
+#playBtn{position:fixed;top:60px;right:10px;z-index:30;background:#00ff88;color:#000;border:0;padding:12px 20px;border-radius:25px;font-weight:900;box-shadow:0 0 20px #00ff88}
 </style></head><body>
-<div class="bg"></div><div class="overlay"></div>
-<div id="header"><img src="https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@main/ai/RumahGadangAI1.jpg" style="width:34px;height:34px;border-radius:50%;border:2px solid #00ff88"><b>RUMAH GADANG AI</b></div>
+<div class="bg" id="bg"></div><div class="overlay"></div>
+<div id="header"><img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/ai/RumahGadangAI1.jpg" style="width:34px;height:34px;border-radius:50%;border:2px solid #00ff88" onerror="this.src='https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@main/ai/RumahGadangAI1.jpg'"><b>RUMAH GADANG AI</b></div>
 <button id="playBtn">▶️ PLAY MUSIK</button>
-<audio id="aud" loop preload="auto" src="https://files.catbox.moe/inn4zw.m4a"></audio>
-<div id="chat"><div class="bubble ai">Halo Bos! Gambar Full + Musik inn4zw.m4a udah kepasang Bos! Tap PLAY Bos!</div></div>
+<audio id="aud" loop preload="auto" crossorigin="anonymous"></audio>
+<div id="chat"><div class="bubble ai">Halo Bos! Tap PLAY Bos! Pakai musik baru usqhmz.m4a Bos!</div></div>
 <div id="inputBar"><input id="inp" placeholder="Tanya AI..."><button id="send">KIRIM</button></div>
 <div class="bot"><a href="/">🏠</a><a href="/foto">🖼️</a><a href="/video">🎬</a><a href="/kantor">🏢</a><a href="/ai" class="on">🤖</a><a href="/akun">👤</a></div>
 <script>
 const aud=document.getElementById('aud');
 const btn=document.getElementById('playBtn');
 let on=false;
+// COBA 2 LINK BOS - BARU DULU BOS
+const sources=["https://files.catbox.moe/usqhmz.m4a","https://files.catbox.moe/inn4zw.m4a","https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@main/ai/RumahGadangV1.m4a"];
+let idx=0;
+function loadSrc(i){ aud.src=sources[i]; aud.load(); }
+loadSrc(0);
+aud.addEventListener('error',()=>{
+  idx++;
+  if(idx < sources.length){ loadSrc(idx); }
+  else{ alert('Semua musik gagal Bos! Repo lu masih private Bos! Bikin public dulu Bos!'); }
+});
 btn.onclick=async()=>{
   try{
     if(on){ aud.pause(); on=false; btn.textContent='▶️ PLAY MUSIK'; }
-    else{ aud.volume=1; await aud.play(); on=true; btn.textContent='⏸️ MUSIK ON'; }
-  }catch(e){ alert('Error Bos: '+e.message); }
+    else{ await aud.play(); on=true; btn.textContent='⏸️ MUSIK ON'; }
+  }catch(e){ alert('Tap lagi Bos: '+e.message); }
 };
-aud.onerror=()=>{ alert('File musik gagal load Bos! Cek link catbox Bos!'); };
 document.getElementById('send').onclick=async()=>{
   let p=document.getElementById('inp').value.trim(); if(!p)return;
   let c=document.getElementById('chat'); c.insertAdjacentHTML('beforeend','<div class=bubble user>'+p+'</div>'); document.getElementById('inp').value='';
   try{
     let r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p})});
-    let j=await r.json(); c.insertAdjacentHTML('beforeend','<div class=bubble ai>'+(j.reply||j.error||'Error')+'</div>'); c.scrollTop=c.scrollHeight;
-  }catch(e){ c.insertAdjacentHTML('beforeend','<div class=bubble ai>Error: '+e.message+'</div>'); }
+    let j=await r.json(); 
+    c.insertAdjacentHTML('beforeend','<div class=bubble ai>'+(j.reply||j.response||j.error||JSON.stringify(j))+'</div>'); 
+    c.scrollTop=c.scrollHeight;
+  }catch(e){ c.insertAdjacentHTML('beforeend','<div class=bubble ai>API Error Bos: '+e.message+' - Cek /api/ai di worker.js Bos!</div>'); }
 };
 <\/script></body></html>`;

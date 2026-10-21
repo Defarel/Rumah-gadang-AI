@@ -7,7 +7,7 @@ export const AI_HTML = `<!DOCTYPE html>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;overflow:hidden}
-.bg{position:fixed;inset:0;background:url('/ai/RumahGadangAI1.jpg') center/cover no-repeat;filter:brightness(0.55);z-index:-2}
+.bg{position:fixed;inset:0;background:url('https://files.catbox.moe/eovqxs.jpg') center/cover no-repeat;filter:brightness(0.55);z-index:-2}
 .overlay{position:fixed;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.85));z-index:-1}
 #header{position:fixed;top:0;left:0;right:0;height:54px;display:flex;align-items:center;gap:10px;padding:0 14px;background:rgba(0,0,0,0.7);border-bottom:1px solid #222;z-index:10}
 #header img{width:32px;height:32px;border-radius:50%}
@@ -35,7 +35,7 @@ body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;ov
 <div class="overlay"></div>
 
 <div id="header">
-  <img src="/ai/RumahGadangAI1.jpg">
+  <img src="https://files.catbox.moe/eovqxs.jpg">
   <b>RUMAH GADANG AI</b>
 </div>
 

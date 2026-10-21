@@ -7,7 +7,7 @@ export const AI_HTML = `<!DOCTYPE html>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;overflow:hidden}
-.bg{position:fixed;inset:0;background:url('https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/ai/RumahGadangAI1.jpg') center/cover no-repeat;filter:brightness(0.55);z-index:-2}
+.bg{position:fixed;inset:0;background:url('https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg') center/cover no-repeat;filter:brightness(0.55);z-index:-2}
 .overlay{position:fixed;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.88));z-index:-1}
 #header{position:fixed;top:0;left:0;right:0;height:54px;display:flex;align-items:center;gap:10px;padding:0 14px;background:rgba(0,0,0,0.75);border-bottom:1px solid #222;z-index:10}
 #header img{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid #00ff88}
@@ -29,10 +29,12 @@ body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;ov
 </head>
 <body>
 <div class="bg"></div><div class="overlay"></div>
-<div id="header"><img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/ai/RumahGadangAI1.jpg"><b>RUMAH GADANG AI</b></div>
-<div id="musicBar"><button id="musicBtn" class="miniBtn">🔊 Mencoba hidup...</button><button class="miniBtn" onclick="location.href='/'">🏠 Home</button></div>
-<audio id="bgMusic" loop preload="auto" autoplay crossorigin="anonymous"><source src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/ai/RumahGadangV1.m4a" type="audio/mp4"></audio>
-<div id="chat"><div class="bubble ai">Halo Dunsanak! 👋 Saya Rumah Gadang AI. Musik Rumah Gadang langsung hidup ya Bos!</div></div>
+<div id="header"><img src="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg"><b>RUMAH GADANG AI</b></div>
+<div id="musicBar"><button id="musicBtn" class="miniBtn">🎵 Tap buat musik Bos</button><button class="miniBtn" onclick="location.href='/'">🏠 Home</button></div>
+
+<audio id="bgMusic" loop preload="auto" playsinline><source src="https://files.catbox.moe/inn4zw.m4a" type="audio/mp4"></audio>
+
+<div id="chat"><div class="bubble ai">Halo Dunsanak! 👋 Saya Rumah Gadang AI. Tap layar Bos biar musik Rumah Gadang hidup!</div></div>
 <div id="inputBar"><div style="display:flex;gap:8px;width:100%"><input id="inp" placeholder="Tanya ke rumah gadang AI..."><button id="send">KIRIM</button></div></div>
 <div class="bot"><a href="/">🏠<br><span>Home</span></a><a href="/foto">🖼️<br><span>Foto</span></a><a href="/video">🎬<br><span>Video</span></a><a href="/kantor">🏢<br><span>Kantor</span></a><a href="/ai" class="on">🤖<br><span>AI</span></a><a href="/akun">👤<br><span>Akun</span></a></div>
 <script>
@@ -41,70 +43,52 @@ const inp = document.getElementById('inp');
 const sendBtn = document.getElementById('send');
 const music = document.getElementById('bgMusic');
 const musicBtn = document.getElementById('musicBtn');
-music.volume = 0.6;
+music.volume = 0.7;
 let isMusicPlaying = false;
 
 function addBubble(t, txt){ const d=document.createElement('div'); d.className='bubble '+t; d.innerText=txt; chat.appendChild(d); chat.scrollTop=chat.scrollHeight; }
-
-function setMusicOn(){
-  isMusicPlaying = true;
-  musicBtn.innerText='🔊 Musik ON';
-  musicBtn.classList.add('on');
-}
-function setMusicOff(){
-  isMusicPlaying = false;
-  musicBtn.innerText='🔇 Musik OFF';
-  musicBtn.classList.remove('on');
-}
+function setMusicOn(){ isMusicPlaying=true; musicBtn.innerText='🔊 Musik ON'; musicBtn.classList.add('on'); }
+function setMusicOff(){ isMusicPlaying=false; musicBtn.innerText='🔇 Musik OFF'; musicBtn.classList.remove('on'); }
 
 async function tryPlay(){
   try{
+    music.muted=false;
     await music.play();
     setMusicOn();
     return true;
-  }catch(e){ return false; }
+  }catch(e){ 
+    console.log('blok autoplay Bos',e);
+    musicBtn.innerText='🎵 Tap layar buat hidupin musik';
+    return false;
+  }
 }
 
-// 1. Coba langsung hidup pas load
-window.addEventListener('load', async ()=>{
-  let ok = await tryPlay();
-  if(!ok){
-    musicBtn.innerText='🎵 Tap layar buat hidupin musik';
-  }
-});
-
-// 2. Kalau diblokir, hidupin di sentuhan PERTAMA user dimana aja
-let firstInteractionDone = false;
+// 1. Listener pertama Bos - Chrome wajib interaksi Bos
+let firstDone=false;
 async function firstTouch(){
-  if(firstInteractionDone) return;
-  firstInteractionDone = true;
-  if(!isMusicPlaying){
-    await tryPlay();
-  }
-  // hapus listener setelah berhasil
+  if(firstDone) return;
+  firstDone=true;
+  await tryPlay();
   document.removeEventListener('click', firstTouch);
   document.removeEventListener('touchstart', firstTouch);
   document.removeEventListener('keydown', firstTouch);
-  document.removeEventListener('scroll', firstTouch);
 }
 document.addEventListener('click', firstTouch);
-document.addEventListener('touchstart', firstTouch);
+document.addEventListener('touchstart', firstTouch, {passive:true});
 document.addEventListener('keydown', firstTouch);
-document.addEventListener('scroll', firstTouch, {once:true});
 
-// 3. Tombol manual tetap bisa ON/OFF
+// 2. Tombol manual ON/OFF Bos
 musicBtn.onclick = async (e)=>{
   e.stopPropagation();
-  if(isMusicPlaying){ music.pause(); setMusicOff(); firstInteractionDone = true; }
-  else { 
-    let ok = await tryPlay();
-    if(ok) firstInteractionDone = true;
-  }
+  if(isMusicPlaying){ music.pause(); setMusicOff(); }
+  else { await tryPlay(); firstDone=true; }
 };
 
 async function kirim(){
   const p=inp.value.trim(); if(!p) return;
   addBubble('user',p); inp.value='';
+  // nyalain musik pas kirim Bos biar pasti hidup Bos
+  if(!isMusicPlaying) tryPlay();
   const ld=document.createElement('div'); ld.className='bubble ai'; ld.innerText='Rumah Gadang AI mikir dulu...'; chat.appendChild(ld); chat.scrollTop=chat.scrollHeight;
   try{
     const r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p})});
@@ -116,3 +100,26 @@ inp.onkeydown=e=>{ if(e.key==='Enter') kirim(); };
 </script>
 </body>
 </html>`;
+
+export const AI_API = {
+  async handle(req, env, url, cors) {
+    if(url.pathname==="/api/ai"&&req.method==="POST"){
+      let GROQ=env.GROQ_API_KEY;
+      const MODELS = ["openai/gpt-oss-120b","openai/gpt-oss-20b","qwen/qwen3-32b"];
+      let j=await req.json();
+      for(let model of MODELS){
+        try{
+          let r=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+GROQ},body:JSON.stringify(
+            {model:model,messages:[
+              {role:"system",content:"KAMU: Rumah Gadang AI, dibuat oleh Tim Rumah Gadang AI. ATURAN: Jawab SINGKAT PADAT max 40 kata, langsung inti jawaban, JANGAN pakai tabel, JANGAN penjelasan panjang, JANGAN basa-basi, JANGAN markdown berat."},
+              {role:"user",content:j.prompt}
+            ],temperature:0.3,max_tokens:120})});
+          let d=await r.json(); 
+          if(d.choices?.[0]?.message?.content) return new Response(JSON.stringify({reply:d.choices[0].message.content}),{headers:cors});
+        }catch(e){ continue; }
+      }
+      return new Response(JSON.stringify({reply:"Error AI Bos"}),{headers:cors});
+    }
+    return null;
+  }
+}

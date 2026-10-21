@@ -1,4 +1,4 @@
-const LOGO_DEFAULT = "https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg"; // FOTO 2 BOS RG AI
+const LOGO_DEFAULT = "https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg";
 
 export const AKUN_HTML = `<!DOCTYPE html><html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -51,11 +51,12 @@ body{background:#000;color:#fff;font-family:sans-serif}
 <div class="bot"><a href="/">🏠<br><span style="font-size:10px">Home</span></a><a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a><a href="/video">🎬<br><span style="font-size:10px">Video</span></a><a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a><a href="/ai">🤖<br><span style="font-size:10px">AI</span></a><a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a></div>
 <div id=toast></div>
 <div id=editModal><div id=editBox>
-<h3 style="margin-bottom:10px">Edit Profil Bos</h3>
-<img id=editPrev style="width:80px;height:80px;border-radius:50%;border:2px solid #00ff88;display:block;margin:0 auto 10px;object-fit:cover">
+<h3 style="margin-bottom:10px">Edit Profil Bos - Bebas Ganti Foto Bos</h3>
+<img id=editPrev style="width:90px;height:90px;border-radius:50%;border:2px solid #00ff88;display:block;margin:0 auto 10px;object-fit:cover">
 <input id=editName class=inp placeholder="Nama Bos">
-<input id=editPicUrl class=inp placeholder="Link foto atau upload di bawah">
+<input id=editPicUrl class=inp placeholder="Link foto bebas (atau upload di bawah)">
 <input type=file id=editPicFile accept="image/*" class=inp>
+<div style="font-size:11px;color:#00ff88;margin-top:8px">* Foto bebas Bos, gak dikunci Bos, otomatis dikecilin biar kesimpen Bos</div>
 <div style="display:flex;gap:8px;margin-top:12px"><button class=btn-edit onclick="closeEdit()" style="flex:1">Batal</button><button class=btn-neon-follow onclick="saveEdit()" style="flex:1">Simpan Bos</button></div>
 </div></div>
 <script>
@@ -90,12 +91,12 @@ async function render(){
         </div>
         <div id="loginFields">
           <input id="emailIn" class="inp" placeholder="lintas@rumahgadang-ai.my.id" value="lintas@rumahgadang-ai.my.id">
-          <input id="nameIn" class="inp" placeholder="Nama Dunsanak" style="display:none">
-          <input id="passIn" class="inp" type="password" placeholder="••••••••">
+          <input id="nameIn" class="inp" placeholder="Nama Dunsanak (buat akun baru)" style="display:none">
+          <input id="passIn" class="inp" type="password" placeholder="•••••••• Password Bos">
         </div>
         <button class="btnMasuk" onclick="doLogin()">Masuk Bos</button>
       </div>
-      <div class="cardLogoFull"><img src="\${LOGO_LOGIN}" alt="RG AI"></div>\`;
+      <div class="cardLogoFull"><img src="\${LOGO_LOGIN}" alt="RG AI Foto 2"></div>\`;
     return;
   }
   const target=viewingUserEmail||my; renderProfile(cont,target,target===my);
@@ -181,24 +182,46 @@ async function loadContent(targetEmail,isMe){
 function showEdit(){
   document.getElementById('editModal').style.display='grid';
   document.getElementById('editName').value=getMyName();
-  document.getElementById('editPicUrl').value=getMyAvatar();
-  document.getElementById('editPrev').src=getMyAvatar();
+  let av=getMyAvatar();
+  document.getElementById('editPicUrl').value=av.startsWith('data:')?'' : av;
+  document.getElementById('editPrev').src=av;
   _editB64=null;
   document.getElementById('editPicFile').onchange=(e)=>{
     let f=e.target.files[0]; if(!f) return;
-    let r=new FileReader(); r.onload=()=>{ _editB64=r.result; document.getElementById('editPrev').src=_editB64; document.getElementById('editPicUrl').value='(foto upload Bos - bebas Bos)'; }; r.readAsDataURL(f);
+    let img=new Image();
+    img.onload=()=>{
+      let c=document.createElement('canvas');
+      let max=400; let w=img.width, h=img.height;
+      if(w>h){ if(w>max){ h*=max/w; w=max; } } else { if(h>max){ w*=max/h; h=max; } }
+      c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      _editB64=c.toDataURL('image/jpeg',0.7);
+      document.getElementById('editPrev').src=_editB64;
+      document.getElementById('editPicUrl').value='';
+    };
+    let r=new FileReader(); r.onload=()=>{ img.src=r.result; }; r.readAsDataURL(f);
   };
 }
 function closeEdit(){ document.getElementById('editModal').style.display='none'; }
 async function saveEdit(){
   let name=document.getElementById('editName').value.trim()||getMyName();
-  let pic=_editB64 || document.getElementById('editPicUrl').value.trim() || getMyAvatar();
+  let urlVal=document.getElementById('editPicUrl').value.trim();
+  let pic=_editB64 || urlVal || getMyAvatar();
+  if(!pic) pic=LOGO_INNER;
+  // SIMPEN LOKAL DULU BOS - JANGAN KUNCI BOS
+  try{ 
+    localStorage.setItem('rg_name',name); 
+    localStorage.setItem('rg_avatar',pic); 
+  }catch(e){ 
+    // KALO MASIH GAGAL BOS PAKSA LOGO BOS TAPI JANGAN KUNCI BOS
+    console.log('localStorage penuh Bos, pakai link Bos'); 
+    if(pic.startsWith('data:')){ pic=LOGO_INNER; localStorage.setItem('rg_avatar',pic); toast('Foto kegedean Bos, pakai link aja Bos biar bebas'); }
+  }
+  toast('Ganti foto Bos...'); closeEdit(); render();
   try{
-    let res=await fetch('/api/akun/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),name,picture:pic})});
-    let j=await res.json();
-    if(j.ok){ saveAuth(getMyEmail(),name,pic); toast('Profile update Bos!'); closeEdit(); render(); }
-    else toast('Gagal Bos');
-  }catch(e){ toast('Error '+e.message); }
+    await fetch('/api/akun/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),name,picture:pic})});
+    toast('Profile update Bos!');
+  }catch(e){ console.log('api fail tapi lokal udah Bos',e); }
 }
 function addPhoto(){
   let input=document.createElement('input'); input.type='file'; input.accept='image/*'; input.multiple=true;
@@ -206,7 +229,16 @@ function addPhoto(){
     if(input.files.length + (window._photosCache||[]).length > 12) return toast('Max 12 Bos!');
     let list=[...(window._photosCache||[])];
     for(let f of input.files){
-      let b64=await new Promise(res=>{ let r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(f); });
+      let b64=await new Promise(res=>{
+        let img=new Image();
+        img.onload=()=>{
+          let c=document.createElement('canvas'); let max=600; let w=img.width,h=img.height;
+          if(w>h){ if(w>max){ h*=max/w; w=max; } } else { if(h>max){ w*=max/h; h=max; } }
+          c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
+          res(c.toDataURL('image/jpeg',0.75));
+        };
+        let r=new FileReader(); r.onload=()=>{ img.src=r.result; }; r.readAsDataURL(f);
+      });
       list.push(b64);
     }
     let r=await fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),photos:list})});

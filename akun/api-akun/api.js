@@ -176,19 +176,30 @@ export const AKUN_API = {
         return new Response(JSON.stringify(result.results || []), { headers: h });
       }
       // 8. SAVE FOTO
-if(path === "/api/akun/photos" && method==="POST"){
-  const {email, photos} = await req.json();
-  const clean = email.toLowerCase().trim();
-  if(photos.length > 12) return new Response(JSON.stringify({ok:false,error:"max 12"}),{headers:h,status:400});
-  await env.DB.prepare("INSERT INTO d1consule_photos (email, photos, count, updated_at) VALUES (?,?,?,?) ON CONFLICT(email) DO UPDATE SET photos=excluded.photos, count=excluded.count, updated_at=excluded.updated_at").bind(clean, JSON.stringify(photos), photos.length, Date.now()).run();
-  await env.DB.prepare("INSERT INTO users (email, name, picture, time) VALUES (?,?,?,?) ON CONFLICT(email) DO NOTHING").bind(clean, clean.split('@')[0], LOGO_DEFAULT, Date.now()).run();
-  return new Response(JSON.stringify({ok:true,count:photos.length}),{headers:h});
-}
+if(path === "/api/akun/photos"){
+  if(method === "POST"){
+    try{
+      const {email, photos} = await req.json();
+      const clean = (email||"").toLowerCase().trim();
+      if(photos.length > 12) return new Response(JSON.stringify({ok:false,error:"max 12"}),{headers:h,status:400});
+      await env.DB.prepare("DELETE FROM d1consule_photos_v2 WHERE email=?").bind(clean).run();
+      for(let i=0;i<photos.length;i++){
+        await env.DB.prepare("INSERT INTO d1consule_photos_v2 (email, idx, photo, updated_at) VALUES (?,?,?,?)").bind(clean, i, photos[i], Date.now()).run();
+      }
+      return new Response(JSON.stringify({ok:true,count:photos.length}),{headers:h});
+    }catch(e){ return new Response(JSON.stringify({ok:false,error:e.message}),{headers:h,status:500}); }
+  }
+  if(method === "GET"){
+    const email = (url.searchParams.get("email")||"").toLowerCase().trim();
+    const res = await env.DB.prepare("SELECT photo FROM d1consule_photos_v2 WHERE email=? ORDER BY idx ASC").bind(email).all();
+    return new Response(JSON.stringify((res.results||[]).map(r=>r.photo)),{headers:h});
+  }
+
 
     } catch (err) {
       return new Response(JSON.stringify({ ok: false, error: err.message }), { headers: h, status: 500 });
     }
-
+  }
     return null;
   }
 };

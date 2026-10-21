@@ -30,7 +30,7 @@ body{color:#fff;font-family:sans-serif;height:100vh;display:flex;flex-direction:
 </div>
 
 <audio id="bgMusic" loop playsinline>
-  <source src="https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@main/ai/RumahGadangV1.m4a" type="audio/mp4">
+  <source src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/refs/heads/main/ai/RumahGadangV1.m4a" type="audio/mp4">
   <source src="https://files.catbox.moe/usqhmz.m4a" type="audio/mp4">
 </audio>
 

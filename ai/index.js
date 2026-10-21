@@ -1,59 +1,118 @@
 export const AI_HTML = `<!DOCTYPE html>
-<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Rumah Gadang AI</title>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RUMAH GADANG AI</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{color:#fff;font-family:sans-serif;height:100vh;display:flex;flex-direction:column;background:#000}
-.bg{position:fixed;top:0;left:0;width:100vw;height:100vh;background:url('https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/refs/heads/main/ai/RumahGadangAI1.jpg?token=GHSAT0AAAAAAENAJYSR5MJANP4E5Z3NVM3M2WYW4EA') center/cover no-repeat;z-index:-1}
-#top{position:fixed;top:14px;left:18px;z-index:50;text-align:left}
-#top h1{font-size:19px;font-weight:900;text-shadow:0 2px 10px #000}
-#top span{color:#22c55e}
-.container{max-width:800px;margin:0 auto;width:100%;padding-top:22px}
-#chat{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:12px;padding-top:60px;padding-bottom:240px}
-.msg{padding:11px 14px;border-radius:14px;max-width:85%;line-height:1.6;font-size:14px;white-space:pre-wrap}
-.msg.user{align-self:flex-end;background:#166534;color:#fff}
-.msg.ai{align-self:flex-start;background:#2d333b;color:#e6edf3;border:1px solid #444c56}
-.msg.ai img{width:100%;max-width:380px;border-radius:12px;margin-top:8px;display:block}
-.bar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);width:92%;max-width:760px;display:flex;gap:8px;background:rgba(0,0,0,0.85);border:1px solid #333;padding:8px;border-radius:14px;z-index:98}
-#inp{flex:1;background:#111;color:#fff;border:1px solid #333;border-radius:10px;height:52px;padding:0 16px;outline:none;font-size:16px}
-#send{background:#22c55e;color:#000;font-weight:900;border:none;height:52px;padding:0 22px;border-radius:10px;cursor:pointer}
-.topBtns{position:fixed;top:10px;right:10px;z-index:999;display:flex;flex-direction:column;gap:8px}
-.topBtns button{background:rgba(0,0,0,0.8);border:1px solid #22c55e;color:#22c55e;padding:10px 16px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:700;min-width:130px}
-#musicBtn.on{background:#22c55e!important;color:#000!important}
+body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;overflow:hidden}
+.bg{position:fixed;inset:0;background:url('https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/ai/RumahGadangAI1.jpg') center/cover no-repeat;filter:brightness(0.55);z-index:-2}
+.overlay{position:fixed;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.88));z-index:-1}
+#header{position:fixed;top:0;left:0;right:0;height:54px;display:flex;align-items:center;gap:10px;padding:0 14px;background:rgba(0,0,0,0.75);border-bottom:1px solid #222;z-index:10}
+#header img{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid #00ff88}
+#chat{position:absolute;top:54px;bottom:132px;left:0;right:0;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.bubble{max-width:84%;padding:11px 14px;border-radius:16px;font-size:14px;line-height:1.5;white-space:pre-wrap}
+.user{align-self:flex-end;background:#22c55e;color:#000;font-weight:600;border-bottom-right-radius:4px}
+.ai{align-self:flex-start;background:rgba(30,30,30,0.92);border:1px solid #333;border-bottom-left-radius:4px}
+#inputBar{position:fixed;bottom:62px;left:0;right:0;padding:10px 12px;background:rgba(0,0,0,0.95);border-top:1px solid #222;display:flex;gap:8px;z-index:20}
+#inp{flex:1;background:#111;color:#fff;border:1px solid #333;border-radius:24px;height:46px;padding:0 16px;outline:none;font-size:15px}
+#send{background:#22c55e;color:#000;font-weight:900;border:none;height:46px;padding:0 20px;border-radius:24px;cursor:pointer;min-width:80px}
+#musicBar{position:fixed;top:60px;right:10px;z-index:30;display:flex;gap:6px}
+.miniBtn{background:rgba(0,0,0,0.8);border:1px solid #22c55e;color:#22c55e;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700}
+.miniBtn.on{background:#22c55e;color:#000;box-shadow:0 0 8px #22c55e}
+.bot{position:fixed;bottom:0;left:0;right:0;height:62px;background:#000;border-top:1px solid #333;display:flex;z-index:40}
+.bot a{flex:1;text-align:center;padding:6px 0;color:#888;text-decoration:none;font-size:18px}
+.bot a span{font-size:10px;display:block}
+.bot a.on{color:#fff}
 </style>
 </head>
 <body>
-<div class="bg"></div>
-<div id="top"><h1>Rumah Gadang <span>AI</span></h1></div>
-<div class="topBtns">
-  <button id="musicBtn">🔇 Play Musik</button>
-</div>
-
-<audio id="bgMusic" loop playsinline>
-  <source src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/refs/heads/main/ai/RumahGadangV1.m4a" type="audio/mp4">
-  <source src="https://files.catbox.moe/usqhmz.m4a" type="audio/mp4">
-</audio>
-
-<div class="container"><div id="chat"><div class="msg ai">Halo Bos! Rumah Gadang AI siap Bos! Tap Play Musik di kanan atas Bos!</div></div></div>
-<div class="bar"><input id="inp" placeholder="Tanya Rumah Gadang AI..."><button id="send">KIRIM →</button></div>
-
+<div class="bg"></div><div class="overlay"></div>
+<div id="header"><img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/refs/heads/main/ai/RumahGadangAI1.jpg?token=GHSAT0AAAAAAENAJYSR5MJANP4E5Z3NVM3M2WYW4EA"><b>RUMAH GADANG AI</b></div>
+<div id="musicBar"><button id="musicBtn" class="miniBtn">🔊 Mencoba hidup...</button><button class="miniBtn" onclick="location.href='/'">🏠 Home</button></div>
+<audio id="bgMusic" loop preload="auto" autoplay crossorigin="anonymous"><source src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/ai/RumahGadangV1.m4a" type="audio/mp4"></audio>
+<div id="chat"><div class="bubble ai">Halo Dunsanak! 👋 Saya Rumah Gadang AI. Musik Rumah Gadang langsung hidup ya Bos!</div></div>
+<div id="inputBar"><div style="display:flex;gap:8px;width:100%"><input id="inp" placeholder="Tanya ke rumah gadang AI..."><button id="send">KIRIM</button></div></div>
+<div class="bot"><a href="/">🏠<br><span>Home</span></a><a href="/foto">🖼️<br><span>Foto</span></a><a href="/video">🎬<br><span>Video</span></a><a href="/kantor">🏢<br><span>Kantor</span></a><a href="/ai" class="on">🤖<br><span>AI</span></a><a href="/akun">👤<br><span>Akun</span></a></div>
 <script>
-let m=document.getElementById('bgMusic'); 
-m.volume=0.5;
-document.getElementById('musicBtn').addEventListener('click', async ()=>{
+const chat = document.getElementById('chat');
+const inp = document.getElementById('inp');
+const sendBtn = document.getElementById('send');
+const music = document.getElementById('bgMusic');
+const musicBtn = document.getElementById('musicBtn');
+music.volume = 0.6;
+let isMusicPlaying = false;
+
+function addBubble(t, txt){ const d=document.createElement('div'); d.className='bubble '+t; d.innerText=txt; chat.appendChild(d); chat.scrollTop=chat.scrollHeight; }
+
+function setMusicOn(){
+  isMusicPlaying = true;
+  musicBtn.innerText='🔊 Musik ON';
+  musicBtn.classList.add('on');
+}
+function setMusicOff(){
+  isMusicPlaying = false;
+  musicBtn.innerText='🔇 Musik OFF';
+  musicBtn.classList.remove('on');
+}
+
+async function tryPlay(){
   try{
-    if(m.paused){ await m.play(); document.getElementById('musicBtn').innerText='🔊 Musik ON'; document.getElementById('musicBtn').classList.add('on'); }
-    else{ m.pause(); document.getElementById('musicBtn').innerText='🔇 Play Musik'; document.getElementById('musicBtn').classList.remove('on'); }
-  }catch(e){ alert('Tap lagi Bos! Browser blok autoplay Bos'); }
+    await music.play();
+    setMusicOn();
+    return true;
+  }catch(e){ return false; }
+}
+
+// 1. Coba langsung hidup pas load
+window.addEventListener('load', async ()=>{
+  let ok = await tryPlay();
+  if(!ok){
+    musicBtn.innerText='🎵 Tap layar buat hidupin musik';
+  }
 });
 
-const DEFAULT_GROQ_KEY="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";
-const MODELS=["openai/gpt-oss-20b","openai/gpt-oss-120b","qwen/qwen3-32b"];
-function addMsg(h,t){let c=document.getElementById('chat');let d=document.createElement('div');d.className='msg '+t;d.innerHTML=h;c.appendChild(d);c.scrollTop=c.scrollHeight;return d;}
-async function genText(q){ for(let mm of MODELS){ try{ let r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEFAULT_GROQ_KEY},body:JSON.stringify({model:mm,messages:[{role:'system',content:'Kamu Rumah Gadang AI, asisten Minang yang ramah'},{role:'user',content:q}]})}); let j=await r.json(); if(j.choices) return j.choices[0].message.content; }catch(e){} } throw new Error('Groq sibuk Bos'); }
-function genImage(p){let enc=encodeURIComponent(p+" masterpiece, rumah gadang minang");return \`https://image.pollinations.ai/prompt/\${enc}?width=1024&height=1024&nologo=true&seed=\${Math.floor(Math.random()*9999)}\`;}
-async function kirim(){let i=document.getElementById('inp');let q=i.value.trim();if(!q) return;addMsg(q,'user');i.value='';if(/gambar|gambarkan|lukis/i.test(q)){let c=q.replace(/gambarkan|gambar|lukis|buatkan/gi,'').trim()||'rumah gadang';let u=genImage(c);addMsg(\`<b>\${c}</b><br><img src="\${u}" loading="lazy">\`,'ai');return;}let b=addMsg('⏳ Sabar Bos...','ai');try{let a=await genText(q);b.innerHTML=a}catch(e){b.innerHTML='❌ '+e.message;}}
-document.getElementById('send').addEventListener('click',kirim);
-document.getElementById('inp').addEventListener('keydown',e=>{if(e.key==='Enter') kirim()});
-<\/script>
-</body></html>`;
+// 2. Kalau diblokir, hidupin di sentuhan PERTAMA user dimana aja
+let firstInteractionDone = false;
+async function firstTouch(){
+  if(firstInteractionDone) return;
+  firstInteractionDone = true;
+  if(!isMusicPlaying){
+    await tryPlay();
+  }
+  // hapus listener setelah berhasil
+  document.removeEventListener('click', firstTouch);
+  document.removeEventListener('touchstart', firstTouch);
+  document.removeEventListener('keydown', firstTouch);
+  document.removeEventListener('scroll', firstTouch);
+}
+document.addEventListener('click', firstTouch);
+document.addEventListener('touchstart', firstTouch);
+document.addEventListener('keydown', firstTouch);
+document.addEventListener('scroll', firstTouch, {once:true});
+
+// 3. Tombol manual tetap bisa ON/OFF
+musicBtn.onclick = async (e)=>{
+  e.stopPropagation();
+  if(isMusicPlaying){ music.pause(); setMusicOff(); firstInteractionDone = true; }
+  else { 
+    let ok = await tryPlay();
+    if(ok) firstInteractionDone = true;
+  }
+};
+
+async function kirim(){
+  const p=inp.value.trim(); if(!p) return;
+  addBubble('user',p); inp.value='';
+  const ld=document.createElement('div'); ld.className='bubble ai'; ld.innerText='Rumah Gadang AI mikir dulu...'; chat.appendChild(ld); chat.scrollTop=chat.scrollHeight;
+  try{
+    const r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p})});
+    const j=await r.json(); ld.remove(); addBubble('ai', j.reply || 'Maaf error Bos');
+  }catch(e){ ld.remove(); addBubble('ai','Error: '+e.message); }
+}
+sendBtn.onclick=kirim;
+inp.onkeydown=e=>{ if(e.key==='Enter') kirim(); };
+</script>
+</body>
+</html>`;

@@ -4,7 +4,7 @@ export const AI_HTML = `<!DOCTYPE html>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{color:#fff;font-family:sans-serif;height:100vh;display:flex;flex-direction:column;background:#000}
-.bg{position:fixed;top:0;left:0;width:100vw;height:100vh;background:url('https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@main/ai/RumahGadangAI1.jpg') center/cover no-repeat;z-index:-1}
+.bg{position:fixed;top:0;left:0;width:100vw;height:100vh;background:url('https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/refs/heads/main/ai/RumahGadangAI1.jpg?token=GHSAT0AAAAAAENAJYSR5MJANP4E5Z3NVM3M2WYW4EA') center/cover no-repeat;z-index:-1}
 #top{position:fixed;top:14px;left:18px;z-index:50;text-align:left}
 #top h1{font-size:19px;font-weight:900;text-shadow:0 2px 10px #000}
 #top span{color:#22c55e}

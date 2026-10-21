@@ -15,7 +15,7 @@ export const AI_API = {
         }
 
         // MODEL YANG BENER BOS ADA DI GROQ BOS
-        const MODELS = [penai/gpt-oss-120b","openai/gpt-oss-20b","qwen/qwen3-32b"];
+        const MODELS = ["openai/gpt-oss-120b","openai/gpt-oss-20b","qwen/qwen3-32b"];
 
         for(let model of MODELS){
           try{

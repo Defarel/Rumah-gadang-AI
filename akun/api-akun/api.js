@@ -195,6 +195,3 @@ if(path === "/api/akun/photos"){
     return new Response(JSON.stringify((res.results||[]).map(r=>r.photo)),{headers:h});
   }
   }
-    return null;
-  }
-}

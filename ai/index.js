@@ -20,13 +20,13 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .floating-btn{background:rgba(0,0,0,0.75);color:#fff;border:1px solid #00ff88;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;backdrop-filter:blur(4px);box-shadow:0 0 8px rgba(0,255,136,0.4)}
 
 /* Area Chat (Pesan Terkirim & Balasan AI) */
-.chat-container{position:relative;z-index:5;flex:1;overflow-y:auto;padding:70px 16px 120px 16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
+.chat-container{position:relative;z-index:5;flex:1;overflow-y:auto;padding:70px 16px 150px 16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
 .chat-bubble{max-width:85%;padding:12px 16px;border-radius:18px;font-size:14px;line-height:1.4;word-wrap:break-word;backdrop-filter:blur(6px)}
 .chat-bubble.user{align-self:flex-end;background:rgba(0,255,136,0.85);color:#000;font-weight:600;border-bottom-right-radius:4px;box-shadow:0 0 10px rgba(0,255,136,0.4)}
 .chat-bubble.ai{align-self:flex-start;background:rgba(20,20,20,0.85);color:#fff;border:1px solid #00ff88;border-bottom-left-radius:4px;box-shadow:0 0 10px rgba(0,0,0,0.6)}
 
-/* Area Input Bawah */
-.bottom-chat-bar{position:absolute;bottom:55px;left:0;width:100%;padding:12px 16px;display:flex;gap:10px;z-index:10;background:linear-gradient(to top, rgba(0,0,0,0.95), transparent)}
+/* Area Input Bawah - DINAIKAN */
+.bottom-chat-bar{position:absolute;bottom:85px;left:0;width:100%;padding:12px 16px;display:flex;gap:10px;z-index:10;background:linear-gradient(to top, rgba(0,0,0,0.95), transparent)}
 .chat-input{flex:1;background:rgba(20,20,20,0.85);border:1px solid #333;border-radius:16px;padding:14px 16px;color:#fff;font-size:14px;outline:none;backdrop-filter:blur(6px)}
 .chat-input:focus{border-color:#00ff88}
 .chat-input::placeholder{color:#aaa}
@@ -46,7 +46,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 
   <!-- Layer Latar Belakang Gambar -->
   <div class="bg-container">
-    <img src="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg" alt="Rumah Gadang AI Background">
+    <img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg" alt="Rumah Gadang AI Background">
     <div class="overlay-dark"></div>
   </div>
 
@@ -80,10 +80,8 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 const audio = document.getElementById('bgMusic');
 const musicBtn = document.getElementById('musicBtn');
 
-// Otomatis putar musik saat halaman dimuat atau interaksi pertama
 document.addEventListener('DOMContentLoaded', () => {
   audio.play().catch(() => {
-    // Penanganan kebijakan autoplay browser
     const playOnInteraction = () => {
       audio.play();
       document.removeEventListener('click', playOnInteraction);
@@ -114,12 +112,10 @@ async function handleSend(){
 
   if(!prompt) return;
 
-  // Tampilkan pesan pengguna
   appendMessage(prompt, 'user');
   inputEl.value = '';
   sendBtn.disabled = true;
 
-  // Indikator memuat balasan
   const loadingDiv = appendMessage('Saratonyo mandengarkan...', 'ai');
 
   try {

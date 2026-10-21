@@ -7,7 +7,7 @@ export const AI_HTML = `<!DOCTYPE html>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;overflow:hidden}
-.bg{position:fixed;inset:0;background:url('https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/refs/heads/main/ai/RumahGadangAI1.jpg?token=GHSAT0AAAAAAENAJYSR5MJANP4E5Z3NVM3M2WYW4EA') center/cover no-repeat;filter:brightness(0.55);z-index:-2}
+.bg{position:fixed;inset:0;background:url('https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/refs/heads/main/ai/RumahGadangAI1.jpg') center/cover no-repeat;filter:brightness(0.55);z-index:-2}
 .overlay{position:fixed;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.88));z-index:-1}
 #header{position:fixed;top:0;left:0;right:0;height:54px;display:flex;align-items:center;gap:10px;padding:0 14px;background:rgba(0,0,0,0.75);border-bottom:1px solid #222;z-index:10}
 #header img{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid #00ff88}
@@ -29,7 +29,7 @@ body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;ov
 </head>
 <body>
 <div class="bg"></div><div class="overlay"></div>
-<div id="header"><img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/refs/heads/main/ai/RumahGadangAI1.jpg?token=GHSAT0AAAAAAENAJYSR5MJANP4E5Z3NVM3M2WYW4EA"><b>RUMAH GADANG AI</b></div>
+<div id="header"><img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/refs/heads/main/ai/RumahGadangAI1.jpg"><b>RUMAH GADANG AI</b></div>
 <div id="musicBar"><button id="musicBtn" class="miniBtn">🔊 Mencoba hidup...</button><button class="miniBtn" onclick="location.href='/'">🏠 Home</button></div>
 <audio id="bgMusic" loop preload="auto" autoplay crossorigin="anonymous"><source src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/ai/RumahGadangV1.m4a" type="audio/mp4"></audio>
 <div id="chat"><div class="bubble ai">Halo Dunsanak! 👋 Saya Rumah Gadang AI. Musik Rumah Gadang langsung hidup ya Bos!</div></div>

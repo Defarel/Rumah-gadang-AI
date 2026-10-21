@@ -61,7 +61,6 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,Seg
 <div class="bot"><a href="/">🏠<br><span style="font-size:10px">Home</span></a><a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a><a href="/video">🎬<br><span style="font-size:10px">Video</span></a><a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a><a href="/ai">🤖<br><span style="font-size:10px">AI</span></a><a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a></div>
 <div id=toast></div>
 <script>
-const LOGO_DEFAULT="https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
 let activeMainTab="foto", viewingUserEmail=null;
 function toast(m){let t=document.getElementById('toast');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
 const getEmail=()=> (localStorage.getItem('rg_email')||"").toLowerCase().trim();

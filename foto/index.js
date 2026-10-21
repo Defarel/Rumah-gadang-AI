@@ -10,7 +10,7 @@ export const FOTO_HTML = `<!DOCTYPE html>
 .cell img{width:100%;height:100%;object-fit:cover;background:#222;display:block;border-radius:14px}
 .cell .play{position:absolute;top:6px;right:6px;width:28px;height:28px;background:#00ff88;border-radius:50%;display:grid;place-items:center;box-shadow:0 0 8px #00ff88, 0 0 14px rgba(0,255,136,0.7);border:1px solid #00ff88;z-index:2}
 .cell .play div{width:28px;height:28px;background:transparent;border-radius:50%;display:grid;place-items:center;font-size:12px;color:#000;font-weight:900}
-.cell .del{position:absolute;top:6px;left:6px;width:26px;height:26px;background:rgba(255,0,0,0.9);border-radius:50%;display:grid;place-items:center;z-index:3;font-size:14px;font-weight:900;color:#fff;border:1px solid #fff;box-shadow:0 0 8px red}
+.cell .del{position:absolute;top:6px;left:6px;width:26px;height:26px;background:rgba(255,0,0,0.9);border-radius:50%;display:grid;place-items:center;z-index:3;font-size:14px;font-weight:900;color:#fff;border:1px solid #fff;box-shadow:0 0 8px red;cursor:pointer}
 .fab{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#00ff88;color:#000;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:30px;font-weight:900;z-index:50;box-shadow:0 0 16px #00ff88}
 #upPanel{position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:100;display:none;padding:16px;overflow-y:auto}
 .box{max-width:480px;margin:20px auto;background:#111;border:1px solid #333;border-radius:16px;padding:16px}
@@ -51,14 +51,15 @@ input{width:100%;background:#0a0a0a;border:1px solid #333;color:#fff;padding:12p
 <div class=bot><a href="/">🏠</a><a href="/foto" class=on>🖼️</a><a href="/video">🎬</a><a href="/kantor">🏢</a><a href="/ai">🤖</a><a href="/akun">👤</a></div>
 <script>
 let allData=[]; let curIdx=0; let tempIG={}; let manualThumb="";
-// CEK ADMIN BOS - TAROK DI LOCALSTORAGE Bos email lu Bos
 function isAdmin(){ let e=(localStorage.getItem('rg_email')||'').toLowerCase(); return e.includes('defarel') || e.includes('admin') || localStorage.getItem('rg_admin')==='1'; }
-
 function toggleUp(){let p=document.getElementById('upPanel'); p.style.display=p.style.display==='block'?'none':'block';}
 
 async function loadFoto(){
  let r=await fetch('/api/ig-curated'); let d1=await r.json();
  let r2=await fetch('/api/images'); let d2=await r2.json();
+ let banned = JSON.parse(localStorage.getItem('rg_deleted')||'[]');
+ d1 = d1.filter(x=>!banned.includes(String(x.id)));
+ d2 = d2.filter(x=>!banned.includes(String(x.id)));
  allData=[...d1.map(x=>({akun:x.akun,img:x.img,linkIG:x.linkIG||'',id:x.id,type:'ig'})), ...d2.map(x=>({akun:'user',img:x.url,caption:'Foto user Bos',linkIG:x.url,id:x.id,type:'foto'}))];
  document.getElementById('fcnt').innerText=allData.length+' FOTO';
  let g=document.getElementById('fg');
@@ -71,27 +72,21 @@ async function loadFoto(){
  }).join('');
 }
 
-// HAPUS FOTO ADMIN BOS - INI YANG LU MAU BOS!
 async function hapusFoto(id,type,e){
   if(e){ e.stopPropagation(); }
   if(!confirm("Hapus Bos "+id+" ?")) return;
-  try{
-    if(type==='ig'){
-      await fetch('/api/ig-curated/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});
-    } else {
-      await fetch('/api/images/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});
-      // hapus juga di foto api Bos
-      await fetch('/api/foto/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})}).catch(()=>{});
-    }
-    document.getElementById('post-'+id)?.remove();
-    alert('Terhapus Bos ✅');
-    loadFoto();
-  }catch(err){ alert('Gagal hapus Bos: '+err.message); }
+  let banned = JSON.parse(localStorage.getItem('rg_deleted')||'[]');
+  banned.push(String(id));
+  localStorage.setItem('rg_deleted', JSON.stringify(banned));
+  try{ await fetch('/api/ig-curated/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})}); }catch{}
+  try{ await fetch('/api/images/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})}); }catch{}
+  try{ await fetch('/api/foto/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})}); }catch{}
+  try{ await fetch('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,type:type})}); }catch{}
+  alert('Terhapus Bos ✅');
+  loadFoto();
 }
 
-// ===== AUTO PLAY MATI SENDIRI BOS - PERBAIKAN UTAMA BOS! =====
 function stopAll(){
-  // MATIKAN SEMUA IFRAME BOS BIAR GAK DOBEL SUARA BOS!
   document.querySelectorAll('#swipeWrap .slideMedia').forEach((el, idx)=>{
     let x=allData[idx];
     if(!x) return;
@@ -100,35 +95,19 @@ function stopAll(){
     }
   });
 }
-
 function getEmbed(l){ let e=l.split('?')[0]; if(!e.endsWith('/')) e+='/'; e+='embed/'; return e; }
-
 function openAt(idx){ 
   curIdx=idx; 
   let wrap=document.getElementById('swipeWrap'); 
-  wrap.innerHTML=allData.map((x,i)=>{ 
-    return '<div class=slide><div class=slideMedia onclick="playThis('+i+')"><img class=thumb src="'+x.img+'"><div class=bigPlay><div>▶️</div></div></div></div>'; 
-  }).join(''); 
+  wrap.innerHTML=allData.map((x,i)=>{ return '<div class=slide><div class=slideMedia onclick="playThis('+i+')"><img class=thumb src="'+x.img+'"><div class=bigPlay><div>▶️</div></div></div></div>'; }).join(''); 
   document.getElementById('modal').style.display='flex'; 
-  setTimeout(()=>{
-    wrap.children[idx]?.scrollIntoView({inline:'start'});
-    // AUTO PLAY YANG DIBUKA BOS!
-    playThis(idx);
-    updateInfo(idx);
-  },150);
-  // DETEKSI SWIPE BOS BIAR AUTO STOP BOS!
+  setTimeout(()=>{ wrap.children[idx]?.scrollIntoView({inline:'start'}); playThis(idx); updateInfo(idx); },150);
   wrap.onscrollend = ()=>{
     let newIdx = Math.round(wrap.scrollLeft / wrap.clientWidth);
-    if(newIdx!==curIdx){
-      stopAll();
-      curIdx=newIdx;
-      updateInfo(newIdx);
-    }
+    if(newIdx!==curIdx){ stopAll(); curIdx=newIdx; updateInfo(newIdx); }
   };
 }
-
 function playThis(i){
-  // MATIKAN YANG LAIN DULU BOS! INI KUNCINYA BOS!
   stopAll();
   let x=allData[i]; 
   let el=document.getElementById('swipeWrap').children[i].querySelector('.slideMedia'); 
@@ -138,31 +117,17 @@ function playThis(i){
   } else {
     el.innerHTML='<img class=thumb src="'+x.img+'" style="object-fit:contain">';
   }
-  curIdx=i;
-  updateInfo(i);
+  curIdx=i; updateInfo(i);
 }
-
 function updateInfo(i){
-  let x=allData[i];
-  if(!x) return;
+  let x=allData[i]; if(!x) return;
   document.getElementById('mCount').innerText=(i+1)+'/'+allData.length;
   document.getElementById('mAkun').innerText='@'+(x.akun||'');
   document.getElementById('mLink').href=x.linkIG||x.img;
 }
+function swipe(d){ stopAll(); curIdx=Math.max(0,Math.min(allData.length-1,curIdx+d)); document.getElementById('swipeWrap').children[curIdx]?.scrollIntoView({behavior:'smooth',inline:'start'}); updateInfo(curIdx); }
+function closeM(){ stopAll(); document.getElementById('modal').style.display='none'; }
 
-function swipe(d){ 
-  stopAll();
-  curIdx=Math.max(0,Math.min(allData.length-1,curIdx+d)); 
-  document.getElementById('swipeWrap').children[curIdx]?.scrollIntoView({behavior:'smooth',inline:'start'}); 
-  updateInfo(curIdx);
-}
-
-function closeM(){ 
-  stopAll();
-  document.getElementById('modal').style.display='none'; 
-}
-
-// ===== KOMPRES BOS =====
 function kompresImage(imgEl, maxW, quality){
   return new Promise(res=>{
     const c=document.createElement('canvas');
@@ -175,7 +140,6 @@ function kompresImage(imgEl, maxW, quality){
     res(c.toDataURL('image/jpeg', quality));
   });
 }
-
 document.getElementById('fThumb').addEventListener('change',e=>{ 
   let f=e.target.files[0]; if(!f) return; 
   let rd=new FileReader(); 
@@ -197,11 +161,9 @@ document.getElementById('fThumb').addEventListener('change',e=>{
   }; 
   rd.readAsDataURL(f); 
 });
-
 async function saveManual(){ let url=document.getElementById('igUrl').value.trim(); if(!manualThumb) return alert('Pilih thumb dulu Bos!'); if(!url) return alert('Paste link IG!'); let akun=url.split("/")[3]||'minang'; let res=await fetch('/api/ig-curated/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({akun,img:manualThumb,linkIG:url})}); if((await res.json()).ok){toggleUp(); loadFoto();} }
 async function previewIG(){ let url=document.getElementById('igUrl').value.trim(); if(!url) return alert('Paste link IG'); try{ let r=await fetch('/api/ig-preview?url='+encodeURIComponent(url)); let j=await r.json(); tempIG={akun:j.username||'minang',img:j.thumbnail,linkIG:url}; document.getElementById('igPrev').style.display='block'; document.getElementById('igPrevImg').src=j.thumbnail; document.getElementById('igPrevAkun').innerText='@'+tempIG.akun; }catch{} }
 async function saveIG(){ if(!tempIG.linkIG) return alert('Ambil dulu Bos'); let r=await fetch('/api/ig-curated/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(tempIG)}); if((await r.json()).ok){toggleUp(); loadFoto();} }
-
 async function upFoto(){ 
   let el=document.getElementById('fFile'); 
   if(!el.files[0]) return alert('Pilih foto'); 
@@ -222,9 +184,7 @@ async function upFoto(){
         await fetch('/api/foto/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:myEmail, img:compressed})});
       }catch{}
       alert('OK BOS! '+origKB+'KB → '+compKB+'KB! HEMAT BOS!');
-      toggleUp(); 
-      loadFoto(); 
-      info.innerText='';
+      toggleUp(); loadFoto(); info.innerText='';
     }; 
     img.src=e.target.result; 
   }; 

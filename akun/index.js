@@ -3,7 +3,6 @@ export const AKUN_HTML = `<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Akun - Rumah Gadang AI</title>
-<link rel="icon" href="https://i.ibb.co/r2gL8YJB/1791014451654.jpg">
 <style>
 
 *{margin:0;padding:0;box-sizing:border-box}

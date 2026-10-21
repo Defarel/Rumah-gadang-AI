@@ -194,11 +194,6 @@ if(path === "/api/akun/photos"){
     const res = await env.DB.prepare("SELECT photo FROM d1consule_photos_v2 WHERE email=? ORDER BY idx ASC").bind(email).all();
     return new Response(JSON.stringify((res.results||[]).map(r=>r.photo)),{headers:h});
   }
-
-
-    } catch (err) {
-      return new Response(JSON.stringify({ ok: false, error: err.message }), { headers: h, status: 500 });
-    }
   }
     return null;
   }

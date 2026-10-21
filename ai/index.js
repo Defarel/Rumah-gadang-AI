@@ -1,120 +1,80 @@
 export const AI_HTML = `<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
+<html><head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RUMAH GADANG AI</title>
+<title>Rumah Gadang AI - AI Assistant</title>
+<link rel="icon" href="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:system-ui,sans-serif;color:#fff;background:#000;height:100vh;overflow:hidden}
-.bg{position:fixed;inset:0;background:url('https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg') center/cover no-repeat;filter:brightness(0.55);z-index:-2}
-.overlay{position:fixed;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.85));z-index:-1}
-#header{position:fixed;top:0;left:0;right:0;height:54px;display:flex;align-items:center;gap:10px;padding:0 14px;background:rgba(0,0,0,0.7);border-bottom:1px solid #222;z-index:10}
-#header img{width:32px;height:32px;border-radius:50%}
-#header b{font-size:14px}
-#chat{position:absolute;top:54px;bottom:132px;left:0;right:0;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
-.bubble{max-width:82%;padding:11px 14px;border-radius:16px;font-size:14px;line-height:1.5;white-space:pre-wrap}
-.user{align-self:flex-end;background:#22c55e;color:#000;font-weight:600;border-bottom-right-radius:4px}
-.ai{align-self:flex-start;background:rgba(40,40,40,0.9);border:1px solid #333;border-bottom-left-radius:4px}
-#inputBar{position:fixed;bottom:62px;left:0;right:0;padding:10px 12px;background:rgba(0,0,0,0.9);border-top:1px solid #222;display:flex;flex-direction:column;gap:8px;z-index:20}
-#row{display:flex;gap:8px}
-#inp{flex:1;background:#111;color:#fff;border:1px solid #333;border-radius:24px;height:46px;padding:0 16px;outline:none;font-size:15px}
-#send{background:#22c55e;color:#000;font-weight:900;border:none;height:46px;padding:0 20px;border-radius:24px;cursor:pointer;min-width:80px}
-#musicBar{position:fixed;top:60px;right:10px;z-index:30;display:flex;gap:6px}
-.miniBtn{background:rgba(0,0,0,0.8);border:1px solid #22c55e;color:#22c55e;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700}
-.miniBtn.on{background:#22c55e;color:#000}
-.bot{position:fixed;bottom:0;left:0;right:0;height:62px;background:#000;border-top:1px solid #333;display:flex;z-index:40}
-.bot a{flex:1;text-align:center;padding:6px 0;color:#888;text-decoration:none;font-size:18px;line-height:1.1}
-.bot a span{font-size:10px;display:block;color:#888}
+body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+#app{max-width:520px;margin:0 auto;background:#000;min-height:100vh;position:relative;overflow:hidden;border-left:2px solid #00ff88;border-right:2px solid #00ff88;box-shadow:0 0 12px rgba(0,255,136,0.6)}
+
+/* Background Image Layer */
+.bg-container{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1}
+.bg-container img{width:100%;height:100%;object-fit:cover;display:block}
+.overlay-dark{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);z-index:2}
+
+/* Top Bar & Floating Buttons */
+.top-bar{position:absolute;top:0;left:0;width:100%;padding:16px;display:flex;justify-content:space-between;align-items:center;z-index:10}
+.app-title{font-size:18px;font-weight:900;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.8)}
+.top-right-btns{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.floating-btn{background:rgba(0,0,0,0.7);color:#fff;border:1px solid #00ff88;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;backdrop-filter:blur(4px);box-shadow:0 0 8px rgba(0,255,136,0.4);text-decoration:none}
+.floating-btn.green{background:#00ff88;color:#000;border:none;font-weight:900}
+
+/* Chat Input Bar at Bottom */
+.bottom-chat-bar{position:absolute;bottom:0;left:0;width:100%;padding:16px;display:flex;gap:10px;z-index:10;background:linear-gradient(to top, rgba(0,0,0,0.9), transparent)}
+.chat-input{flex:1;background:rgba(20,20,20,0.85);border:1px solid #333;border-radius:16px;padding:14px 16px;color:#fff;font-size:14px;outline:none;backdrop-filter:blur(6px)}
+.chat-input::placeholder{color:#aaa}
+.btn-kirim{background:#00ff88;color:#000;border:none;padding:0 20px;border-radius:16px;font-weight:900;font-size:14px;cursor:pointer;box-shadow:0 0 10px rgba(0,255,136,0.6);display:grid;place-items:center;transition:0.2s}
+.btn-kirim:active{transform:scale(0.95)}
+
+/* Bottom Navigation */
+.bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99}
+.bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}
 .bot a.on{color:#fff}
-.bot a.on span{color:#fff}
 </style>
 </head>
 <body>
-<div class="bg"></div>
-<div class="overlay"></div>
+<div id="app">
+  <!-- Latar Belakang Gambar Rumah Gadang AI -->
+  <div class="bg-container">
+    <img src="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg" alt="Rumah Gadang AI Background">
+    <div class="overlay-dark"></div>
+  </div>
 
-<div id="header">
-  <img src="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg">
-  <b>RUMAH GADANG AI</b>
-</div>
+  <!-- Header & Tombol Melayang Atas -->
+  <div class="top-bar">
+    <div class="app-title">Rumah Gadang Al</div>
+    <div class="top-right-btns">
+      <button class="floating-btn" onclick="alert('Membuka RG Musik')">🎵 RG Musik</button>
+      <button class="floating-btn green" onclick="alert('Membuka Tanyo Bundo')">💬 Tanyo Bundo</button>
+    </div>
+  </div>
 
-<div id="musicBar">
-  <button id="musicBtn" class="miniBtn">🔊 RG Musik</button>
-  <button class="miniBtn" onclick="location.href='/'">🏠 Home</button>
-</div>
-
-<audio id="bgMusic" loop preload="auto"><source src="/ai/RumahGadangV1.m4a" type="audio/mp4"></audio>
-
-<div id="chat">
-  <div class="bubble ai">Halo Dunsanak! 👋 Saya Rumah Gadang AI. Tanya pakai bahasa indonesia dulu ya, masih dalam tahap pengembangkan ke bahasa minang</div>
-</div>
-
-<div id="inputBar">
-  <div id="row">
-    <input id="inp" placeholder="Tanya ke rumah gadang AI...">
-    <button id="send">KIRIM</button>
+  <!-- Area Input Pesan Bawah -->
+  <div class="bottom-chat-bar" style="margin-bottom: 50px;">
+    <input type="text" id="userInput" class="chat-input" placeholder="Tanya Rumah Gadang Al...">
+    <button class="btn-kirim" onclick="handleSend()">KIRIM &rarr;</button>
   </div>
 </div>
 
+<!-- Navigasi Bawah -->
 <div class="bot">
-<a href="/">🏠<br><span>Home</span></a>
-<a href="/foto">🖼️<br><span>Foto</span></a>
-<a href="/video">🎬<br><span>Video</span></a>
-<a href="/kantor">🏢<br><span>Kantor</span></a>
-<a href="/ai" class="on">🤖<br><span>AI</span></a>
-<a href="/akun">👤<br><span>Akun</span></a>
+  <a href="/">🏠<br><span style="font-size:10px">Home</span></a>
+  <a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a>
+  <a href="/video">🎬<br><span style="font-size:10px">Video</span></a>
+  <a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a>
+  <a href="/ai" class="on">🤖<br><span style="font-size:10px">AI</span></a>
+  <a href="/akun">👤<br><span style="font-size:10px">Akun</span></a>
 </div>
 
 <script>
-const chat = document.getElementById('chat');
-const inp = document.getElementById('inp');
-const sendBtn = document.getElementById('send');
-const music = document.getElementById('bgMusic');
-const musicBtn = document.getElementById('musicBtn');
-music.volume = 0.6;
-
-function addBubble(type, text){
-  const d = document.createElement('div');
-  d.className = 'bubble ' + type;
-  d.innerText = text;
-  chat.appendChild(d);
-  chat.scrollTop = chat.scrollHeight;
+function handleSend(){
+  const val = document.getElementById('userInput').value.trim();
+  if(!val){ alert("Tuliskan sesuatu terlebih dahulu!"); return; }
+  alert("Mengirim pesan ke AI: " + val);
+  document.getElementById('userInput').value = '';
 }
-
-musicBtn.onclick = () => {
-  if(music.paused){
-    music.play().then(()=>{ musicBtn.innerText='🔊 Musik ON'; musicBtn.classList.add('on'); }).catch(()=>{ addBubble('ai','Bos klik sekali lagi buat aktifin musik Bos, browser blokir autoplay Bos!'); });
-  } else {
-    music.pause(); musicBtn.innerText='🔇 Musik OFF'; musicBtn.classList.remove('on');
-  }
-};
-
-async function kirim(){
-  const prompt = inp.value.trim();
-  if(!prompt) return;
-  addBubble('user', prompt);
-  inp.value = '';
-  addBubble('ai','Rumah Gadang AI mikir dulu Bos...');
-  try{
-    const r = await fetch('/api/ai',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({prompt})
-    });
-    const j = await r.json();
-    chat.lastChild.remove();
-    addBubble('ai', j.reply || 'Maaf dunsanak, AI error Bos');
-  }catch(e){
-    chat.lastChild.remove();
-    addBubble('ai','Error koneksi Bos: ' + e.message);
-  }
-}
-
-sendBtn.onclick = kirim;
-inp.onkeydown = e => { if(e.key==='Enter') kirim(); };
-
-document.body.addEventListener('click',()=>{ if(music.paused && !musicBtn.classList.contains('on')){ music.play().catch(()=>{}); } },{once:true});
 </script>
 </body>
 </html>`;

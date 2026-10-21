@@ -197,4 +197,4 @@ if(path === "/api/akun/photos"){
   }
     return null;
   }
-};
+}

@@ -1,6 +1,3 @@
-
-const LOGO_DEFAULT = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
-
 export const AKUN_API = {
   async handle(req, env, url, corsHeaders) {
     const h = { "Content-Type": "application/json", ...corsHeaders };

@@ -1,3 +1,5 @@
+const LOGO_DEFAULT = "https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
+
 export const AKUN_HTML = `<!DOCTYPE html><html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Akun - Rumah Gadang AI</title>
@@ -8,37 +10,16 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .top{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #111;position:sticky;top:0;background:#000;z-index:10}
 .logo{width:36px;height:36px;border-radius:50%;border:2px solid #00ff88}
 .btn-home{background:#00ff88;color:#000;border:0;padding:8px 20px;border-radius:20px;font-weight:900;font-size:12px;box-shadow:0 0 12px #00ff88}
-
-/* NEON GARIS BOS TIAP TOMBOL BOS */
-.m-tab{
-  min-width:78px;flex:1;padding:12px 10px;border-radius:12px;
-  background:#111;color:#888;text-align:center;font-weight:900;font-size:12px;cursor:pointer;
-  border:1.5px solid #00ff88;box-shadow:0 0 8px rgba(0,255,136,.35), inset 0 0 6px rgba(0,255,136,.15);
-  transition:.2s
-}
-.m-tab.active{
-  background:#00ff88;color:#000;border-color:#00ff88;
-  box-shadow:0 0 18px #00ff88, 0 0 35px rgba(0,255,136,.6);transform:translateY(-1px)
-}
-
-.user-fb{
-  display:flex;gap:12px;background:#0a0a0a;padding:12px;border-radius:14px;margin-bottom:12px;
-  border:1.5px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,.25)
-}
+.m-tab{min-width:78px;flex:1;padding:12px 10px;border-radius:12px;background:#111;color:#888;text-align:center;font-weight:900;font-size:12px;cursor:pointer;border:1.5px solid #00ff88;box-shadow:0 0 8px rgba(0,255,136,.35), inset 0 0 6px rgba(0,255,136,.15);transition:.2s}
+.m-tab.active{background:#00ff88;color:#000;border-color:#00ff88;box-shadow:0 0 18px #00ff88, 0 0 35px rgba(0,255,136,.6);transform:translateY(-1px)}
+.user-fb{display:flex;gap:12px;background:#0a0a0a;padding:12px;border-radius:14px;margin-bottom:12px;border:1.5px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,.25)}
 .user-fb-av{width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid #00ff88;box-shadow:0 0 10px #00ff88}
-.btn-neon-follow{
-  flex:1;background:#00ff88;color:#000;border:1.5px solid #00ff88;padding:10px;border-radius:10px;
-  font-weight:900;font-size:12px;cursor:pointer;box-shadow:0 0 12px #00ff88
-}
-.btn-neon-lihat{
-  flex:1;background:#000;color:#00ff88;border:1.5px solid #00ff88;padding:10px;border-radius:10px;
-  font-weight:800;font-size:12px;cursor:pointer;box-shadow:0 0 8px rgba(0,255,136,.3)
-}
+.btn-neon-follow{flex:1;background:#00ff88;color:#000;border:1.5px solid #00ff88;padding:10px;border-radius:10px;font-weight:900;font-size:12px;cursor:pointer;box-shadow:0 0 12px #00ff88}
+.btn-neon-lihat{flex:1;background:#000;color:#00ff88;border:1.5px solid #00ff88;padding:10px;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer;box-shadow:0 0 8px rgba(0,255,136,.3)}
 .btn-edit{flex:1;padding:13px;background:#111;color:#fff;border:1.5px solid #00ff88;border-radius:12px;font-weight:700;box-shadow:0 0 8px rgba(0,255,136,.3)}
 .btn-keluar{flex:1;padding:13px;background:#111;color:#ff6b6b;border:1.5px solid #ff4444;border-radius:12px;font-weight:800;box-shadow:0 0 8px rgba(255,68,68,.3)}
 .btn-follow-real{width:100%;padding:14px;background:#00ff88;color:#000;border:1.5px solid #00ff88;border-radius:14px;font-weight:900;box-shadow:0 0 15px #00ff88}
 .btn-following-real{width:100%;padding:14px;background:#111;color:#fff;border:1.5px solid #00ff88;border-radius:14px;font-weight:800;box-shadow:0 0 10px rgba(0,255,136,.3)}
-
 .profile-sec{padding:18px 14px 10px}
 .prof-top{display:flex;align-items:center;gap:18px;margin-bottom:14px}
 .avatar-wrap{position:relative;width:76px;height:76px}
@@ -59,17 +40,15 @@ body{background:#000;color:#fff;font-family:sans-serif}
 <div class="bot"><a href="/">🏠<br><span style="font-size:10px">Home</span></a><a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a><a href="/video">🎬<br><span style="font-size:10px">Video</span></a><a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a><a href="/ai">🤖<br><span style="font-size:10px">AI</span></a><a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a></div>
 <div id=toast></div>
 <script>
-const LOGO_DEFAULT="https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
+const LOGO_DEFAULT_INNER="https://i.ibb.co/r2gL8YJB/1791014451654.jpg";
 let activeMainTab="teman"; let viewingUserEmail=null;
 function toast(m){let t=document.getElementById('toast');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
 function getMyEmail(){return (localStorage.getItem('rg_email')||"").toLowerCase().trim();}
 function getMyName(){return localStorage.getItem('rg_name')||"Dunsanak";}
-function getMyAvatar(){ let i=localStorage.getItem('rg_avatar'); return (i&&i.trim()!=="")?i:LOGO_DEFAULT; }
-function saveAuth(e,n,a){localStorage.setItem('rg_email',e.toLowerCase().trim());localStorage.setItem('rg_name',n||"Dunsanak");localStorage.setItem('rg_avatar',(a&&a.trim()!=="")?a:LOGO_DEFAULT);}
+function getMyAvatar(){ let i=localStorage.getItem('rg_avatar'); return (i&&i.trim()!=="")?i:LOGO_DEFAULT_INNER; }
 function logout(){ if(confirm("Keluar?")){localStorage.clear();viewingUserEmail=null;history.pushState(null,'','/akun');render();}}
 function viewUser(e){ viewingUserEmail=e; activeMainTab='tulis'; history.pushState(null,'','/akun?profil='+encodeURIComponent(e)); render(); }
 function switchTab(t){ activeMainTab=t; const me=viewingUserEmail||getMyEmail(); loadContent(me, me===getMyEmail()); document.querySelectorAll('.m-tab').forEach(b=>{ b.classList.toggle('active', b.innerText.toLowerCase()===t); }); }
-
 async function render(){
   const my=getMyEmail(); const cont=document.getElementById('viewContainer');
   if(!my&&!viewingUserEmail){ cont.innerHTML='<div style="margin:12px;padding:16px;background:#fff;color:#000;border-radius:16px">Login dulu Bos</div>'; return; }
@@ -77,14 +56,14 @@ async function render(){
 }
 async function renderProfile(container,targetEmail,isMe){
   container.innerHTML='<div style="text-align:center;padding:40px;color:#666">Memuat...</div>';
-  let data={name:isMe?getMyName():targetEmail.split('@')[0],picture:isMe?getMyAvatar():LOGO_DEFAULT,posts:0,followers:0,following:0,isFollowing:false};
+  let data={name:isMe?getMyName():targetEmail.split('@')[0],picture:isMe?getMyAvatar():LOGO_DEFAULT_INNER,posts:0,followers:0,following:0,isFollowing:false};
   try{ let r=await fetch('/api/akun/profile?email='+encodeURIComponent(targetEmail)+'&me='+encodeURIComponent(getMyEmail())); if(r.ok){ let d=await r.json(); data={...data,...d}; } }catch{}
   let photos=[]; try{ let rp=await fetch('/api/akun/photos?email='+encodeURIComponent(targetEmail)); photos=await rp.json(); }catch{}
   container.innerHTML=\`
     <div class="profile-sec">
       <div class="prof-top"><div class="avatar-wrap"><img src="\${data.picture}" class="avatar-img"></div><div class="stats-wrap"><div><div class="stat-num">\${data.posts||0}</div><div class="stat-label">tulisan</div></div><div><div class="stat-num">\${data.followers||0}</div><div class="stat-label">pengikut</div></div><div><div class="stat-num">\${data.following||0}</div><div class="stat-label">mengikuti</div></div></div></div>
       <div style="font-size:18px;font-weight:900">\${data.name}</div><div style="font-size:12px;color:#00ff88;margin-bottom:14px">\${targetEmail}</div>
-      <div style="margin-bottom:16px">\${isMe ? \`<div style="display:flex;gap:8px"><button class="btn-edit" onclick="logout()">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>\` : \`<button class="btn-follow-real" onclick="toggleFollow('\${targetEmail}')">\${data.isFollowing?'✓ Mengikuti':'Follow'}</button>\`}</div>
+      <div style="margin-bottom:16px">\${isMe ? '<div style="display:flex;gap:8px"><button class="btn-edit">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>' : '<button class="btn-follow-real" onclick="toggleFollow(\\''+targetEmail+'\\')">'+(data.isFollowing?'✓ Mengikuti':'Follow')+'</button>'}</div>
       <div class="main-tabs">
         <button class="m-tab \${activeMainTab==='tulis'?'active':''}" onclick="switchTab('tulis')">TULIS</button>
         <button class="m-tab \${activeMainTab==='foto'?'active':''}" onclick="switchTab('foto')">FOTO</button>
@@ -106,7 +85,7 @@ async function loadContent(targetEmail,isMe){
       if(!list.length){ box.innerHTML='<div style="text-align:center;color:#555">Belum ada teman</div>'; return; }
       box.innerHTML=list.map(x=>\`
         <div class="user-fb">
-          <img src="\${x.picture||LOGO_DEFAULT}" class="user-fb-av" onerror="this.src='${LOGO_DEFAULT}'">
+          <img src="\${x.picture||LOGO_DEFAULT_INNER}" class="user-fb-av" onerror="this.src=LOGO_DEFAULT_INNER">
           <div style="flex:1;min-width:0">
             <div style="font-weight:900;font-size:15px">\${x.name||x.email.split('@')[0]}</div>
             <div style="font-size:11px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">\${x.email}</div>
@@ -120,9 +99,9 @@ async function loadContent(targetEmail,isMe){
   } else if(activeMainTab==='foto'){
     let photos=window._photosCache||[];
     if(!photos.length){ box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada foto</div>'; return; }
-    box.innerHTML='<div class="photo-grid-2x2">'+photos.map(p=>\`<div class="photo-card"><img src="\${p}"></div>\`).join('')+'</div>';
+    box.innerHTML='<div class="photo-grid-2x2">'+photos.map(p=>'<div class="photo-card"><img src="'+p+'"></div>').join('')+'</div>';
   } else if(activeMainTab==='tulis'){
-    try{ let r=await fetch('/api/tulis?email='+encodeURIComponent(targetEmail)); let list=await r.json(); let arr=Array.isArray(list)?list:(list.results||[]); if(!arr.length){box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Gagal memuat tulisan</div>';return;} box.innerHTML=arr.map(p=>\`<div class="private-card">\${p.text||p.isi||''}</div>\`).join(''); }catch{ box.innerHTML='<div style="text-align:center;color:#555">Gagal memuat tulisan</div>'; }
+    try{ let r=await fetch('/api/tulis?email='+encodeURIComponent(targetEmail)); let list=await r.json(); let arr=Array.isArray(list)?list:(list.results||[]); if(!arr.length){box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Gagal memuat tulisan</div>';return;} box.innerHTML=arr.map(p=>'<div class="private-card">'+(p.text||p.isi||'')+'</div>').join(''); }catch{ box.innerHTML='<div style="text-align:center;color:#555">Gagal memuat tulisan</div>'; }
   } else { box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Segera Bos</div>'; }
 }
 async function toggleFollow(target){
@@ -130,7 +109,7 @@ async function toggleFollow(target){
   try{
     let res=await fetch('/api/follow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({follower:me, following:target.toLowerCase()})});
     let j=await res.json();
-    if(j.ok){ toast(j.status==='followed'?'Followed Bos! @+ = 1':'Unfollowed Bos! @- = 1'); render(); }
+    if(j.ok){ toast(j.status==='followed'?'Followed Bos!':'Unfollowed Bos!'); render(); }
     else toast(j.error||'Gagal');
   }catch(e){ toast('Error: '+e.message); }
 }

@@ -41,7 +41,7 @@ export default {
       return new Response(`User-agent: *\nAllow: /\nSitemap: https://rumahgadang-ai.my.id/sitemap.xml`,{headers:{"Content-Type":"text/plain;charset=utf-8"}});
     }
 
-    // ====== DELETE FIX BRUTAL BOS - D1 + KV BOS! ======
+    // ====== FOTO - DELETE GABUNGAN BOS - images + foto + ig_curated ======
     if(path==="/api/ig-curated/delete" || path==="/api/images/delete" || path==="/api/foto/delete" || path==="/api/delete" || path==="/api/tulis/delete"){
       try{
         let body={}; try{ body=await req.json(); }catch{}
@@ -51,7 +51,7 @@ export default {
         let idInt = parseInt(idDel); if(isNaN(idInt)) idInt = -999;
         let logs = [];
 
-        // 1. HAPUS DARI D1 BOS - INI BOS KUNCINYA BOS!
+        // HAPUS DARI D1 BOS - 3 TABEL BOS SEKALIGUS BOS!
         if(env.DB){
           for(let tbl of ["ig_curated","images","foto"]){
             try{ let r=await env.DB.prepare(`DELETE FROM ${tbl} WHERE id=?`).bind(idInt).run(); logs.push(tbl+"_int:"+r.meta.changes); }catch(e){ logs.push(tbl+"_int_err:"+e.message); }
@@ -62,7 +62,7 @@ export default {
           logs.push("DB_GAK_ADA_BOS");
         }
 
-        // 2. HAPUS DARI KV JUGA BOS (buat jaga-jaga Bos)
+        // HAPUS DARI KV JUGA BOS BUAT JAGA-JAGA BOS
         for(let kvName of Object.keys(env)){
           let kv = env[kvName];
           if(!kv || typeof kv.get !== 'function') continue;
@@ -73,7 +73,7 @@ export default {
               let arr = JSON.parse(raw);
               if(Array.isArray(arr)){
                 let filtered = arr.filter(x=> String(x.id||x._id||'') !== idDel);
-                if(filtered.length !== arr.length){ await kv.put(key, JSON.stringify(filtered)); logs.push("kv_"+key+":hapus"); }
+                if(filtered.length !== arr.length){ await kv.put(key, JSON.stringify(filtered)); }
               }
             }
             await kv.delete(idDel).catch(()=>{});
@@ -82,6 +82,24 @@ export default {
         return new Response(JSON.stringify({ok:true,deleted:idDel, logs:logs}),{headers:cors});
       }catch(e){
         return new Response(JSON.stringify({ok:false,error:e.message}),{headers:cors,status:500});
+      }
+    }
+
+    // ====== DEBUG BOS - LIAT SEMUA ID BOS DI D1 BOS! ======
+    if(path.startsWith("/api/debug")){
+      try{
+        if(!env.DB) return new Response(JSON.stringify({ok:false, error:"DB GAK ADA BOS"}),{headers:cors});
+        if(path.includes("/ids")){
+          let ig = await env.DB.prepare("SELECT id, rowid, time, akun FROM ig_curated ORDER BY id DESC LIMIT 50").all().catch(()=>({results:[]}));
+          let img = await env.DB.prepare("SELECT id, rowid, time, substr(url,1,40) as url_preview FROM images ORDER BY id DESC LIMIT 50").all().catch(()=>({results:[]}));
+          let ft = await env.DB.prepare("SELECT id, rowid, time, email FROM foto ORDER BY id DESC LIMIT 50").all().catch(()=>({results:[]}));
+          return new Response(JSON.stringify({ok:true, ig_curated: ig.results, images: img.results, foto: ft.results, count:{ig: ig.results.length, images: img.results.length, foto: ft.results.length}}),{headers:cors});
+        }
+        // debug all
+        let tables = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().catch(()=>({results:[]}));
+        return new Response(JSON.stringify({ok:true, tables: tables.results}),{headers:cors});
+      }catch(e){
+        return new Response(JSON.stringify({ok:false, error:e.message}),{headers:cors,status:500});
       }
     }
 
@@ -94,7 +112,7 @@ export default {
         if(path.startsWith('/api/tulis')){
           let m=getApi(TULIS_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
         }
-        if(path.startsWith('/api/foto') || path.startsWith('/api/images') || path.startsWith('/api/ig-curated') || path.startsWith('/api/ig-preview') || path.startsWith('/api/delete')){
+        if(path.startsWith('/api/foto') || path.startsWith('/api/images') || path.startsWith('/api/ig-curated') || path.startsWith('/api/ig-preview') || path.startsWith('/api/delete') || path.startsWith('/api/debug')){
           let m=getApi(FOTO_API_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
         }
         if(path.startsWith('/api/video')){

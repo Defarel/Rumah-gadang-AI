@@ -75,8 +75,15 @@ async function hapusFoto(id,type,e){
   try{
     let r = await fetch('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,type:type})});
     let j = await r.json();
-    if(j.ok){ alert('Terhapus Bos di D1 ✅ Akun lain juga gak liat lagi Bos!'); loadFoto(); } else { alert('Gagal Bos: '+(j.error||'unknown')); }
-  }catch(err){ alert('Error Bos: '+err.message); }
+    if(j.ok){
+      alert('Terhapus Bos di D1 ✅ Akun lain juga gak liat lagi Bos!');
+      loadFoto();
+    } else {
+      alert('Gagal Bos: '+(j.error||'unknown'));
+    }
+  }catch(err){
+    alert('Error Bos: '+err.message);
+  }
 }
 
 function stopAll(){

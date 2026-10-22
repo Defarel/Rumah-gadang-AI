@@ -57,9 +57,6 @@ function toggleUp(){let p=document.getElementById('upPanel'); p.style.display=p.
 async function loadFoto(){
  let r=await fetch('/api/ig-curated'); let d1=await r.json();
  let r2=await fetch('/api/images'); let d2=await r2.json();
- let banned = JSON.parse(localStorage.getItem('rg_deleted')||'[]');
- d1 = d1.filter(x=>!banned.includes(String(x.id)));
- d2 = d2.filter(x=>!banned.includes(String(x.id)));
  allData=[...d1.map(x=>({akun:x.akun,img:x.img,linkIG:x.linkIG||'',id:x.id,type:'ig'})), ...d2.map(x=>({akun:'user',img:x.url,caption:'Foto user Bos',linkIG:x.url,id:x.id,type:'foto'}))];
  document.getElementById('fcnt').innerText=allData.length+' FOTO';
  let g=document.getElementById('fg');
@@ -75,15 +72,11 @@ async function loadFoto(){
 async function hapusFoto(id,type,e){
   if(e){ e.stopPropagation(); }
   if(!confirm("Hapus Bos "+id+" ?")) return;
-  let banned = JSON.parse(localStorage.getItem('rg_deleted')||'[]');
-  banned.push(String(id));
-  localStorage.setItem('rg_deleted', JSON.stringify(banned));
-  try{ await fetch('/api/ig-curated/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})}); }catch{}
-  try{ await fetch('/api/images/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})}); }catch{}
-  try{ await fetch('/api/foto/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})}); }catch{}
-  try{ await fetch('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,type:type})}); }catch{}
-  alert('Terhapus Bos ✅');
-  loadFoto();
+  try{
+    let r = await fetch('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,type:type})});
+    let j = await r.json();
+    if(j.ok){ alert('Terhapus Bos di D1 ✅ Akun lain juga gak liat lagi Bos!'); loadFoto(); } else { alert('Gagal Bos: '+(j.error||'unknown')); }
+  }catch(err){ alert('Error Bos: '+err.message); }
 }
 
 function stopAll(){

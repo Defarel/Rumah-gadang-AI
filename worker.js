@@ -85,24 +85,49 @@ export default {
       }
     }
 
-    // ====== DEBUG BOS - LIAT SEMUA ID BOS DI D1 BOS! ======
+        // ====== DEBUG BOS - LIAT SEMUA ID BOS DI D1 BOS! ======
     if(path.startsWith("/api/debug")){
       try{
         if(!env.DB) return new Response(JSON.stringify({ok:false, error:"DB GAK ADA BOS"}),{headers:cors});
         if(path.includes("/ids")){
-          let ig = await env.DB.prepare("SELECT id, rowid, time, akun FROM ig_curated ORDER BY id DESC LIMIT 50").all().catch(()=>({results:[]}));
-          let img = await env.DB.prepare("SELECT id, rowid, time, substr(url,1,40) as url_preview FROM images ORDER BY id DESC LIMIT 50").all().catch(()=>({results:[]}));
-          let ft = await env.DB.prepare("SELECT id, rowid, time, email FROM foto ORDER BY id DESC LIMIT 50").all().catch(()=>({results:[]}));
+          let ig = await env.DB.prepare("SELECT id, rowid, time, akun, img FROM ig_curated ORDER BY id DESC LIMIT 100").all().catch(()=>({results:[]}));
+          let img = await env.DB.prepare("SELECT id, rowid, time, substr(url,1,50) as url_preview FROM images ORDER BY id DESC LIMIT 100").all().catch(()=>({results:[]}));
+          let ft = await env.DB.prepare("SELECT id, rowid, time, email FROM foto ORDER BY id DESC LIMIT 100").all().catch(()=>({results:[]}));
           return new Response(JSON.stringify({ok:true, ig_curated: ig.results, images: img.results, foto: ft.results, count:{ig: ig.results.length, images: img.results.length, foto: ft.results.length}}),{headers:cors});
         }
-        // debug all
+        if(path.includes("/akun")){
+          // CARI TABEL AKUN BOS DI D1 BOS
+          let out = {};
+          let tables = ["akun","users","user","accounts","akun_list"];
+          for(let t of tables){
+            try{
+              let r = await env.DB.prepare(`SELECT * FROM ${t} LIMIT 100`).all();
+              out[t] = r.results;
+            }catch(e){ out[t+"_err"] = e.message; }
+          }
+          // CARI DI KV JUGA BOS
+          let kvOut = {};
+          for(let kvName of Object.keys(env)){
+            let kv = env[kvName];
+            if(!kv || typeof kv.get !== 'function') continue;
+            try{
+              for(let key of ['akun','users','AKUN','akun_list','user_list','USERS']){
+                let raw = await kv.get(key).catch(()=>null);
+                if(raw){ 
+                  try{ kvOut[kvName+"_"+key] = JSON.parse(raw).slice(0,20); }catch{ kvOut[kvName+"_"+key] = raw.slice(0,500); }
+                }
+              }
+            }catch{}
+          }
+          return new Response(JSON.stringify({ok:true, d1: out, kv: kvOut}),{headers:cors});
+        }
         let tables = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().catch(()=>({results:[]}));
-        return new Response(JSON.stringify({ok:true, tables: tables.results}),{headers:cors});
+        return new Response(JSON.stringify({ok:true, tables: tables.results, hint:"/api/debug/ids untuk foto, /api/debug/akun untuk akun"}),{headers:cors});
       }catch(e){
         return new Response(JSON.stringify({ok:false, error:e.message}),{headers:cors,status:500});
       }
     }
-
+    
     if(path==="/f"||path==="/f/") path="/foto";
     if(path==="/v"||path==="/v/") path="/video";
     if(path==="/a"||path==="/a/") path="/ai";

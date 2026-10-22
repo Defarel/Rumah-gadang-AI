@@ -25,7 +25,7 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     let path = url.pathname.toLowerCase();
-    const cors = {'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET,POST,OPTIONS,DELETE','Access-Control-Allow-Headers':'Content-Type'};
+    const cors = {'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET,POST,OPTIONS,DELETE','Access-Control-Allow-Headers':'Content-Type', 'Cache-Control':'no-store'};
     if(req.method==="OPTIONS") return new Response("",{headers:cors});
 
     if(path === "/sitemap.xml" || path === "/sitemap/" || path === "/sitemap"){
@@ -41,11 +41,28 @@ export default {
       return new Response(`User-agent: *\nAllow: /\nSitemap: https://rumahgadang-ai.my.id/sitemap.xml`,{headers:{"Content-Type":"text/plain;charset=utf-8"}});
     }
 
+    // ====== DELETE FIX BRUTAL BOS - D1 + KV BOS! ======
     if(path==="/api/ig-curated/delete" || path==="/api/images/delete" || path==="/api/foto/delete" || path==="/api/delete" || path==="/api/tulis/delete"){
       try{
         let body={}; try{ body=await req.json(); }catch{}
         let idDel = String(body.id||url.searchParams.get('id')||'');
         if(!idDel) return new Response(JSON.stringify({ok:false,error:"id kosong Bos"}),{headers:cors,status:400});
+        
+        let idInt = parseInt(idDel); if(isNaN(idInt)) idInt = -999;
+        let logs = [];
+
+        // 1. HAPUS DARI D1 BOS - INI BOS KUNCINYA BOS!
+        if(env.DB){
+          for(let tbl of ["ig_curated","images","foto"]){
+            try{ let r=await env.DB.prepare(`DELETE FROM ${tbl} WHERE id=?`).bind(idInt).run(); logs.push(tbl+"_int:"+r.meta.changes); }catch(e){ logs.push(tbl+"_int_err:"+e.message); }
+            try{ let r=await env.DB.prepare(`DELETE FROM ${tbl} WHERE CAST(id AS TEXT)=?`).bind(idDel).run(); logs.push(tbl+"_str:"+r.meta.changes); }catch(e){ logs.push(tbl+"_str_err:"+e.message); }
+            try{ let r=await env.DB.prepare(`DELETE FROM ${tbl} WHERE rowid=?`).bind(idInt).run(); logs.push(tbl+"_row:"+r.meta.changes); }catch(e){}
+          }
+        } else {
+          logs.push("DB_GAK_ADA_BOS");
+        }
+
+        // 2. HAPUS DARI KV JUGA BOS (buat jaga-jaga Bos)
         for(let kvName of Object.keys(env)){
           let kv = env[kvName];
           if(!kv || typeof kv.get !== 'function') continue;
@@ -56,13 +73,13 @@ export default {
               let arr = JSON.parse(raw);
               if(Array.isArray(arr)){
                 let filtered = arr.filter(x=> String(x.id||x._id||'') !== idDel);
-                if(filtered.length !== arr.length){ await kv.put(key, JSON.stringify(filtered)); }
+                if(filtered.length !== arr.length){ await kv.put(key, JSON.stringify(filtered)); logs.push("kv_"+key+":hapus"); }
               }
             }
             await kv.delete(idDel).catch(()=>{});
           }catch{}
         }
-        return new Response(JSON.stringify({ok:true,deleted:idDel}),{headers:cors});
+        return new Response(JSON.stringify({ok:true,deleted:idDel, logs:logs}),{headers:cors});
       }catch(e){
         return new Response(JSON.stringify({ok:false,error:e.message}),{headers:cors,status:500});
       }
@@ -111,4 +128,4 @@ export default {
     }
     return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
   }
-  }
+}

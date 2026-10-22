@@ -94,7 +94,7 @@ async function render(){
           <input id="nameIn" class="inp" placeholder="Nama Dunsanak (buat akun baru)" style="display:none">
           <input id="passIn" class="inp" type="password" placeholder=" Password">
         </div>
-        <button class="btnMasuk" onclick="doLogin()">Masuk Bos</button>
+        <button class="btnMasuk" onclick="doLogin()">Masuk</button>
       </div>
       <div class="cardLogoFull"><img src="\${LOGO_LOGIN}" alt="RG AI Foto 2"></div>\`;
     return;
@@ -120,9 +120,9 @@ async function doLogin(){
     try{
       let r=await fetch('/api/akun/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
       let j=await r.json().catch(()=>({ok:true}));
-      if(r.ok||j.ok){ saveAuth(email,j.name||name,j.picture||LOGO_INNER); toast('Masuk Bos!'); render(); }
-      else { saveAuth(email,name,LOGO_INNER); toast('Masuk Bos!'); render(); }
-    }catch{ saveAuth(email,name,LOGO_INNER); toast('Masuk Bos!'); render(); }
+      if(r.ok||j.ok){ saveAuth(email,j.name||name,j.picture||LOGO_INNER); toast('Masuk'); render(); }
+      else { saveAuth(email,name,LOGO_INNER); toast('Masuk'); render(); }
+    }catch{ saveAuth(email,name,LOGO_INNER); toast('Masuk'); render(); }
   }
 }
 async function renderProfile(container,targetEmail,isMe){

@@ -10,7 +10,6 @@ export const FOTO_HTML = `<!DOCTYPE html>
 .cell img{width:100%;height:100%;object-fit:cover;background:#222;display:block;border-radius:14px}
 .cell .play{position:absolute;top:6px;right:6px;width:28px;height:28px;background:#00ff88;border-radius:50%;display:grid;place-items:center;box-shadow:0 0 8px #00ff88, 0 0 14px rgba(0,255,136,0.7);border:1px solid #00ff88;z-index:2}
 .cell .play div{width:28px;height:28px;background:transparent;border-radius:50%;display:grid;place-items:center;font-size:12px;color:#000;font-weight:900}
-.cell .del{position:absolute;top:6px;left:6px;width:26px;height:26px;background:rgba(255,0,0,0.9);border-radius:50%;display:grid;place-items:center;z-index:3;font-size:14px;font-weight:900;color:#fff;border:1px solid #fff;box-shadow:0 0 8px red;cursor:pointer}
 .fab{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#00ff88;color:#000;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:30px;font-weight:900;z-index:50;box-shadow:0 0 16px #00ff88}
 #upPanel{position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:100;display:none;padding:16px;overflow-y:auto}
 .box{max-width:480px;margin:20px auto;background:#111;border:1px solid #333;border-radius:16px;padding:16px}
@@ -47,51 +46,38 @@ input{width:100%;background:#0a0a0a;border:1px solid #333;color:#fff;padding:12p
 <div style="background:#111;border:1px solid #333;border-radius:12px;padding:12px"><b style="font-size:12px">CARA 2: AUTO AMBIL DARI IG</b><button class="btn btn-w" onclick="previewIG()">🔍 AMBIL OTOMATIS</button><div id=igPrev style="display:none;margin-top:10px"><img id=igPrevImg style="width:100%;border-radius:8px;aspect-ratio:1/1;object-fit:cover"><div id=igPrevAkun style="color:#00ff88;font-size:12px;margin-top:6px"></div><button class="btn btn-g" onclick="saveIG()">+ SIMPAN OTOMATIS</button></div></div>
 <div style="margin-top:14px;border-top:1px solid #222;padding-top:12px"><input id=fFile type=file accept="image/*"><button class="btn btn-w" onclick="upFoto()">📤 UPLOAD FOTO BIASA</button><div id=upInfo style="font-size:10px;color:#00ff88;margin-top:6px;text-align:center"></div></div>
 </div></div>
-<div id=modal><div style="padding:10px;display:flex;justify-content:space-between"><span id=mCount style="font-size:12px;color:#888">1/6</span><span id=mAkun style="color:#00ff88;font-size:12px"></span><button onclick="closeM()" style="background:#222;color:#fff;border:0;padding:6px 14px;border-radius:20px">Tutup X</button></div><div id=swipeWrap></div><div style="padding:10px;border-top:1px solid #222;display:flex;gap:8px;background:#111"><button onclick="swipe(-1)" style="flex:1;background:#222;color:#fff;border:1px solid #333;padding:12px;border-radius:10px">←</button><a id=mLink target=_blank style="flex:2;background:#00ff88;color:#000;text-align:center;padding:12px;border-radius:10px;font-weight:900;text-decoration:none">Buka di IG ↗</a><button onclick="swipe(1)" style="flex:1;background:#222;color:#fff;border:1px solid #333;padding:12px;border-radius:10px">→</button></div></div>
+<div id=modal><div style="padding:10px;display:flex;justify-content:space-between;align-items:center"><span id=mCount style="font-size:12px;color:#888">1/6</span><span id=mAkun style="color:#00ff88;font-size:12px"></span><div style="display:flex;gap:6px"><button id=delInside onclick="hapusCurrent()" style="background:#ff0000;color:#fff;border:1px solid #fff;padding:6px 14px;border-radius:20px;font-weight:900;display:none">🗑️ HAPUS</button><button onclick="closeM()" style="background:#222;color:#fff;border:0;padding:6px 14px;border-radius:20px">Tutup X</button></div></div><div id=swipeWrap></div><div style="padding:10px;border-top:1px solid #222;display:flex;gap:8px;background:#111"><button onclick="swipe(-1)" style="flex:1;background:#222;color:#fff;border:1px solid #333;padding:12px;border-radius:10px">←</button><a id=mLink target=_blank style="flex:2;background:#00ff88;color:#000;text-align:center;padding:12px;border-radius:10px;font-weight:900;text-decoration:none">Buka di IG ↗</a><button onclick="swipe(1)" style="flex:1;background:#222;color:#fff;border:1px solid #333;padding:12px;border-radius:10px">→</button></div></div>
 <div class=bot><a href="/">🏠</a><a href="/foto" class=on>🖼️</a><a href="/video">🎬</a><a href="/kantor">🏢</a><a href="/ai">🤖</a><a href="/akun">👤</a></div>
 <script>
 let allData=[]; let curIdx=0; let tempIG={}; let manualThumb="";
 function isAdmin(){ let e=(localStorage.getItem('rg_email')||'').toLowerCase(); return e.includes('defarel') || e.includes('admin') || localStorage.getItem('rg_admin')==='1'; }
 function toggleUp(){let p=document.getElementById('upPanel'); p.style.display=p.style.display==='block'?'none':'block';}
-
 async function loadFoto(){
- let r=await fetch('/api/ig-curated'); let d1=await r.json();
- let r2=await fetch('/api/images'); let d2=await r2.json();
+ let r=await fetch('/api/ig-curated?_t='+Date.now()); let d1=await r.json();
+ let r2=await fetch('/api/images?_t='+Date.now()); let d2=await r2.json();
  allData=[...d1.map(x=>({akun:x.akun,img:x.img,linkIG:x.linkIG||'',id:x.id,type:'ig'})), ...d2.map(x=>({akun:'user',img:x.url,caption:'Foto user Bos',linkIG:x.url,id:x.id,type:'foto'}))];
  document.getElementById('fcnt').innerText=allData.length+' FOTO';
  let g=document.getElementById('fg');
  if(!allData.length){ g.innerHTML='<div style=grid-column:1/-1;padding:40px;text-align:center;color:#555">Belum ada foto Bos</div>'; return; }
- let admin=isAdmin();
  g.innerHTML=allData.map((x,i)=>{ 
    let safe=x.img||'https://i.ibb.co/r2gL8YJB/1791014451654.jpg'; 
-   let delBtn = admin ? '<div class=del onclick="hapusFoto(\\''+x.id+'\\',\\''+x.type+'\\',event)">🗑️</div>' : '';
-   return '<div class=cell onclick="openAt('+i+')">'+delBtn+'<img src="'+safe+'" loading=lazy><div class=play><div>▶</div></div></div>'; 
+   return '<div class=cell onclick="openAt('+i+')"><img src="'+safe+'" loading=lazy><div class=play><div>▶</div></div></div>'; 
  }).join('');
 }
-
-async function hapusFoto(id,type,e){
-  if(e){ e.stopPropagation(); }
+async function hapusCurrent(){ let x=allData[curIdx]; if(!x) return; doDelete(x.id, x.type); }
+async function doDelete(id,type){
   if(!confirm("Hapus Bos "+id+" ?")) return;
   try{
     let r = await fetch('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,type:type})});
     let j = await r.json();
-    if(j.ok){
-      alert('Terhapus Bos di D1 ✅ Akun lain juga gak liat lagi Bos!');
-      loadFoto();
-    } else {
-      alert('Gagal Bos: '+(j.error||'unknown'));
-    }
-  }catch(err){
-    alert('Error Bos: '+err.message);
-  }
+    if(j.ok){ alert('Terhapus Bos ID '+id+' ✅'); closeM(); loadFoto(); } else { alert('Gagal Bos: '+(j.error||'unknown')); }
+  }catch(err){ alert('Error Bos: '+err.message); }
 }
-
 function stopAll(){
   document.querySelectorAll('#swipeWrap .slideMedia').forEach((el, idx)=>{
-    let x=allData[idx];
-    if(!x) return;
+    let x=allData[idx]; if(!x) return;
     if(el.querySelector('iframe')){
-      el.innerHTML='<img class=thumb src="'+x.img+'"><div class=bigPlay><div>▶️</div></div>';
+      el.innerHTML='<img class=thumb src="'+x.img+'"><div class=bigPlay onclick="playThis('+idx+')"><div>▶️</div></div>';
     }
   });
 }
@@ -101,10 +87,11 @@ function openAt(idx){
   let wrap=document.getElementById('swipeWrap'); 
   wrap.innerHTML=allData.map((x,i)=>{ return '<div class=slide><div class=slideMedia onclick="playThis('+i+')"><img class=thumb src="'+x.img+'"><div class=bigPlay><div>▶️</div></div></div></div>'; }).join(''); 
   document.getElementById('modal').style.display='flex'; 
+  document.getElementById('delInside').style.display = isAdmin() ? 'block' : 'none';
   setTimeout(()=>{ wrap.children[idx]?.scrollIntoView({inline:'start'}); playThis(idx); updateInfo(idx); },150);
   wrap.onscrollend = ()=>{
     let newIdx = Math.round(wrap.scrollLeft / wrap.clientWidth);
-    if(newIdx!==curIdx){ stopAll(); curIdx=newIdx; updateInfo(newIdx); }
+    if(newIdx!==curIdx){ stopAll(); curIdx=newIdx; updateInfo(newIdx); playThis(newIdx); }
   };
 }
 function playThis(i){
@@ -125,18 +112,14 @@ function updateInfo(i){
   document.getElementById('mAkun').innerText='@'+(x.akun||'');
   document.getElementById('mLink').href=x.linkIG||x.img;
 }
-function swipe(d){ stopAll(); curIdx=Math.max(0,Math.min(allData.length-1,curIdx+d)); document.getElementById('swipeWrap').children[curIdx]?.scrollIntoView({behavior:'smooth',inline:'start'}); updateInfo(curIdx); }
+function swipe(d){ stopAll(); curIdx=Math.max(0,Math.min(allData.length-1,curIdx+d)); document.getElementById('swipeWrap').children[curIdx]?.scrollIntoView({behavior:'smooth',inline:'start'}); updateInfo(curIdx); setTimeout(()=>playThis(curIdx),400); }
 function closeM(){ stopAll(); document.getElementById('modal').style.display='none'; }
-
 function kompresImage(imgEl, maxW, quality){
   return new Promise(res=>{
     const c=document.createElement('canvas');
     let w=imgEl.width, h=imgEl.height;
-    if(w>maxW || h>maxW){
-      if(w>h){ h*=maxW/w; w=maxW; } else { w*=maxW/h; h=maxW; }
-    }
-    c.width=w; c.height=h;
-    c.getContext('2d').drawImage(imgEl,0,0,w,h);
+    if(w>maxW || h>maxW){ if(w>h){ h*=maxW/w; w=maxW; } else { w*=maxW/h; h=maxW; } }
+    c.width=w; c.height=h; c.getContext('2d').drawImage(imgEl,0,0,w,h);
     res(c.toDataURL('image/jpeg', quality));
   });
 }

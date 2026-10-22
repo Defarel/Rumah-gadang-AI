@@ -60,8 +60,8 @@ body{background:#000;color:#fff;font-family:sans-serif}
 <div style="display:flex;gap:8px;margin-top:12px"><button class=btn-edit onclick="closeEdit()" style="flex:1">Batal</button><button class=btn-neon-follow onclick="saveEdit()" style="flex:1">Simpan Bos</button></div>
 </div></div>
 <script>
-const LOGO_INNER="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg";
-const LOGO_LOGIN="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg";
+const LOGO_INNER="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
+const LOGO_LOGIN="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
 let activeMainTab="teman"; let viewingUserEmail=null; let _editB64=null; window.loginMode='masuk';
 function toast(m){let t=document.getElementById('toast');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
 function getMyEmail(){return (localStorage.getItem('rg_email')||"").toLowerCase().trim();}
@@ -76,7 +76,7 @@ function setLoginMode(m){
   document.getElementById('tMasuk').classList.toggle('on',m==='masuk');
   document.getElementById('tBuat').classList.toggle('on',m==='buat');
   document.getElementById('nameIn').style.display=m==='buat'?'block':'none';
-  document.querySelector('.btnMasuk').innerText=m==='buat'?'Buat Akun Bos':'Masuk Bos';
+  document.querySelector('.btnMasuk').innerText=m==='buat'?'Buat Akun':'Masuk';
 }
 async function render(){
   const my=getMyEmail(); const cont=document.getElementById('viewContainer');
@@ -90,9 +90,9 @@ async function render(){
           <button class="tabLogin" onclick="toast('Google soon Bos!')">Google</button>
         </div>
         <div id="loginFields">
-          <input id="emailIn" class="inp" placeholder="lintas@rumahgadang-ai.my.id" value="lintas@rumahgadang-ai.my.id">
+          <input id="emailIn" class="inp" placeholder="(nama)@rumahgadang-ai.my.id" value="(nama)@rumahgadang-ai.my.id">
           <input id="nameIn" class="inp" placeholder="Nama Dunsanak (buat akun baru)" style="display:none">
-          <input id="passIn" class="inp" type="password" placeholder="•••••••• Password Bos">
+          <input id="passIn" class="inp" type="password" placeholder=" Password">
         </div>
         <button class="btnMasuk" onclick="doLogin()">Masuk Bos</button>
       </div>

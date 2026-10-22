@@ -70,7 +70,11 @@ async function doDelete(id,type){
   try{
     let r = await fetch('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,type:type})});
     let j = await r.json();
-    if(j.ok){ alert('Terhapus Bos ID '+id+' ✅'); closeM(); loadFoto(); } else { alert('Gagal Bos: '+(j.error||'unknown')); }
+    alert('HASIL DELETE BOS:\\nID:'+id+'\\nLOG:'+JSON.stringify(j.logs)+'\\nError:'+(j.error||'tidak ada'));
+    if(j.ok){
+      closeM();
+      setTimeout(()=>loadFoto(), 500);
+    }
   }catch(err){ alert('Error Bos: '+err.message); }
 }
 function stopAll(){

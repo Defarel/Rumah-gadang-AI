@@ -1,4 +1,4 @@
-const LOGO_DEFAULT = "https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg";
+const LOGO_DEFAULT = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
 
 export const AKUN_HTML = `<!DOCTYPE html><html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">

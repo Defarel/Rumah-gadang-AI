@@ -41,43 +41,25 @@ export default {
       return new Response(`User-agent: *\nAllow: /\nSitemap: https://rumahgadang-ai.my.id/sitemap.xml`,{headers:{"Content-Type":"text/plain;charset=utf-8"}});
     }
 
-    // ====== FOTO - DELETE GABUNGAN BOS - images + foto + ig_curated ======
-    if(path==="/api/ig-curated/delete" || path==="/api/images/delete" || path==="/api/foto/delete" || path==="/api/delete" || path==="/api/tulis/delete"){
-      try{
-        let body={}; try{ body=await req.json(); }catch{}
-        let idDel = String(body.id||url.searchParams.get('id')||'');
-        if(!idDel) return new Response(JSON.stringify({ok:false,error:"id kosong Bos"}),{headers:cors,status:400});
-        
-        let idInt = parseInt(idDel); if(isNaN(idInt)) idInt = -999;
-        let logs = [];
-
-            // ====== DELETE GABUNGAN BOS - FIX SEMUA TABEL BOS TERMASUK TULIS BOS ======
+    // ====== DELETE FIX - GAK NGARUH KE FOTO BOS, CUMA NAMBAH TULIS BOS ======
     if(path==="/api/ig-curated/delete" || path==="/api/images/delete" || path==="/api/foto/delete" || path==="/api/delete" || path==="/api/tulis/delete" || path==="/api/home/delete"){
       try{
         let body={}; try{ body=await req.json(); }catch{}
         let idDel = String(body.id||url.searchParams.get('id')||'');
         if(!idDel) return new Response(JSON.stringify({ok:false,error:"id kosong Bos"}),{headers:cors,status:400});
-        
         let idInt = parseInt(idDel); if(isNaN(idInt)) idInt = -999;
         let logs = [];
-
-        // HAPUS DARI D1 BOS - SEMUA TABEL BOS!
         if(env.DB){
-          for(let tbl of ["ig_curated","images","foto","tulis","home_tulis","posts","tulisan"]){
+          for(let tbl of ["ig_curated","images","foto","tulis","home_tulis","posts"]){
             try{ let r=await env.DB.prepare(`DELETE FROM ${tbl} WHERE id=?`).bind(idInt).run(); logs.push(tbl+"_int:"+r.meta.changes); }catch(e){ logs.push(tbl+"_int_err:"+e.message); }
             try{ let r=await env.DB.prepare(`DELETE FROM ${tbl} WHERE CAST(id AS TEXT)=?`).bind(idDel).run(); logs.push(tbl+"_str:"+r.meta.changes); }catch(e){ logs.push(tbl+"_str_err:"+e.message); }
-            try{ let r=await env.DB.prepare(`DELETE FROM ${tbl} WHERE rowid=?`).bind(idInt).run(); logs.push(tbl+"_row:"+r.meta.changes); }catch(e){}
           }
-        } else {
-          logs.push("DB_GAK_ADA_BOS");
         }
-
-        // HAPUS DARI KV JUGA BOS
         for(let kvName of Object.keys(env)){
           let kv = env[kvName];
           if(!kv || typeof kv.get !== 'function') continue;
           try{
-            for(let key of ['curated','images','list','IG_CURATED','FOTO','HOME_TULIS','tulis','home','posts']){
+            for(let key of ['curated','images','list','IG_CURATED','FOTO','HOME_TULIS','tulis']){
               let raw = await kv.get(key).catch(()=>null);
               if(!raw) continue;
               let arr = JSON.parse(raw);
@@ -95,8 +77,7 @@ export default {
       }
     }
 
-        // ====== DEBUG BOS - LIAT SEMUA ID BOS DI D1 BOS! ======
-        if(path.startsWith("/api/debug")){
+    if(path.startsWith("/api/debug")){
       try{
         if(!env.DB) return new Response(JSON.stringify({ok:false, error:"DB GAK ADA BOS"}),{headers:cors});
         if(path.includes("/ids")){
@@ -107,7 +88,6 @@ export default {
         }
         if(path.includes("/akun")){
           let users = await env.DB.prepare("SELECT rowid, email, name, substr(picture,1,20) as pic_preview FROM users ORDER BY rowid DESC LIMIT 100").all().catch(()=>({results:[], error:"no users"}));
-          // coba tabel lain juga Bos
           let akunT = await env.DB.prepare("SELECT * FROM sqlite_master WHERE type='table'").all().catch(()=>({results:[]}));
           let cleanUsers = users.results.map(u=>({id:u.rowid, email:u.email, name:u.name}));
           return new Response(JSON.stringify({ok:true, count: cleanUsers.length, akun: cleanUsers, tables: akunT.results.map(t=>t.name)}),{headers:cors});
@@ -117,7 +97,7 @@ export default {
       }catch(e){
         return new Response(JSON.stringify({ok:false, error:e.message}),{headers:cors,status:500});
       }
-        }
+    }
     
     if(path==="/f"||path==="/f/") path="/foto";
     if(path==="/v"||path==="/v/") path="/video";

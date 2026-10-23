@@ -51,9 +51,19 @@ export default {
         let idInt = parseInt(idDel); if(isNaN(idInt)) idInt = -999;
         let logs = [];
 
-        // HAPUS DARI D1 BOS - 3 TABEL BOS SEKALIGUS BOS!
+            // ====== DELETE GABUNGAN BOS - FIX SEMUA TABEL BOS TERMASUK TULIS BOS ======
+    if(path==="/api/ig-curated/delete" || path==="/api/images/delete" || path==="/api/foto/delete" || path==="/api/delete" || path==="/api/tulis/delete" || path==="/api/home/delete"){
+      try{
+        let body={}; try{ body=await req.json(); }catch{}
+        let idDel = String(body.id||url.searchParams.get('id')||'');
+        if(!idDel) return new Response(JSON.stringify({ok:false,error:"id kosong Bos"}),{headers:cors,status:400});
+        
+        let idInt = parseInt(idDel); if(isNaN(idInt)) idInt = -999;
+        let logs = [];
+
+        // HAPUS DARI D1 BOS - SEMUA TABEL BOS!
         if(env.DB){
-          for(let tbl of ["ig_curated","images","foto"]){
+          for(let tbl of ["ig_curated","images","foto","tulis","home_tulis","posts","tulisan"]){
             try{ let r=await env.DB.prepare(`DELETE FROM ${tbl} WHERE id=?`).bind(idInt).run(); logs.push(tbl+"_int:"+r.meta.changes); }catch(e){ logs.push(tbl+"_int_err:"+e.message); }
             try{ let r=await env.DB.prepare(`DELETE FROM ${tbl} WHERE CAST(id AS TEXT)=?`).bind(idDel).run(); logs.push(tbl+"_str:"+r.meta.changes); }catch(e){ logs.push(tbl+"_str_err:"+e.message); }
             try{ let r=await env.DB.prepare(`DELETE FROM ${tbl} WHERE rowid=?`).bind(idInt).run(); logs.push(tbl+"_row:"+r.meta.changes); }catch(e){}
@@ -62,12 +72,12 @@ export default {
           logs.push("DB_GAK_ADA_BOS");
         }
 
-        // HAPUS DARI KV JUGA BOS BUAT JAGA-JAGA BOS
+        // HAPUS DARI KV JUGA BOS
         for(let kvName of Object.keys(env)){
           let kv = env[kvName];
           if(!kv || typeof kv.get !== 'function') continue;
           try{
-            for(let key of ['curated','images','list','IG_CURATED','FOTO','HOME_TULIS','tulis']){
+            for(let key of ['curated','images','list','IG_CURATED','FOTO','HOME_TULIS','tulis','home','posts']){
               let raw = await kv.get(key).catch(()=>null);
               if(!raw) continue;
               let arr = JSON.parse(raw);

@@ -1,5 +1,4 @@
 const LOGO_DEFAULT = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
-const LOGO_VIDEO = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/9fa479e6634ebcb2f1dfcde85fb106ac77d2b122/akun/RumahGadangV2.mp4";
 
 export const AKUN_HTML = `<!DOCTYPE html><html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -63,6 +62,7 @@ body{background:#000;color:#fff;font-family:sans-serif}
 <script>
 const LOGO_INNER="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
 const LOGO_LOGIN="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
+const LOGO_VIDEO = "https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@9fa479e6634ebcb2f1dfcde85fb106ac77d2b122/akun/RumahGadangV2.mp4";
 let activeMainTab="teman"; let viewingUserEmail=null; let _editB64=null; window.loginMode='masuk';
 function toast(m){let t=document.getElementById('toast');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
 function getMyEmail(){return (localStorage.getItem('rg_email')||"").toLowerCase().trim();}
@@ -98,7 +98,7 @@ async function render(){
         <button class="btnMasuk" onclick="doLogin()">Masuk</button>
       </div>
       <div class="cardLogoFull">
-        <video autoplay loop muted playsinline poster="\${LOGO_LOGIN}">
+        <video autoplay loop muted playsinline controls poster="\${LOGO_LOGIN}" style="width:100%;background:#000">
           <source src="\${LOGO_VIDEO}" type="video/mp4">
         </video>
       </div>\`;
@@ -217,7 +217,6 @@ async function saveEdit(){
     localStorage.setItem('rg_name',name); 
     localStorage.setItem('rg_avatar',pic); 
   }catch(e){ 
-    console.log('localStorage penuh Bos, pakai link Bos'); 
     if(pic.startsWith('data:')){ pic=LOGO_INNER; localStorage.setItem('rg_avatar',pic); toast('Foto kegedean Bos, pakai link aja Bos biar bebas'); }
   }
   toast('Ganti foto Bos...'); closeEdit(); render();

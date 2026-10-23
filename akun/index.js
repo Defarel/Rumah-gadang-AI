@@ -51,7 +51,7 @@ body{background:#000;color:#fff;font-family:sans-serif}
 <div class="bot"><a href="/">🏠<br><span style="font-size:10px">Home</span></a><a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a><a href="/video">🎬<br><span style="font-size:10px">Video</span></a><a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a><a href="/ai">🤖<br><span style="font-size:10px">AI</span></a><a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a></div>
 <div id=toast></div>
 <div id=editModal><div id=editBox>
-<h3 style="margin-bottom:10px">Edit Profil Bos - Bebas Ganti Foto Bos</h3>
+<h3 style="margin-bottom:10px">Edit Profil - Ganti Foto </h3>
 <img id=editPrev style="width:90px;height:90px;border-radius:50%;border:2px solid #00ff88;display:block;margin:0 auto 10px;object-fit:cover">
 <input id=editName class=inp placeholder="Nama Bos">
 <input id=editPicUrl class=inp placeholder="Link foto bebas (atau upload di bawah)">
@@ -178,11 +178,11 @@ async function loadContent(targetEmail,isMe){
   } else if(activeMainTab==='foto'){
     let photos=window._photosCache||[];
     let addBtn=isMe?'<button class="btn-add-private" onclick="addPhoto()">+ Tambah Foto Private Bos</button>':'';
-    if(!photos.length){ box.innerHTML=addBtn+'<div style="text-align:center;padding:30px;color:#555">Belum ada foto Bos</div>'; return; }
+    if(!photos.length){ box.innerHTML=addBtn+'<div style="text-align:center;padding:30px;color:#555">Belum ada foto</div>'; return; }
     box.innerHTML=addBtn+'<div class="photo-grid-2x2">'+photos.map(p=>'<div class="photo-card"><img src="'+p+'"></div>').join('')+'</div>';
   } else if(activeMainTab==='tulis'){
     try{ let r=await fetch('/api/tulis?t='+Date.now()); let list=await r.json(); let arr=Array.isArray(list)?list:(list.results||list.data||[]); let mine=arr.filter(p=>(p.user_email||p.email||'').toLowerCase()===targetEmail.toLowerCase()); if(!mine.length){box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada tulisan</div>';return;} box.innerHTML=mine.map(p=>'<div class="private-card">'+(p.text||p.isi||'')+'</div>').join(''); }catch{ box.innerHTML='<div style="text-align:center;color:#555">Gagal memuat tulisan</div>'; }
-  } else { box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Segera Bos</div>'; }
+  } else { box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Segera Akan Datang</div>'; }
 }
 function showEdit(){
   document.getElementById('editModal').style.display='grid';
@@ -219,7 +219,7 @@ async function saveEdit(){
   }catch(e){ 
     if(pic.startsWith('data:')){ pic=LOGO_INNER; localStorage.setItem('rg_avatar',pic); toast('Foto kegedean Bos, pakai link aja Bos biar bebas'); }
   }
-  toast('Ganti foto Bos...'); closeEdit(); render();
+  toast('Ganti foto'); closeEdit(); render();
   try{
     await fetch('/api/akun/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),name,picture:pic})});
     toast('Profile update Bos!');

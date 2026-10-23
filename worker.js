@@ -41,7 +41,7 @@ export default {
       return new Response(`User-agent: *\nAllow: /\nSitemap: https://rumahgadang-ai.my.id/sitemap.xml`,{headers:{"Content-Type":"text/plain;charset=utf-8"}});
     }
 
-    // ====== DELETE FIX - GAK NGARUH KE FOTO BOS, CUMA NAMBAH TULIS BOS ======
+    // ====== DELETE FIX BOS - GAK NGARUH KE FOTO, NAMBAH TULIS BOS ======
     if(path==="/api/ig-curated/delete" || path==="/api/images/delete" || path==="/api/foto/delete" || path==="/api/delete" || path==="/api/tulis/delete" || path==="/api/home/delete"){
       try{
         let body={}; try{ body=await req.json(); }catch{}
@@ -77,6 +77,7 @@ export default {
       }
     }
 
+    // ====== DEBUG BOS - BALIK LAGI BOS LENGKAP BOS! ======
     if(path.startsWith("/api/debug")){
       try{
         if(!env.DB) return new Response(JSON.stringify({ok:false, error:"DB GAK ADA BOS"}),{headers:cors});
@@ -84,7 +85,8 @@ export default {
           let ig = await env.DB.prepare("SELECT id, time, akun, linkIG, caption, substr(img,1,30) as img_preview FROM ig_curated ORDER BY id DESC LIMIT 50").all().catch(()=>({results:[]}));
           let img = await env.DB.prepare("SELECT id, time, substr(url,1,30) as url_preview FROM images ORDER BY id DESC LIMIT 50").all().catch(()=>({results:[]}));
           let ft = await env.DB.prepare("SELECT id, time, email FROM foto ORDER BY id DESC LIMIT 50").all().catch(()=>({results:[]}));
-          return new Response(JSON.stringify({ok:true, ig_curated: ig.results, images: img.results, foto: ft.results, count:{ig: ig.results.length, images: img.results.length, foto: ft.results.length}}),{headers:cors});
+          let tl = await env.DB.prepare("SELECT id, time, email, substr(isi,1,30) as isi_preview FROM tulis ORDER BY id DESC LIMIT 50").all().catch(()=>({results:[]}));
+          return new Response(JSON.stringify({ok:true, ig_curated: ig.results, images: img.results, foto: ft.results, tulis: tl.results, count:{ig: ig.results.length, images: img.results.length, foto: ft.results.length, tulis: tl.results.length}}),{headers:cors});
         }
         if(path.includes("/akun")){
           let users = await env.DB.prepare("SELECT rowid, email, name, substr(picture,1,20) as pic_preview FROM users ORDER BY rowid DESC LIMIT 100").all().catch(()=>({results:[], error:"no users"}));
@@ -93,7 +95,7 @@ export default {
           return new Response(JSON.stringify({ok:true, count: cleanUsers.length, akun: cleanUsers, tables: akunT.results.map(t=>t.name)}),{headers:cors});
         }
         let tables = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().catch(()=>({results:[]}));
-        return new Response(JSON.stringify({ok:true, tables: tables.results.map(t=>t.name), hint:"/api/debug/ids untuk foto, /api/debug/akun untuk akun"}),{headers:cors});
+        return new Response(JSON.stringify({ok:true, tables: tables.results.map(t=>t.name), hint:"/api/debug/ids untuk foto+tulis, /api/debug/akun untuk akun"}),{headers:cors});
       }catch(e){
         return new Response(JSON.stringify({ok:false, error:e.message}),{headers:cors,status:500});
       }

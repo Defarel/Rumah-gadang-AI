@@ -106,6 +106,7 @@ export const TULIS_API = {
           await env.DB.prepare(`INSERT INTO tulis_likes (tulis_id,email,time) VALUES (?,?,?)`).bind(id,email,Date.now()).run();
           return new Response(JSON.stringify({ok:true,status:"liked"}),{headers:h});
         }
+      }
 
       // 4. KOMEN - INI YANG BIKIN GAK BISA KOMEN KEMARIN BOS
       if(path === "/api/tulis/komen" && method === "POST"){

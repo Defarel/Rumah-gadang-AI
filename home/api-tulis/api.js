@@ -77,19 +77,24 @@ export const TULIS_API = {
 
           if (!text && !img) continue;
 
-          // CARI FOTO PROFIL TERBARU DARI DB JIKA TIDAK ADA DI PAYLOAD (ATAU MASIH DEFAULT ICON)
-          if (!pic || pic === "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png") {
-            try {
-              // Cek tabel users dulu
-              let u1 = await env.DB.prepare("SELECT picture FROM users WHERE LOWER(email)=?").bind(email).first();
-              if (u1 && u1.picture) {
-                pic = u1.picture;
-              } else {
-                // Jika tidak ada, cek tabel rg_users
-                let u2 = await env.DB.prepare("SELECT picture FROM rg_users WHERE LOWER(email)=?").bind(email).first();
-                if (u2 && u2.picture) pic = u2.picture;
-              }
-            } catch (e) {}
+          if (url.pathname === "/api/tulis" && request.method === "GET") {
+  let r = await env.DB.prepare("SELECT * FROM tulis ORDER BY id DESC LIMIT 100").all();
+  let list = r.results || [];
+  
+  // Enrich - ambil foto profil terbaru dari tabel users
+  for (let x of list) {
+    let email = (x.user_email || x.email || "").toLowerCase();
+    if (!email) continue;
+    try {
+      let u = await env.DB.prepare("SELECT picture FROM users WHERE LOWER(email)=? LIMIT 1").bind(email).first();
+      if (!u) u = await env.DB.prepare("SELECT picture FROM rg_users WHERE LOWER(email)=? LIMIT 1").bind(email).first();
+      if (u && u.picture && u.picture.length > 10) {
+        x.picture = u.picture;
+        x.avatar = u.picture;
+      }
+    } catch {}
+  }
+  return new Response(JSON.stringify(list), { headers: h });
           }
 
           // Fallback terakhir jika memang belum pasang foto profil

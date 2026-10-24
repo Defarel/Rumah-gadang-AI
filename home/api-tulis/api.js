@@ -1,24 +1,24 @@
-// KUNCI 1: TULIS API - LOVE + KOMEN AKTIF 2 TOMBOL (TANPA UNLIKE) FINAL BOS
+// KUNCI 1: TULIS API - LOVE + KOMEN THREAD + HAPUS SENDIRI FINAL BOS
 export const TULIS_API = {
   async handle(req, env, url, cors) {
     const h = { "Content-Type": "application/json", ...cors, "Cache-Control": "no-store" };
     const pathname = url.pathname.toLowerCase();
     const method = req.method;
+    const ADMIN_EMAILS = ["admin@rumahgadang-ai.my.id","naura@rumahgadang-ai.my.id","defarel@rumahgadang-ai.my.id"];
     
     try {
       if (env.DB) {
         await env.DB.prepare(`CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, email TEXT, name TEXT, picture TEXT, tulisImg TEXT, time INTEGER, likes INTEGER DEFAULT 0)`).run();
-        try{ await env.DB.prepare(`SELECT email FROM tulis_likes LIMIT 1`).run(); }
-        catch{ try{ await env.DB.prepare(`DROP TABLE tulis_likes`).run(); }catch{} await env.DB.prepare(`CREATE TABLE tulis_likes (tulis_id TEXT, email TEXT, time INTEGER, PRIMARY KEY(tulis_id, email))`).run(); }
-        try{ await env.DB.prepare(`SELECT email FROM tulis_komen LIMIT 1`).run(); }
-        catch{ try{ await env.DB.prepare(`DROP TABLE tulis_komen`).run(); }catch{} await env.DB.prepare(`CREATE TABLE tulis_komen (id INTEGER PRIMARY KEY AUTOINCREMENT, tulis_id TEXT, email TEXT, name TEXT, picture TEXT, text TEXT, time INTEGER, likes INTEGER DEFAULT 0)`).run(); }
+        await env.DB.prepare(`CREATE TABLE IF NOT EXISTS tulis_likes (tulis_id TEXT, email TEXT, time INTEGER, PRIMARY KEY(tulis_id, email))`).run();
+        await env.DB.prepare(`CREATE TABLE IF NOT EXISTS tulis_komen (id INTEGER PRIMARY KEY AUTOINCREMENT, tulis_id TEXT, email TEXT, name TEXT, picture TEXT, text TEXT, time INTEGER, likes INTEGER DEFAULT 0, parent_id TEXT)`).run();
         await env.DB.prepare(`CREATE TABLE IF NOT EXISTS komen_likes (komen_id TEXT, email TEXT, time INTEGER, PRIMARY KEY(komen_id, email))`).run();
+        try{ await env.DB.prepare(`ALTER TABLE tulis_komen ADD COLUMN parent_id TEXT`).run(); }catch{}
         try{ await env.DB.prepare(`ALTER TABLE tulis_komen ADD COLUMN likes INTEGER DEFAULT 0`).run(); }catch{}
         const newCols = ["user_email TEXT", "judul TEXT", "isi TEXT", "img TEXT", "image TEXT", "url TEXT", "created_at INTEGER", "nama TEXT", "avatar TEXT"];
         for (const c of newCols) { try { await env.DB.prepare(`ALTER TABLE tulis ADD COLUMN ${c}`).run(); } catch {} }
       }
 
-      // 1. GET FEED + LOVE COUNT + KOMEN COUNT
+      // 1. GET FEED
       if (pathname === "/api/tulis" && method === "GET") {
         const me = (url.searchParams.get("me")||"").toLowerCase();
         const r = await env.DB.prepare("SELECT * FROM tulis ORDER BY id DESC LIMIT 100").all();
@@ -70,37 +70,36 @@ export const TULIS_API = {
         return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
-      // 3. LOVE POST - CUMA LOVE, GAK ADA UNLIKE BOS
+      // 3. LOVE POST - TANPA UNLIKE
       if(pathname === "/api/tulis/like" && method === "POST"){
         const b = await req.json().catch(()=>({}));
         const id = String(b.id||b.tulis_id||"");
         const email = (b.email||"").toLowerCase().trim();
         if(!id || !email) return new Response(JSON.stringify({ok:false,error:"id/email kosong"}),{headers:h,status:400});
         const ex = await env.DB.prepare(`SELECT 1 FROM tulis_likes WHERE tulis_id=? AND email=?`).bind(id,email).first();
-        if(!ex){
-          await env.DB.prepare(`INSERT INTO tulis_likes (tulis_id,email,time) VALUES (?,?,?)`).bind(id,email,Date.now()).run();
-        }
+        if(!ex) await env.DB.prepare(`INSERT INTO tulis_likes (tulis_id,email,time) VALUES (?,?,?)`).bind(id,email,Date.now()).run();
         return new Response(JSON.stringify({ok:true,status:"loved"}),{headers:h});
       }
 
-      // 4. KOMEN POST
+      // 4. KOMEN POST + THREAD parent_id
       if(pathname === "/api/tulis/komen" && method === "POST"){
         const b = await req.json().catch(()=>({}));
         const id = String(b.id||b.tulis_id||"");
         const email = (b.email||"").toLowerCase().trim();
         const text = (b.text||"").trim();
+        const parent_id = String(b.parent_id||b.reply_to||"");
         if(!id || !email || !text) return new Response(JSON.stringify({ok:false,error:"kosong"}),{headers:h,status:400});
         const name = b.name||email.split('@')[0];
         const pic = b.picture||"https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
-        await env.DB.prepare(`INSERT INTO tulis_komen (tulis_id,email,name,picture,text,time,likes) VALUES (?,?,?,?,?,?,0)`).bind(id,email,name,pic,text,Date.now()).run();
+        await env.DB.prepare(`INSERT INTO tulis_komen (tulis_id,email,name,picture,text,time,likes,parent_id) VALUES (?,?,?,?,?,?,0,?)`).bind(id,email,name,pic,text,Date.now(),parent_id).run();
         return new Response(JSON.stringify({ok:true}),{headers:h});
       }
 
-      // 5. LIST KOMEN + LOVE KOMEN COUNT (2 TOMBOL AKTIF)
+      // 5. LIST KOMEN + THREAD + LOVE COUNT
       if(pathname === "/api/tulis/komen" && method === "GET"){
         const id = url.searchParams.get("id")||url.searchParams.get("tulis_id")||"";
         const me = (url.searchParams.get("me")||"").toLowerCase();
-        const r = await env.DB.prepare(`SELECT * FROM tulis_komen WHERE tulis_id=? ORDER BY time ASC LIMIT 100`).bind(String(id)).all();
+        const r = await env.DB.prepare(`SELECT * FROM tulis_komen WHERE tulis_id=? ORDER BY time ASC LIMIT 200`).bind(String(id)).all();
         let list = r.results||[];
         for(const k of list){
           try{
@@ -113,20 +112,35 @@ export const TULIS_API = {
         return new Response(JSON.stringify(list),{headers:h});
       }
 
-      // 6. LOVE KOMEN - CUMA LOVE, GAK ADA UNLIKE BOS
+      // 6. LOVE KOMEN - TANPA UNLIKE
       if(pathname === "/api/tulis/komen/like" && method === "POST"){
         const b = await req.json().catch(()=>({}));
         const komen_id = String(b.komen_id||b.id||"");
         const email = (b.email||"").toLowerCase().trim();
         if(!komen_id || !email) return new Response(JSON.stringify({ok:false,error:"kosong"}),{headers:h,status:400});
         const ex = await env.DB.prepare(`SELECT 1 FROM komen_likes WHERE komen_id=? AND email=?`).bind(komen_id,email).first();
-        if(!ex){
-          await env.DB.prepare(`INSERT INTO komen_likes (komen_id,email,time) VALUES (?,?,?)`).bind(komen_id,email,Date.now()).run();
-        }
+        if(!ex) await env.DB.prepare(`INSERT INTO komen_likes (komen_id,email,time) VALUES (?,?,?)`).bind(komen_id,email,Date.now()).run();
         return new Response(JSON.stringify({ok:true,status:"loved"}),{headers:h});
       }
+
+      // 7. HAPUS KOMEN SENDIRI - BUKAN CUMA ADMIN BOS
+      if(pathname === "/api/tulis/komen/delete" && method === "POST"){
+        const b = await req.json().catch(()=>({}));
+        const komen_id = String(b.id||b.komen_id||"");
+        const email = (b.email||"").toLowerCase().trim();
+        if(!komen_id || !email) return new Response(JSON.stringify({ok:false,error:"kosong"}),{headers:h,status:400});
+        const k = await env.DB.prepare(`SELECT email FROM tulis_komen WHERE id=?`).bind(komen_id).first();
+        if(!k) return new Response(JSON.stringify({ok:false,error:"komen gak ada"}),{headers:h,status:404});
+        const isOwner = k.email.toLowerCase()===email;
+        const isAdmin = ADMIN_EMAILS.includes(email);
+        if(!isOwner && !isAdmin) return new Response(JSON.stringify({ok:false,error:"bukan punya kamu bos"}),{headers:h,status:403});
+        await env.DB.prepare(`DELETE FROM tulis_komen WHERE id=?`).bind(komen_id).run();
+        await env.DB.prepare(`DELETE FROM tulis_komen WHERE parent_id=?`).bind(komen_id).run();
+        await env.DB.prepare(`DELETE FROM komen_likes WHERE komen_id=?`).bind(komen_id).run();
+        return new Response(JSON.stringify({ok:true}),{headers:h});
+      }
       
-      // 7. DELETE
+      // 8. DELETE POST
       if (pathname === "/api/tulis/delete" && method === "POST") {
         const j = await req.json().catch(() => ({}));
         if (j.id){

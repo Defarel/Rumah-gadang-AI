@@ -51,12 +51,12 @@ body{background:#000;color:#fff;font-family:sans-serif}
 <div class="bot"><a href="/">🏠<br><span style="font-size:10px">Home</span></a><a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a><a href="/video">🎬<br><span style="font-size:10px">Video</span></a><a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a><a href="/ai">🤖<br><span style="font-size:10px">AI</span></a><a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a></div>
 <div id=toast></div>
 <div id=editModal><div id=editBox>
-<h3 style="margin-bottom:10px">Edit Profil - Ganti Foto </h3>
+<h3 style="margin-bottom:10px">Edit Profil - Ganti Foto</h3>
 <img id=editPrev style="width:90px;height:90px;border-radius:50%;border:2px solid #00ff88;display:block;margin:0 auto 10px;object-fit:cover">
 <input id=editName class=inp placeholder="Nama Bos">
 <input id=editPicUrl class=inp placeholder="Link foto bebas (atau upload di bawah)">
 <input type=file id=editPicFile accept="image/*" class=inp>
-<div style="font-size:11px;color:#00ff88;margin-top:8px">* Foto bebas Bos, gak dikunci Bos, otomatis dikecilin biar kesimpen Bos</div>
+<div style="font-size:11px;color:#00ff88;margin-top:8px">* Foto bebas Bos, gak dikunci, otomatis dikecilin biar kesimpen Bos</div>
 <div style="display:flex;gap:8px;margin-top:12px"><button class=btn-edit onclick="closeEdit()" style="flex:1">Batal</button><button class=btn-neon-follow onclick="saveEdit()" style="flex:1">Simpan Bos</button></div>
 </div></div>
 <script>
@@ -142,7 +142,7 @@ async function renderProfile(container,targetEmail,isMe){
         <div class="stats-wrap"><div><div class="stat-num">\${data.posts||0}</div><div class="stat-label">tulisan</div></div><div><div class="stat-num">\${data.followers||0}</div><div class="stat-label">pengikut</div></div><div><div class="stat-num">\${data.following||0}</div><div class="stat-label">mengikuti</div></div></div>
       </div>
       <div style="font-size:18px;font-weight:900">\${data.name}</div><div style="font-size:12px;color:#00ff88;margin-bottom:14px">\${targetEmail}</div>
-      <div style="margin-bottom:16px">\${isMe ? '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>' : '<button class="'+(data.isFollowing?'btn-following-real':'btn-follow-real')+'" onclick="toggleFollow(\\''+targetEmail+'\\')">'+(data.isFollowing?'✓ Mengikuti':'Follow')+'</button>'}</div>
+      <div style="margin-bottom:16px">\${isMe ? '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit - Ganti Foto</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>' : '<button class="'+(data.isFollowing?'btn-following-real':'btn-follow-real')+'" onclick="toggleFollow(\\''+targetEmail+'\\')">'+(data.isFollowing?'✓ Mengikuti':'Follow')+'</button>'}</div>
       <div class="main-tabs">
         <button class="m-tab \${activeMainTab==='tulis'?'active':''}" onclick="switchTab('tulis')">TULIS</button>
         <button class="m-tab \${activeMainTab==='foto'?'active':''}" onclick="switchTab('foto')">FOTO</button>
@@ -193,18 +193,24 @@ function showEdit(){
   _editB64=null;
   document.getElementById('editPicFile').onchange=(e)=>{
     let f=e.target.files[0]; if(!f) return;
-    let img=new Image();
-    img.onload=()=>{
-      let c=document.createElement('canvas');
-      let max=400; let w=img.width, h=img.height;
-      if(w>h){ if(w>max){ h*=max/w; w=max; } } else { if(h>max){ w*=max/h; h=max; } }
-      c.width=w; c.height=h;
-      c.getContext('2d').drawImage(img,0,0,w,h);
-      _editB64=c.toDataURL('image/jpeg',0.7);
-      document.getElementById('editPrev').src=_editB64;
-      document.getElementById('editPicUrl').value='';
+    if(f.size>5000000) return toast('Foto max 5MB Bos!');
+    let r=new FileReader();
+    r.onload=()=>{
+      let img=new Image();
+      img.onload=()=>{
+        let c=document.createElement('canvas');
+        let max=300; let w=img.width, h=img.height;
+        if(w>h){ if(w>max){ h*=max/w; w=max; } } else { if(h>max){ w*=max/h; h=max; } }
+        c.width=w; c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        _editB64=c.toDataURL('image/jpeg',0.65);
+        document.getElementById('editPrev').src=_editB64;
+        document.getElementById('editPicUrl').value='';
+        toast('Foto siap Bos, klik Simpan');
+      };
+      img.src=r.result;
     };
-    let r=new FileReader(); r.onload=()=>{ img.src=r.result; }; r.readAsDataURL(f);
+    r.readAsDataURL(f);
   };
 }
 function closeEdit(){ document.getElementById('editModal').style.display='none'; }
@@ -215,15 +221,18 @@ async function saveEdit(){
   if(!pic) pic=LOGO_INNER;
   try{ 
     localStorage.setItem('rg_name',name); 
-    localStorage.setItem('rg_avatar',pic); 
+    localStorage.setItem('rg_avatar',pic);
+    localStorage.setItem('rg_profile', JSON.stringify({name,picture:pic}));
   }catch(e){ 
     if(pic.startsWith('data:')){ pic=LOGO_INNER; localStorage.setItem('rg_avatar',pic); toast('Foto kegedean Bos, pakai link aja Bos biar bebas'); }
   }
-  toast('Ganti foto'); closeEdit(); render();
+  toast('Ganti foto...'); closeEdit(); render();
   try{
-    await fetch('/api/akun/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),name,picture:pic})});
-    toast('Profile update Bos!');
-  }catch(e){ console.log('api fail tapi lokal udah Bos',e); }
+    let res=await fetch('/api/akun/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),name,picture:pic})});
+    let j=await res.json();
+    if(j.ok) toast('Foto profil ganti permanen Bos!');
+    else toast('Gagal: '+(j.error||''));
+  }catch(e){ console.log('api fail tapi lokal udah',e); toast('Foto ganti lokal Bos!'); }
 }
 function addPhoto(){
   let input=document.createElement('input'); input.type='file'; input.accept='image/*'; input.multiple=true;

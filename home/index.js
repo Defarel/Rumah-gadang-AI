@@ -144,17 +144,28 @@ loadTulis();
 
 export default {
   async fetch(request, env, ctx) {
-    // Handle API tetap diteruskan kalau kamu punya binding di wrangler.toml
-    // Kalau API di handle worker lain, yang ini cukup balikin HTML
     const url = new URL(request.url);
+
+    // API jangan di fetch ke diri sendiri, itu penyebab [object Object]
     if (url.pathname.startsWith('/api/')) {
-      // biarin lewat ke backend asli kalau ada, atau return 404
-      return fetch(request);
+      // GANTI INI kalau API Uda ada di worker lain
+      // Contoh: return fetch('https://api-rumahgadang.yg-asli.workers.dev' + url.pathname, request);
+      
+      // Untuk sekarang biar web muncul dulu, kita balikin kosong
+      if (url.pathname === '/api/tulis' || url.pathname === '/api/foto' || url.pathname === '/api/video') {
+         return new Response(JSON.stringify([]), {
+           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+         });
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { "Content-Type": "application/json" }
+      });
     }
+
     return new Response(HTML_PAGE, {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "no-store, no-cache"
+        "Cache-Control": "no-store"
       }
     });
   }

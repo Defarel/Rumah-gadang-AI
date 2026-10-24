@@ -29,7 +29,7 @@ export default `<!DOCTYPE html>
 .post-time{font-size:11px;color:#777;margin-left:6px}
 .post-text{margin-top:7px;font-size:14.5px;line-height:1.55;color:#f0f0f0;white-space:pre-wrap;word-break:break-word}
 .post-img{margin-top:11px;border-radius:12px;overflow:hidden;border:1.5px solid #222}
-.post-img img{width:100%;display:block}
+.post-img img{width:100%;display:block;object-fit:cover;max-height:450px}
 .like-bar{margin-top:11px;display:flex;gap:8px}
 .btn-like{background:#161616;border:1px solid #2a2a2a;color:#ddd;padding:7px 13px;border-radius:22px;font-size:12px}
 .del{background:#ff1a1a;color:#fff;border:0;padding:7px 13px;border-radius:22px;font-size:11px;margin-left:auto;cursor:pointer}
@@ -64,9 +64,19 @@ export default `<!DOCTYPE html>
 const LOGO_FALLBACK="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
 const ADMIN_EMAILS=["admin@rumahgadang-ai.my.id","naura@rumahgadang-ai.my.id","defarel@rumahgadang-ai.my.id"];
 let selectedImg="";
-function getEmail(){let e=(localStorage.getItem('rg_email')||"").toLowerCase().trim(); if(e && !e.includes('@')) e=e+'@rumahgadang-ai.my.id'; return e;}
+
+function getEmail(){let e=(localStorage.getItem('rg_email')||localStorage.getItem('user_email')||"").toLowerCase().trim(); if(e && !e.includes('@')) e=e+'@rumahgadang-ai.my.id'; return e;}
 function getName(){return localStorage.getItem('rg_name')|| (getEmail()?getEmail().split('@')[0]:'Dunsanak');}
-function getAvatar(){return localStorage.getItem('rg_avatar')||LOGO_FALLBACK;}
+function getAvatar(){
+  let av = localStorage.getItem('rg_avatar');
+  if(!av){
+    try{
+      let p = JSON.parse(localStorage.getItem('rg_profile')||'{}');
+      if(p.picture) av = p.picture;
+    }catch(e){}
+  }
+  return av || LOGO_FALLBACK;
+}
 function isAdmin(){return ADMIN_EMAILS.includes(getEmail());}
 function clearImg(){selectedImg="";document.getElementById('preview').style.display='none';document.getElementById('prevImg').src="";document.getElementById('fileIn').value="";}
 function openProfil(email){ if(!email) return; location.href='/akun?profil='+encodeURIComponent(email); }
@@ -92,6 +102,7 @@ document.getElementById('fileIn').addEventListener('change',function(e){
 });
 
 function fmtTime(t){let d=new Date(Number(t)||Date.now()); return d.toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
+
 async function loadTulis(){
  try{
   let r=await fetch('/api/tulis',{cache:'no-store'}); 
@@ -100,17 +111,30 @@ async function loadTulis(){
   let h=document.getElementById('homeFeed');
   if(!list.length){h.innerHTML='<div class=empty>Belum ada tulisan Bos</div>';return;}
   let admin=isAdmin();
+  
   h.innerHTML=list.map(x=>{
    let text=x.text||x.isi||x.judul||'';
-   let img=x.tulisImg||x.img||'';
-   let name=x.name||(x.email||'').split('@')[0]||'Dunsanak';
+   // Cek semua kemungkinan nama kolom gambar postingan
+   let img=x.tulisImg || x.img || x.image || x.url || '';
+   let name=x.name||x.nama||(x.email||'').split('@')[0]||'Dunsanak';
    let email=x.user_email||x.email||'';
-   let pic=x.picture||LOGO_FALLBACK;
+   // Cek semua kemungkinan nama kolom foto profil
+   let pic=x.picture || x.avatar || LOGO_FALLBACK;
    let time=x.time||x.created_at||Date.now();
-   return '<div class=post><img class=post-av src="'+pic+'" onclick="openProfil(\\''+email+'\\')" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=post-body><div><span class=post-name onclick="openProfil(\\''+email+'\\')">'+name+'</span><span class=post-email>'+email+'</span><span class=post-time> • '+fmtTime(time)+'</span></div><div class=post-text>'+text.replace(/</g,'&lt;')+'</div>'+(img?'<div class=post-img><img src="'+img+'" loading=lazy></div>':'')+'<div class=like-bar><button class=btn-like>❤️ '+(x.likes||0)+'</button><button class=btn-like>💬 Komen</button>'+(admin?'<button class=del onclick="hapusPost('+x.id+')">HAPUS</button>':'')+'</div></div></div>';
+   
+   return '<div class=post>'+
+            '<img class=post-av src="'+pic+'" onclick="openProfil(\''+email+'\')" onerror="this.src=\''+LOGO_FALLBACK+'\'">'+
+            '<div class=post-body>'+
+              '<div><span class=post-name onclick="openProfil(\''+email+'\')">'+name+'</span><span class=post-email>'+email+'</span><span class=post-time> • '+fmtTime(time)+'</span></div>'+
+              '<div class=post-text>'+text.replace(/</g,'&lt;')+'</div>'+
+              (img?'<div class=post-img><img src="'+img+'" loading=lazy onerror="this.parentNode.style.display=\'none\'"></div>':'')+
+              '<div class=like-bar><button class=btn-like>❤️ '+(x.likes||0)+'</button><button class=btn-like>💬 Komen</button>'+(admin?'<button class=del onclick="hapusPost('+x.id+')">HAPUS</button>':'')+'</div>'+
+            '</div>'+
+          '</div>';
   }).join('');
  }catch(e){document.getElementById('homeFeed').innerHTML='<div class=empty>Error: '+e.message+'</div>';}
 }
+
 async function addTulis(){
  let txt=document.getElementById('tulisIn').value.trim();
  if(!txt&&!selectedImg){alert("Tulis dulu sanak!");return;}
@@ -118,14 +142,15 @@ async function addTulis(){
  try{
   let email=getEmail()||'anon@rumahgadang-ai.my.id';
   if(!email.includes('@'))email=email+'@rumahgadang-ai.my.id';
-  let payload={text:txt,email:email,user_email:email,name:getName(),picture:getAvatar(),tulisImg:selectedImg,isi:txt,img:selectedImg};
+  let payload={text:txt,email:email,user_email:email,name:getName(),picture:getAvatar(),avatar:getAvatar(),tulisImg:selectedImg,isi:txt,img:selectedImg,image:selectedImg};
   let r=await fetch('/api/tulis/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   let j=await r.json(); if(j.ok===false)throw new Error(j.error||'Gagal');
   document.getElementById('tulisIn').value='';clearImg();await loadTulis();
  }catch(e){alert("Gagal Bos: "+e.message);}
  btn.innerText="KIRIM";btn.disabled=false;
 }
-async function hapusPost(id){if(!confirm("Hapus Bos?"))return;await fetch('/api/tulis/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});document.getElementById('post-'+id)?.remove();location.reload();}
+
+async function hapusPost(id){if(!confirm("Hapus Bos?"))return;await fetch('/api/tulis/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});location.reload();}
 loadTulis();
 <\/script></body></html>
 `;

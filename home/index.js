@@ -1,26 +1,5 @@
 <!DOCTYPE html>
-<html><head><style>
-@font-face {
-  font-family: "Optimistic";
-  font-style: normal;
-  font-weight: 400 600;
-  font-display: swap;
-  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Optimistic Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
-}
-:where(html) {
-  font-family: "Optimistic", system-ui, sans-serif;
-}
-:where(code, pre, kbd, samp) {
-  font-family: "Optimistic Mono", ui-monospace, monospace;
-}
-</style>
+<html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Rumah Gadang AI - Komunitas Minangkabau</title>
@@ -45,13 +24,12 @@
 .post-av:active{transform:scale(0.9);box-shadow:0 0 15px #00ff88}
 .post-body{flex:1;min-width:0}
 .post-name{font-weight:800;font-size:14px;color:#fff;cursor:pointer}
-.post-name:active{color:#00ff88}
 .post-email{font-size:11px;color:#00ff88;margin-left:4px;pointer-events:none}
 .post-time{font-size:11px;color:#777;margin-left:6px}
 .post-text{margin-top:7px;font-size:14.5px;line-height:1.55;color:#f0f0f0;white-space:pre-wrap;word-break:break-word}
 .post-img{margin-top:11px;border-radius:12px;overflow:hidden;border:1.5px solid #222;background:#111}
 .post-img img{width:100%;display:block}
-.post-badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;margin-left:6px;display:inline-block;vertical-align:middle}
+.post-badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;margin-left:6px;display:inline-block}
 .badge-tulis{background:#00ff88;color:#000}
 .badge-foto{background:#ffcc00;color:#000}
 .badge-video{background:#ff3b82;color:#fff}
@@ -117,82 +95,52 @@ document.getElementById('fileIn').addEventListener('change',function(e){
 });
 
 function fmtTime(t){let d=new Date(Number(t)||Date.now()); return d.toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
-
 async function safeFetchJson(url){
   try{
-    let r = await fetch(url,{cache:'no-store'});
+    let r=await fetch(url,{cache:'no-store'});
     if(!r.ok) return [];
-    let d = await r.json();
-    return Array.isArray(d) ? d : (d.results || d.data || []);
-  }catch{ return []; }
+    let d=await r.json();
+    return Array.isArray(d)?d:(d.results||d.data||[]);
+  }catch{return [];}
 }
 
 async function loadTulis(){
+ let h=document.getElementById('homeFeed');
  try{
-  let h=document.getElementById('homeFeed');
-  h.innerHTML='<div class=empty>Tunggu sanak...</div>';
-
-  // FETCH 3 ENDPOINT - JANGAN UBAH YANG LAIN, CUMA HOME YANG DIGABUNG
-  let [listTulisRaw, listFotoRaw, listVideoRaw] = await Promise.all([
+  let [tulisRaw, fotoRaw, videoRaw] = await Promise.all([
     safeFetchJson('/api/tulis'),
     safeFetchJson('/api/foto'),
     safeFetchJson('/api/video')
   ]);
 
-  let normalize = (arr, tipe) => arr.map(x=>{
-    // cover semua kemungkinan nama field di API kamu
-    let img = x.tulisImg || x.fotoImg || x.foto_img || x.videoImg || x.thumbnail || x.thumb || x.img || x.image || x.url || x.link || '';
-    let videoUrl = x.videoUrl || x.video_url || x.video || x.urlVideo || '';
-    // kalau img masih base64 kepanjangan, tetap tampil
-    return {
-      id: x.id,
-      type: tipe,
-      text: x.text || x.isi || x.caption || x.deskripsi || x.judul || '',
-      img: img,
-      videoUrl: videoUrl,
-      name: x.name || (x.email||'').split('@')[0] || 'Dunsanak',
-      email: x.user_email || x.email || '',
-      picture: x.picture || x.avatar || LOGO_FALLBACK,
-      time: x.time || x.created_at || x.timestamp || Date.now(),
-      likes: x.likes || 0,
-      raw: x
-    };
-  });
+  let norm = (arr, tipe) => arr.map(x=>({
+    id:x.id,
+    type:tipe,
+    text:x.text||x.isi||x.caption||x.deskripsi||x.judul||'',
+    img:x.tulisImg||x.fotoImg||x.foto_img||x.videoImg||x.thumbnail||x.img||x.image||x.url||'',
+    videoUrl:x.videoUrl||x.video_url||x.video||'',
+    name:x.name||(x.email||'').split('@')[0]||'Dunsanak',
+    email:x.user_email||x.email||'',
+    picture:x.picture||x.avatar||LOGO_FALLBACK,
+    time:x.time||x.created_at||Date.now(),
+    likes:x.likes||0
+  }));
 
-  let all = [
-    ...normalize(listTulisRaw, 'tulis'),
-    ...normalize(listFotoRaw, 'foto'),
-    ...normalize(listVideoRaw, 'video')
-  ];
-
-  // sort terbaru dulu
-  all.sort((a,b)=> Number(b.time) - Number(a.time));
+  let all=[...norm(tulisRaw,'tulis'),...norm(fotoRaw,'foto'),...norm(videoRaw,'video')];
+  all.sort((a,b)=>Number(b.time)-Number(a.time));
 
   if(!all.length){h.innerHTML='<div class=empty>Belum ada tulisan Bos</div>';return;}
   let admin=isAdmin();
 
-  h.innerHTML = all.map(x=>{
-   let badge = x.type==='foto' ? '<span class="post-badge badge-foto">FOTO</span>' : x.type==='video' ? '<span class="post-badge badge-video">VIDEO</span>' : '<span class="post-badge badge-tulis">TULIS</span>';
-   let mediaHtml = '';
-   if(x.videoUrl){
-     mediaHtml = `<div class="post-img"><video src="${x.videoUrl}" controls playsinline style="width:100%;display:block"></video></div>`;
-   } else if(x.img){
-     mediaHtml = `<div class="post-img"><img src="${x.img}" loading="lazy" onerror="this.parentElement.style.display='none'"></div>`;
-   }
-   let safeEmail = (x.email||'').replace(/'/g,"");
-   let safeText = (x.text||'').replace(/</g,'&lt;');
-   return `<div class="post">
-     <img class="post-av" src="${x.picture}" onclick="openProfil('${safeEmail}')" onerror="this.src='${LOGO_FALLBACK}'">
-     <div class="post-body">
-       <div><span class="post-name" onclick="openProfil('${safeEmail}')">${x.name}</span><span class="post-email">${x.email}</span><span class="post-time"> • ${fmtTime(x.time)}</span>${badge}</div>
-       <div class="post-text">${safeText}</div>
-       ${mediaHtml}
-       <div class="like-bar"><button class="btn-like">❤️ ${x.likes}</button><button class="btn-like">💬 Komen</button>${admin?`<button class="del" onclick="hapusPost(${x.id},'${x.type}')">HAPUS</button>`:''}</div>
-     </div>
-   </div>`;
+  h.innerHTML=all.map(x=>{
+    let badge=x.type==='foto'?'<span class="post-badge badge-foto">FOTO</span>':x.type==='video'?'<span class="post-badge badge-video">VIDEO</span>':'<span class="post-badge badge-tulis">TULIS</span>';
+    let media='';
+    if(x.videoUrl) media=`<div class="post-img"><video src="${x.videoUrl}" controls playsinline style="width:100%"></video></div>`;
+    else if(x.img) media=`<div class="post-img"><img src="${x.img}" loading="lazy"></div>`;
+    let safeEmail=(x.email||'').replace(/'/g,"");
+    return `<div class="post"><img class="post-av" src="${x.picture}" onclick="openProfil('${safeEmail}')" onerror="this.src='${LOGO_FALLBACK}'"><div class="post-body"><div><span class="post-name" onclick="openProfil('${safeEmail}')">${x.name}</span><span class="post-email">${x.email}</span><span class="post-time"> • ${fmtTime(x.time)}</span>${badge}</div><div class="post-text">${(x.text||'').replace(/</g,'&lt;')}</div>${media}<div class="like-bar"><button class="btn-like">❤️ ${x.likes}</button><button class="btn-like">💬 Komen</button>${admin?`<button class="del" onclick="hapusPost(${x.id},'${x.type}')">HAPUS</button>`:''}</div></div></div>`;
   }).join('');
-
- }catch(e){document.getElementById('homeFeed').innerHTML='<div class=empty>Error: '+e.message+'</div>';}
+ }catch(e){h.innerHTML='<div class=empty>Error: '+e.message+'</div>';}
 }
 
 async function addTulis(){
@@ -209,15 +157,11 @@ async function addTulis(){
  }catch(e){alert("Gagal Bos: "+e.message);}
  btn.innerText="KIRIM";btn.disabled=false;
 }
-
 async function hapusPost(id,type){
  if(!confirm("Hapus Bos?"))return;
- let endpoint = type==='foto' ? '/api/foto/delete' : type==='video' ? '/api/video/delete' : '/api/tulis/delete';
- try{
-   await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});
- }catch{}
+ let ep=type==='foto'?'/api/foto/delete':type==='video'?'/api/video/delete':'/api/tulis/delete';
+ await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});
  location.reload();
 }
-
 loadTulis();
-</script><script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body></html>
+</script></body></html>

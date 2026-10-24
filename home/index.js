@@ -1,4 +1,4 @@
-const HTML_PAGE = `<!DOCTYPE html>
+export default `<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -20,19 +20,16 @@ const HTML_PAGE = `<!DOCTYPE html>
 #preview img{width:100%;border-radius:14px;max-height:400px;object-fit:cover;border:1.5px solid #00ff88}
 #preview span{position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.85);color:#fff;padding:6px 11px;border-radius:22px;cursor:pointer;border:1px solid #333;font-size:12px}
 .post{padding:14px;display:flex;gap:11px;background:#0c0c0c;margin:12px 10px;border-radius:16px;border-left:2.5px solid #00ff88;border-right:2.5px solid #00ff88;border-bottom:2.5px solid #00ff88;border-top:1px solid #1e1e1e;box-shadow:0 0 12px rgba(0,255,136,0.35)}
-.post-av{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #00ff88;flex-shrink:0;cursor:pointer}
+.post-av{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #00ff88;flex-shrink:0;cursor:pointer;transition:0.2s}
+.post-av:active{transform:scale(0.9);box-shadow:0 0 15px #00ff88}
 .post-body{flex:1;min-width:0}
 .post-name{font-weight:800;font-size:14px;color:#fff;cursor:pointer}
-.post-email{font-size:11px;color:#00ff88;margin-left:4px}
+.post-name:active{color:#00ff88}
+.post-email{font-size:11px;color:#00ff88;margin-left:4px;pointer-events:none}
 .post-time{font-size:11px;color:#777;margin-left:6px}
 .post-text{margin-top:7px;font-size:14.5px;line-height:1.55;color:#f0f0f0;white-space:pre-wrap;word-break:break-word}
-.post-img{margin-top:11px;border-radius:12px;overflow:hidden;border:1.5px solid #222;background:#111}
+.post-img{margin-top:11px;border-radius:12px;overflow:hidden;border:1.5px solid #222}
 .post-img img{width:100%;display:block}
-.post-img video{width:100%;display:block}
-.badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;margin-left:6px}
-.badge-tulis{background:#00ff88;color:#000}
-.badge-foto{background:#ffcc00;color:#000}
-.badge-video{background:#ff3b82;color:#fff}
 .like-bar{margin-top:11px;display:flex;gap:8px}
 .btn-like{background:#161616;border:1px solid #2a2a2a;color:#ddd;padding:7px 13px;border-radius:22px;font-size:12px}
 .del{background:#ff1a1a;color:#fff;border:0;padding:7px 13px;border-radius:22px;font-size:11px;margin-left:auto;cursor:pointer}
@@ -95,34 +92,24 @@ document.getElementById('fileIn').addEventListener('change',function(e){
 });
 
 function fmtTime(t){let d=new Date(Number(t)||Date.now()); return d.toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
-async function safeJson(url){try{let r=await fetch(url,{cache:'no-store'}); if(!r.ok) return []; let j=await r.json(); return Array.isArray(j)?j:(j.results||j.data||[]);}catch{return [];}}
-
 async function loadTulis(){
- let h=document.getElementById('homeFeed');
  try{
-  let [tulisRaw,fotoRaw,videoRaw]=await Promise.all([safeJson('/api/tulis'),safeJson('/api/foto'),safeJson('/api/video')]);
-  let norm=(arr,tipe)=>arr.map(x=>({
-    id:x.id,type:tipe,
-    text:x.text||x.isi||x.caption||x.deskripsi||x.judul||'',
-    img:x.tulisImg||x.fotoImg||x.foto_img||x.videoImg||x.thumbnail||x.img||x.image||x.url||'',
-    videoUrl:x.videoUrl||x.video_url||x.video||'',
-    name:x.name||(x.email||'').split('@')[0]||'Dunsanak',
-    email:x.user_email||x.email||'',
-    picture:x.picture||x.avatar||LOGO_FALLBACK,
-    time:x.time||x.created_at||Date.now(),
-    likes:x.likes||0
-  }));
-  let all=[...norm(tulisRaw,'tulis'),...norm(fotoRaw,'foto'),...norm(videoRaw,'video')];
-  all.sort((a,b)=>Number(b.time)-Number(a.time));
-  if(!all.length){h.innerHTML='<div class=empty>Belum ada tulisan Bos</div>';return;}
+  let r=await fetch('/api/tulis',{cache:'no-store'}); 
+  let d=await r.json();
+  let list=Array.isArray(d)?d:(d.results||[]);
+  let h=document.getElementById('homeFeed');
+  if(!list.length){h.innerHTML='<div class=empty>Belum ada tulisan Bos</div>';return;}
   let admin=isAdmin();
-  h.innerHTML=all.map(x=>{
-    let badge=x.type==='foto'?'<span class=badge style="background:#ffcc00;color:#000">FOTO</span>':x.type==='video'?'<span class=badge style="background:#ff3b82;color:#fff">VIDEO</span>':'<span class=badge style="background:#00ff88;color:#000">TULIS</span>';
-    let media=x.videoUrl?'<div class=post-img><video src="'+x.videoUrl+'" controls playsinline></video></div>':(x.img?'<div class=post-img><img src="'+x.img+'" loading=lazy></div>':'');
-    let safeEmail=(x.email||'').replace(/'/g,"");
-    return '<div class=post><img class=post-av src="'+x.picture+'" onclick="openProfil(\\''+safeEmail+'\\')" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=post-body><div><span class=post-name onclick="openProfil(\\''+safeEmail+'\\')">'+x.name+'</span><span class=post-email>'+x.email+'</span><span class=post-time> • '+fmtTime(x.time)+'</span>'+badge+'</div><div class=post-text>'+(x.text||'').replace(/</g,'&lt;')+'</div>'+media+'<div class=like-bar><button class=btn-like>❤️ '+(x.likes||0)+'</button><button class=btn-like>💬 Komen</button>'+(admin?'<button class=del onclick="hapusPost('+x.id+',\\''+x.type+'\\')">HAPUS</button>':'')+'</div></div></div>';
+  h.innerHTML=list.map(x=>{
+   let text=x.text||x.isi||x.judul||'';
+   let img=x.tulisImg||x.img||'';
+   let name=x.name||(x.email||'').split('@')[0]||'Dunsanak';
+   let email=x.user_email||x.email||'';
+   let pic=x.picture||LOGO_FALLBACK;
+   let time=x.time||x.created_at||Date.now();
+   return '<div class=post><img class=post-av src="'+pic+'" onclick="openProfil(\\''+email+'\\')" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=post-body><div><span class=post-name onclick="openProfil(\\''+email+'\\')">'+name+'</span><span class=post-email>'+email+'</span><span class=post-time> • '+fmtTime(time)+'</span></div><div class=post-text>'+text.replace(/</g,'&lt;')+'</div>'+(img?'<div class=post-img><img src="'+img+'" loading=lazy></div>':'')+'<div class=like-bar><button class=btn-like>❤️ '+(x.likes||0)+'</button><button class=btn-like>💬 Komen</button>'+(admin?'<button class=del onclick="hapusPost('+x.id+')">HAPUS</button>':'')+'</div></div></div>';
   }).join('');
- }catch(e){h.innerHTML='<div class=empty>Error: '+e.message+'</div>';}
+ }catch(e){document.getElementById('homeFeed').innerHTML='<div class=empty>Error: '+e.message+'</div>';}
 }
 async function addTulis(){
  let txt=document.getElementById('tulisIn').value.trim();
@@ -138,35 +125,7 @@ async function addTulis(){
  }catch(e){alert("Gagal Bos: "+e.message);}
  btn.innerText="KIRIM";btn.disabled=false;
 }
-async function hapusPost(id,type){if(!confirm("Hapus Bos?"))return;let ep=type==='foto'?'/api/foto/delete':type==='video'?'/api/video/delete':'/api/tulis/delete';await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});location.reload();}
+async function hapusPost(id){if(!confirm("Hapus Bos?"))return;await fetch('/api/tulis/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});document.getElementById('post-'+id)?.remove();location.reload();}
 loadTulis();
-<\/script></body></html>`;
-
-export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-
-    // API jangan di fetch ke diri sendiri, itu penyebab [object Object]
-    if (url.pathname.startsWith('/api/')) {
-      // GANTI INI kalau API Uda ada di worker lain
-      // Contoh: return fetch('https://api-rumahgadang.yg-asli.workers.dev' + url.pathname, request);
-      
-      // Untuk sekarang biar web muncul dulu, kita balikin kosong
-      if (url.pathname === '/api/tulis' || url.pathname === '/api/foto' || url.pathname === '/api/video') {
-         return new Response(JSON.stringify([]), {
-           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
-         });
-      }
-      return new Response(JSON.stringify({ ok: true }), {
-        headers: { "Content-Type": "application/json" }
-      });
-    }
-
-    return new Response(HTML_PAGE, {
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "no-store"
-      }
-    });
-  }
-}
+<\/script></body></html>
+`;

@@ -46,16 +46,21 @@ export default `<!DOCTYPE html>
 .komen-title{font-weight:900;font-size:20px}
 .komen-close{font-size:22px;padding:6px 10px;cursor:pointer}
 .komen-list{flex:1;overflow-y:auto;padding:10px 16px;display:flex;flex-direction:column;gap:18px}
-.k-item{display:flex;gap:10px}
+.k-item{display:flex;flex-direction:column;gap:0}
+.k-row{display:flex;gap:10px}
 .k-av{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#222;border:1px solid #333}
 .k-body{flex:1;min-width:0}
 .k-user{font-size:13px;color:#aaa;display:flex;gap:6px;flex-wrap:wrap}
 .k-user b{color:#fff}
 .k-text{margin-top:4px;font-size:14.5px;line-height:1.5;color:#f1f1f1;white-space:pre-wrap;word-break:break-word}
-.k-actions{margin-top:8px;display:flex;gap:20px;align-items:center}
-.k-act{display:flex;gap:6px;align-items:center;font-size:14px;color:#aaa;cursor:pointer;padding:6px 12px;border-radius:16px;border:1px solid #2a2a2a;background:#1a1a1a}
-.k-act:active{transform:scale(0.95)}
+.k-actions{margin-top:8px;display:flex;gap:12px;align-items:center}
+.k-act{display:flex;gap:6px;align-items:center;font-size:13px;color:#aaa;cursor:pointer;padding:6px 14px;border-radius:20px;border:1px solid #2a2a2a;background:#1a1a1a}
 .k-act.loved{background:#ff2d55;color:#fff;border-color:#ff2d55;font-weight:900}
+/* INLINE REPLY BOS */
+.inline-box{display:none;margin-top:12px;margin-left:46px;gap:8px;align-items:center}
+.inline-box.show{display:flex}
+.inline-box input{flex:1;background:#1e1e1e;border:1px solid #333;color:#fff;padding:10px 14px;border-radius:20px;font-size:13px;outline:none}
+.inline-box button{width:34px;height:34px;background:#00ff88;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;color:#000;font-weight:900}
 .k-input-bar{padding:10px 12px;border-top:1px solid #222;display:flex;gap:10px;align-items:center;background:#0f0f0f}
 .k-input{flex:1;background:#222;border:1px solid #333;color:#fff;padding:12px 16px;border-radius:24px;font-size:14px;outline:none}
 .k-send{width:40px;height:40px;background:#00ff88;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#000;font-weight:900;border:0;font-size:18px}
@@ -94,7 +99,7 @@ export default `<!DOCTYPE html>
 <script>
 const LOGO_FALLBACK="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
 const ADMIN_EMAILS=["admin@rumahgadang-ai.my.id","naura@rumahgadang-ai.my.id","defarel@rumahgadang-ai.my.id"];
-let selectedImg=""; let activeTulisId=""; let activeKomen=[];
+let selectedImg=""; let activeTulisId=""; let activeKomen=[]; let openReplyId=null;
 function getEmail(){let e=(localStorage.getItem('rg_email')||"").toLowerCase().trim(); if(e && !e.includes('@')) e=e+'@rumahgadang-ai.my.id'; return e;}
 function getName(){return localStorage.getItem('rg_name')|| (getEmail()?getEmail().split('@')[0]:'Dunsanak');}
 function getAvatar(){return localStorage.getItem('rg_avatar')||LOGO_FALLBACK;}
@@ -122,8 +127,6 @@ document.getElementById('fileIn').addEventListener('change',function(e){
 });
 function fmtTime(t){let diff=Date.now()-Number(t); if(diff<60000) return "baru"; if(diff<3600000) return Math.floor(diff/60000)+" mnt lalu"; if(diff<86400000) return Math.floor(diff/3600000)+" jam lalu"; if(diff<2592000000) return Math.floor(diff/86400000)+" hr lalu"; if(diff<31536000000) return Math.floor(diff/2592000000)+" bln lalu"; return Math.floor(diff/31536000000)+" thn lalu"; }
 function fmtTimeFull(t){let d=new Date(Number(t)||Date.now()); return d.toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
-
-// LOVE POST - TANPA UNLIKE BOS
 async function likeTulis(id){
   const email=getEmail(); if(!email){ alert("Login dulu Bos!"); location.href="/akun"; return; }
   const btn=document.getElementById("like-btn-"+id); if(btn) btn.innerHTML="❤️ ⏳";
@@ -137,7 +140,7 @@ function openKomen(id){
   document.getElementById('komenList').innerHTML='<div class=empty>Memuat...</div>';
   loadKomen(id);
 }
-function closeKomen(){ document.getElementById('komenSheet').classList.remove('show'); activeTulisId=""; }
+function closeKomen(){ document.getElementById('komenSheet').classList.remove('show'); activeTulisId=""; openReplyId=null; }
 async function loadKomen(id){
   const me=getEmail();
   let r=await fetch("/api/tulis/komen?id="+id+"&me="+encodeURIComponent(me)+"&t="+Date.now(),{cache:'no-store'});
@@ -152,14 +155,30 @@ function renderKomen(){
     let time=fmtTime(k.time||Date.now());
     let text=(k.text||'').replace(/</g,'&lt;');
     let loved=k.isLiked?" loved":"";
-    return '<div class=k-item><img class=k-av src="'+pic+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=k-body><div class=k-user><b>@'+name+'</b><span> • '+time+'</span></div><div class=k-text>'+text+'</div><div class=k-actions><div class="k-act'+loved+'" onclick="loveKomen(\\''+k.id+'\\')"><span>❤️</span><span>'+(k.likes>0?k.likes:'Love')+'</span></div><div class=k-act onclick="replyKomen(\\''+name+'\\')"><span>💬</span><span>Balas</span></div></div></div></div>';
+    return '<div class=k-item><div class=k-row><img class=k-av src="'+pic+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=k-body><div class=k-user><b>@'+name+'</b><span> • '+time+'</span></div><div class=k-text>'+text+'</div><div class=k-actions><div class="k-act'+loved+'" onclick="loveKomen(\\''+k.id+'\\')"><span>❤️</span><span>'+(k.likes>0?k.likes:'Love')+'</span></div><div class=k-act onclick="toggleInline(\\''+k.id+'\\',\\''+name+'\\')"><span>💬</span><span>Balas</span></div></div></div></div><div id="inline-'+k.id+'" class="inline-box"><input id="inline-input-'+k.id+'" placeholder="Balas @'+name+'..."><button onclick="sendInline(\\''+k.id+'\\')">➤</button></div></div>';
   }).join('');
 }
 async function loveKomen(komen_id){
   const email=getEmail(); if(!email){ alert("Login dulu Bos!"); return; }
-  try{ await fetch("/api/tulis/komen/like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({komen_id:String(komen_id),email:email})}); await loadKomen(activeTulisId); }catch{}
+  await fetch("/api/tulis/komen/like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({komen_id:String(komen_id),email:email})});
+  await loadKomen(activeTulisId);
 }
-function replyKomen(name){ let input=document.getElementById('kInput'); input.value="@"+name+" "; input.focus(); }
+function toggleInline(komen_id, name){
+  let box=document.getElementById("inline-"+komen_id);
+  if(!box) return;
+  if(openReplyId===komen_id){ box.classList.remove("show"); openReplyId=null; return; }
+  if(openReplyId){ let prev=document.getElementById("inline-"+openReplyId); if(prev) prev.classList.remove("show"); }
+  box.classList.add("show"); openReplyId=komen_id;
+  let inp=document.getElementById("inline-input-"+komen_id); inp.value="@"+name+" "; inp.focus();
+}
+async function sendInline(komen_id){
+  let inp=document.getElementById("inline-input-"+komen_id); let text=inp.value.trim(); if(!text) return;
+  const email=getEmail(); if(!email){ alert("Login dulu Bos!"); return; }
+  inp.value=""; document.getElementById("inline-"+komen_id).classList.remove("show"); openReplyId=null;
+  await fetch("/api/tulis/komen",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:String(activeTulisId),email:email,text:text,name:getName(),picture:getAvatar()})});
+  await loadKomen(activeTulisId); loadTulis();
+}
+// BALAS UTAMA TETAP BOTTOM SHEET BOS
 async function sendKomen(){
   let input=document.getElementById('kInput'); let text=input.value.trim(); if(!text) return;
   const email=getEmail(); if(!email){ alert("Login dulu Bos!"); location.href="/akun"; return; }

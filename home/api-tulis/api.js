@@ -1,7 +1,9 @@
-// KUNCI 1: TULIS API - FULL FITUR AUTO-AVATAR & AUTO-EMAIL (RAPI)
+// KUNCI 1: TULIS API - FULL FITUR AUTO-AVATAR + LIKE + KOMEN (GABUNGAN FIX BOS)
 export const TULIS_API = {
   async handle(req, env, url, cors) {
-    const h = { "Content-Type": "application/json", ...cors };
+    const h = { "Content-Type": "application/json", ...cors, "Cache-Control": "no-store" };
+    const pathname = url.pathname.toLowerCase();
+    const method = req.method;
     
     try {
       // 0. INIT DB
@@ -18,6 +20,8 @@ export const TULIS_API = {
             likes INTEGER DEFAULT 0
           )
         `).run();
+        await env.DB.prepare(`CREATE TABLE IF NOT EXISTS tulis_likes (tulis_id TEXT, email TEXT, time INTEGER, PRIMARY KEY(tulis_id, email))`).run();
+        await env.DB.prepare(`CREATE TABLE IF NOT EXISTS tulis_komen (id INTEGER PRIMARY KEY AUTOINCREMENT, tulis_id TEXT, email TEXT, name TEXT, picture TEXT, text TEXT, time INTEGER)`).run();
 
         const newCols = [
           "user_email TEXT", "judul TEXT", "isi TEXT",
@@ -29,34 +33,43 @@ export const TULIS_API = {
         }
       }
 
-      // 1. GET /api/tulis - AMBIL FEED + ENRICH AVATAR TERBARU
-      if (url.pathname === "/api/tulis" && req.method === "GET") {
+      // 1. GET /api/tulis - AMBIL FEED + ENRICH AVATAR + LIKE COUNT
+      if (pathname === "/api/tulis" && method === "GET") {
+        const me = (url.searchParams.get("me")||"").toLowerCase();
         const r = await env.DB.prepare("SELECT * FROM tulis ORDER BY id DESC LIMIT 100").all();
         const list = r.results || [];
 
-        // Ambil foto profil terbaru dari tabel users / rg_users
         for (const x of list) {
           const email = (x.user_email || x.email || "").toLowerCase().trim();
-          if (!email) continue;
-          try {
-            let u = await env.DB.prepare("SELECT picture FROM users WHERE LOWER(email)=? LIMIT 1").bind(email).first();
-            if (!u) u = await env.DB.prepare("SELECT picture FROM rg_users WHERE LOWER(email)=? LIMIT 1").bind(email).first();
-            if (u?.picture && u.picture.length > 10) {
-              x.picture = u.picture;
-              x.avatar = u.picture;
-            }
-          } catch {}
+          if (email) {
+            try {
+              let u = await env.DB.prepare("SELECT picture FROM users WHERE LOWER(email)=? LIMIT 1").bind(email).first();
+              if (!u) u = await env.DB.prepare("SELECT picture FROM rg_users WHERE LOWER(email)=? LIMIT 1").bind(email).first();
+              if (u?.picture && u.picture.length > 10) {
+                x.picture = u.picture;
+                x.avatar = u.picture;
+              }
+            } catch {}
+          }
+          // HITUNG LIKE & KOMEN - FIX BOS
+          try{
+            const lc = await env.DB.prepare(`SELECT COUNT(*) as c FROM tulis_likes WHERE tulis_id=?`).bind(String(x.id)).first();
+            const kc = await env.DB.prepare(`SELECT COUNT(*) as c FROM tulis_komen WHERE tulis_id=?`).bind(String(x.id)).first();
+            const liked = me ? await env.DB.prepare(`SELECT 1 FROM tulis_likes WHERE tulis_id=? AND LOWER(email)=?`).bind(String(x.id), me).first() : null;
+            x.likes = lc?.c || x.likes || 0;
+            x.komen_count = kc?.c || 0;
+            x.isLiked = !!liked;
+          }catch{}
         }
         return new Response(JSON.stringify(list), { headers: h });
       }
 
       // 2. POST /api/tulis/add - KIRIM POSTINGAN
-      if ((url.pathname === "/api/tulis" || url.pathname === "/api/tulis/add") && req.method === "POST") {
+      if ((pathname === "/api/tulis" || pathname === "/api/tulis/add") && method === "POST") {
         const j = await req.json().catch(() => ({}));
         const list = Array.isArray(j) ? j : [j];
 
         for (const x of list) {
-          // Normalisasi Email
           let raw = (x.email || x.user_email || "").trim();
           let email = !raw ? "anon@rumahgadang-ai.my.id" 
             : raw.includes("@") ? raw.toLowerCase() 
@@ -70,7 +83,6 @@ export const TULIS_API = {
 
           if (!text && !img) continue;
 
-          // Cari foto profil terbaru jika tidak ada di payload
           if (!pic || pic.includes("icon.png")) {
             try {
               let u = await env.DB.prepare("SELECT picture FROM users WHERE LOWER(email)=?").bind(email).first();
@@ -92,8 +104,8 @@ export const TULIS_API = {
         return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
-      // 3. LIKE / UNLIKE - INI YANG BIKIN GAK BISA LIKE KEMARIN BOS
-      if(path === "/api/tulis/like" && method === "POST"){
+      // 3. LIKE / UNLIKE - FIX path is not defined BOS
+      if(pathname === "/api/tulis/like" && method === "POST"){
         const b = await req.json().catch(()=>({}));
         const id = String(b.id||b.tulis_id||"");
         const email = (b.email||"").toLowerCase().trim();
@@ -108,8 +120,8 @@ export const TULIS_API = {
         }
       }
 
-      // 4. KOMEN - INI YANG BIKIN GAK BISA KOMEN KEMARIN BOS
-      if(path === "/api/tulis/komen" && method === "POST"){
+      // 4. KOMEN POST
+      if(pathname === "/api/tulis/komen" && method === "POST"){
         const b = await req.json().catch(()=>({}));
         const id = String(b.id||b.tulis_id||"");
         const email = (b.email||"").toLowerCase().trim();
@@ -122,16 +134,21 @@ export const TULIS_API = {
       }
 
       // 5. LIST KOMEN
-      if(path === "/api/tulis/komen" && method === "GET"){
+      if(pathname === "/api/tulis/komen" && method === "GET"){
         const id = url.searchParams.get("id")||url.searchParams.get("tulis_id")||"";
         const r = await env.DB.prepare(`SELECT * FROM tulis_komen WHERE tulis_id=? ORDER BY time ASC LIMIT 100`).bind(String(id)).all();
         return new Response(JSON.stringify(r.results||[]),{headers:h});
       }
       
-      // 6. POST /api/tulis/delete - HAPUS
-      if (url.pathname === "/api/tulis/delete" && req.method === "POST") {
+      // 6. DELETE
+      if (pathname === "/api/tulis/delete" && method === "POST") {
         const j = await req.json().catch(() => ({}));
-        if (j.id) await env.DB.prepare("DELETE FROM tulis WHERE id=?").bind(j.id).run();
+        if (j.id){
+          await env.DB.prepare("DELETE FROM tulis WHERE id=?").bind(j.id).run();
+          await env.DB.prepare("DELETE FROM tulis WHERE CAST(id AS TEXT)=?").bind(String(j.id)).run();
+          await env.DB.prepare("DELETE FROM tulis_likes WHERE tulis_id=?").bind(String(j.id)).run();
+          await env.DB.prepare("DELETE FROM tulis_komen WHERE tulis_id=?").bind(String(j.id)).run();
+        }
         return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 

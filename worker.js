@@ -41,7 +41,6 @@ export default {
       return new Response(`User-agent: *\nAllow: /\nSitemap: https://rumahgadang-ai.my.id/sitemap.xml`,{headers:{"Content-Type":"text/plain;charset=utf-8"}});
     }
 
-    // ====== DELETE FIX BOS - GAK NGARUH KE FOTO, NAMBAH TULIS BOS ======
     if(path==="/api/ig-curated/delete" || path==="/api/images/delete" || path==="/api/foto/delete" || path==="/api/delete" || path==="/api/tulis/delete" || path==="/api/home/delete"){
       try{
         let body={}; try{ body=await req.json(); }catch{}
@@ -55,29 +54,12 @@ export default {
             try{ let r=await env.DB.prepare(`DELETE FROM ${tbl} WHERE CAST(id AS TEXT)=?`).bind(idDel).run(); logs.push(tbl+"_str:"+r.meta.changes); }catch(e){ logs.push(tbl+"_str_err:"+e.message); }
           }
         }
-        for(let kvName of Object.keys(env)){
-          let kv = env[kvName];
-          if(!kv || typeof kv.get !== 'function') continue;
-          try{
-            for(let key of ['curated','images','list','IG_CURATED','FOTO','HOME_TULIS','tulis']){
-              let raw = await kv.get(key).catch(()=>null);
-              if(!raw) continue;
-              let arr = JSON.parse(raw);
-              if(Array.isArray(arr)){
-                let filtered = arr.filter(x=> String(x.id||x._id||'') !== idDel);
-                if(filtered.length !== arr.length){ await kv.put(key, JSON.stringify(filtered)); }
-              }
-            }
-            await kv.delete(idDel).catch(()=>{});
-          }catch{}
-        }
         return new Response(JSON.stringify({ok:true,deleted:idDel, logs:logs}),{headers:cors});
       }catch(e){
         return new Response(JSON.stringify({ok:false,error:e.message}),{headers:cors,status:500});
       }
     }
 
-    // ====== DEBUG BOS - BALIK LAGI BOS LENGKAP BOS! ======
     if(path.startsWith("/api/debug")){
       try{
         if(!env.DB) return new Response(JSON.stringify({ok:false, error:"DB GAK ADA BOS"}),{headers:cors});
@@ -86,16 +68,15 @@ export default {
           let img = await env.DB.prepare("SELECT id, time, substr(url,1,30) as url_preview FROM images ORDER BY id DESC LIMIT 50").all().catch(()=>({results:[]}));
           let ft = await env.DB.prepare("SELECT id, time, email FROM foto ORDER BY id DESC LIMIT 50").all().catch(()=>({results:[]}));
           let tl = await env.DB.prepare("SELECT id, time, email, substr(isi,1,30) as isi_preview FROM tulis ORDER BY id DESC LIMIT 50").all().catch(()=>({results:[]}));
-          return new Response(JSON.stringify({ok:true, ig_curated: ig.results, images: img.results, foto: ft.results, tulis: tl.results, count:{ig: ig.results.length, images: img.results.length, foto: ft.results.length, tulis: tl.results.length}}),{headers:cors});
+          return new Response(JSON.stringify({ok:true, ig_curated: ig.results, images: img.results, foto: ft.results, tulis: tl.results}),{headers:cors});
         }
         if(path.includes("/akun")){
-          let users = await env.DB.prepare("SELECT rowid, email, name, substr(picture,1,20) as pic_preview FROM users ORDER BY rowid DESC LIMIT 100").all().catch(()=>({results:[], error:"no users"}));
-          let akunT = await env.DB.prepare("SELECT * FROM sqlite_master WHERE type='table'").all().catch(()=>({results:[]}));
+          let users = await env.DB.prepare("SELECT rowid, email, name, substr(picture,1,20) as pic_preview FROM users ORDER BY rowid DESC LIMIT 100").all().catch(()=>({results:[]}));
           let cleanUsers = users.results.map(u=>({id:u.rowid, email:u.email, name:u.name}));
-          return new Response(JSON.stringify({ok:true, count: cleanUsers.length, akun: cleanUsers, tables: akunT.results.map(t=>t.name)}),{headers:cors});
+          return new Response(JSON.stringify({ok:true, count: cleanUsers.length, akun: cleanUsers}),{headers:cors});
         }
         let tables = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().catch(()=>({results:[]}));
-        return new Response(JSON.stringify({ok:true, tables: tables.results.map(t=>t.name), hint:"/api/debug/ids untuk foto+tulis, /api/debug/akun untuk akun"}),{headers:cors});
+        return new Response(JSON.stringify({ok:true, tables: tables.results.map(t=>t.name)}),{headers:cors});
       }catch(e){
         return new Response(JSON.stringify({ok:false, error:e.message}),{headers:cors,status:500});
       }
@@ -110,7 +91,7 @@ export default {
         if(path.startsWith('/api/tulis')){
           let m=getApi(TULIS_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
         }
-        if(path.startsWith('/api/foto') || path.startsWith('/api/images') || path.startsWith('/api/ig-curated') || path.startsWith('/api/ig-preview') || path.startsWith('/api/delete') || path.startsWith('/api/debug')){
+        if(path.startsWith('/api/foto') || path.startsWith('/api/images') || path.startsWith('/api/ig-curated') || path.startsWith('/api/ig-preview')){
           let m=getApi(FOTO_API_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
         }
         if(path.startsWith('/api/video')){
@@ -122,26 +103,31 @@ export default {
         if(path.startsWith('/api/ai')){
           let m=getApi(AI_API_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
         }
-        if(path.startsWith('/api/sitemap')||path.startsWith('/sitemap')){
-          let m=getApi(SITEMAP_M); if(m?.handle){ let r=await m.handle(req,env,url); if(r) return r; }
-        }
       }catch(e){
         return new Response(JSON.stringify({ok:false,error:e.message}),{headers:cors,status:500});
       }
       return new Response(JSON.stringify({ok:false,error:"No handler "+path}),{headers:cors,status:404});
     }
 
+    // ====== TAMBAHAN AKUN DI PROFIL BOS ======
     if(path==="/"||path==="/home"||path.startsWith("/home/")) return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     if(path.startsWith("/foto")) return new Response(FOTO_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     if(path.startsWith("/video")) return new Response(VIDEO_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     if(path.startsWith("/ai")) return new Response(AI_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     if(path.startsWith("/kantor")) return new Response(KANTOR_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
-    if(path.startsWith("/akun")) return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     
-    let seg=path.replace(/^\/+/,"").split("/")[0];
-    if(seg && !["home","foto","video","ai","kantor","akun","api","sitemap","robots","icon.png","favicon.ico"].includes(seg) && !seg.includes(".") && seg.length>=2){
+    // AKUN + PROFIL - SEMUA JALUR PROFIL MASUK AKUN
+    if(path.startsWith("/akun") || path.startsWith("/profil") || path.startsWith("/profile") || path.startsWith("/u/")) {
       return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
     }
+    
+    // JIKA SEGMENT ADALAH USERNAME / EMAIL TANPA @ (contoh: /caca, /admin, /naura)
+    let seg=path.replace(/^\/+/,"").split("/")[0];
+    if(seg && !["home","foto","video","ai","kantor","akun","api","sitemap","robots","profil","profile","icon.png","favicon.ico"].includes(seg) && !seg.includes(".") && seg.length>=2){
+      // Ini dianggap profil username, misal rumahgadang-ai.my.id/caca
+      return new Response(AKUN_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
+    }
+    
     return new Response(HOME_HTML,{headers:{"Content-Type":"text/html;charset=utf-8"}});
   }
 }

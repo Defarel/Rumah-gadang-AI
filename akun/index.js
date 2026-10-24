@@ -60,8 +60,9 @@ body{background:#000;color:#fff;font-family:sans-serif}
 <div style="display:flex;gap:8px;margin-top:12px"><button class=btn-edit onclick="closeEdit()" style="flex:1">Batal</button><button class=btn-neon-follow onclick="saveEdit()" style="flex:1">Simpan Bos</button></div>
 </div></div>
 <script>
-const LOGO_INNER="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg";
-const LOGO_LOGIN="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg";
+const LOGO_INNER="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
+const LOGO_LOGIN="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
+const LOGO_VIDEO = "https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@9fa479e6634ebcb2f1dfcde85fb106ac77d2b122/akun/RumahGadangV2.mp4";
 let activeMainTab="teman"; let viewingUserEmail=null; let _editB64=null; window.loginMode='masuk';
 function toast(m){let t=document.getElementById('toast');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
 function getMyEmail(){return (localStorage.getItem('rg_email')||"").toLowerCase().trim();}

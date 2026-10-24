@@ -37,8 +37,6 @@ export default `<!DOCTYPE html>
 .bot a.on{color:#00ff88}
 .bot a span{font-size:10px;display:block;margin-top:2px;font-weight:700}
 .empty{text-align:center;padding:50px 20px;color:#666}
-
-/* SHEET KOMEN YOUTUBE TANPA TABS BOS */
 #komenSheet{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.7)}
 #komenSheet.show{display:block}
 .komen-panel{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:525px;background:#0f0f0f;border-top-left-radius:18px;border-top-right-radius:18px;max-height:85vh;display:flex;flex-direction:column;border-top:2.5px solid #00ff88;animation:slideUp .3s ease}
@@ -54,11 +52,13 @@ export default `<!DOCTYPE html>
 .k-user{font-size:13px;color:#aaa;display:flex;gap:6px;flex-wrap:wrap}
 .k-user b{color:#fff}
 .k-text{margin-top:4px;font-size:14.5px;line-height:1.5;color:#f1f1f1;white-space:pre-wrap;word-break:break-word}
-.k-actions{margin-top:8px;display:flex;gap:18px;align-items:center}
-.k-act{display:flex;gap:6px;align-items:center;font-size:13px;color:#aaa;cursor:pointer}
+.k-actions{margin-top:8px;display:flex;gap:20px;align-items:center}
+.k-act{display:flex;gap:6px;align-items:center;font-size:14px;color:#aaa;cursor:pointer;padding:6px 12px;border-radius:16px;border:1px solid #2a2a2a;background:#1a1a1a}
+.k-act:active{transform:scale(0.95)}
+.k-act.loved{background:#ff2d55;color:#fff;border-color:#ff2d55;font-weight:900}
 .k-input-bar{padding:10px 12px;border-top:1px solid #222;display:flex;gap:10px;align-items:center;background:#0f0f0f}
 .k-input{flex:1;background:#222;border:1px solid #333;color:#fff;padding:12px 16px;border-radius:24px;font-size:14px;outline:none}
-.k-send{width:36px;height:36px;background:#00ff88;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#000;font-weight:900;border:0}
+.k-send{width:40px;height:40px;background:#00ff88;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#000;font-weight:900;border:0;font-size:18px}
 </style></head><body>
 <div id=app>
 <div class=top><div style="display:flex;gap:10px;align-items:center"><img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png" class=logo><div class=brand>RUMAH GADANG AI</div></div><button class=btnLogin id=btnLoginTop onclick="location.href='/akun'">LOGIN</button></div>
@@ -101,7 +101,6 @@ function getAvatar(){return localStorage.getItem('rg_avatar')||LOGO_FALLBACK;}
 function isAdmin(){return ADMIN_EMAILS.includes(getEmail());}
 function clearImg(){selectedImg="";document.getElementById('preview').style.display='none';document.getElementById('prevImg').src="";document.getElementById('fileIn').value="";}
 function openProfil(email){ if(!email) return; location.href='/akun?profil='+encodeURIComponent(email); }
-
 document.getElementById('fileIn').addEventListener('change',function(e){
  let f=e.target.files[0]; if(!f) return;
  let r=new FileReader();
@@ -121,21 +120,16 @@ document.getElementById('fileIn').addEventListener('change',function(e){
  };
  r.readAsDataURL(f);
 });
-
 function fmtTime(t){let diff=Date.now()-Number(t); if(diff<60000) return "baru"; if(diff<3600000) return Math.floor(diff/60000)+" mnt lalu"; if(diff<86400000) return Math.floor(diff/3600000)+" jam lalu"; if(diff<2592000000) return Math.floor(diff/86400000)+" hr lalu"; if(diff<31536000000) return Math.floor(diff/2592000000)+" bln lalu"; return Math.floor(diff/31536000000)+" thn lalu"; }
 function fmtTimeFull(t){let d=new Date(Number(t)||Date.now()); return d.toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
 
+// LOVE POST - TANPA UNLIKE BOS
 async function likeTulis(id){
-  const email = getEmail();
-  if(!email){ alert("Login dulu Bos!"); location.href="/akun"; return; }
-  const btn = document.getElementById("like-btn-"+id);
-  if(btn) btn.innerHTML = "⏳";
-  try{
-    await fetch("/api/tulis/like", {method:"POST",headers:{"Content-Type":"application/json"},body: JSON.stringify({id: String(id), email: email})});
-    loadTulis();
-  }catch(e){ loadTulis(); }
+  const email=getEmail(); if(!email){ alert("Login dulu Bos!"); location.href="/akun"; return; }
+  const btn=document.getElementById("like-btn-"+id); if(btn) btn.innerHTML="❤️ ⏳";
+  try{ await fetch("/api/tulis/like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:String(id),email:email})}); }catch{}
+  loadTulis();
 }
-
 function openKomen(id){
   activeTulisId=id;
   document.getElementById('kMyAv').src=getAvatar();
@@ -144,70 +138,52 @@ function openKomen(id){
   loadKomen(id);
 }
 function closeKomen(){ document.getElementById('komenSheet').classList.remove('show'); activeTulisId=""; }
-
 async function loadKomen(id){
-  try{
-    let r = await fetch("/api/tulis/komen?id="+id+"&t="+Date.now(),{cache:'no-store'});
-    activeKomen = await r.json();
-    renderKomen();
-  }catch(e){ document.getElementById('komenList').innerHTML='<div class=empty>Gagal load komen</div>'; }
+  const me=getEmail();
+  let r=await fetch("/api/tulis/komen?id="+id+"&me="+encodeURIComponent(me)+"&t="+Date.now(),{cache:'no-store'});
+  activeKomen=await r.json(); renderKomen();
 }
 function renderKomen(){
-  let list=[...activeKomen].sort((a,b)=>(b.time||0)-(a.time||0));
   let h=document.getElementById('komenList');
-  if(!list.length){ h.innerHTML='<div class=empty>Belum ada komentar. Jadi yang pertama Bos!</div>'; return; }
-  h.innerHTML=list.map(k=>{
+  if(!activeKomen.length){ h.innerHTML='<div class=empty>Belum ada komentar. Jadi yang pertama Bos!</div>'; return; }
+  h.innerHTML=activeKomen.map(k=>{
     let name=k.name||(k.email||'').split('@')[0]||'Dunsanak';
     let pic=k.picture||LOGO_FALLBACK;
     let time=fmtTime(k.time||Date.now());
     let text=(k.text||'').replace(/</g,'&lt;');
-    return '<div class=k-item><img class=k-av src="'+pic+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=k-body><div class=k-user><b>@'+name+'</b><span> • '+time+'</span></div><div class=k-text>'+text+'</div><div class=k-actions><div class=k-act>👍 '+(k.likes||'')+'</div><div class=k-act>👎</div><div class=k-act>💬</div><div class=k-act>❤️</div></div></div><div style="color:#aaa;font-size:18px;cursor:pointer">⋮</div></div>';
+    let loved=k.isLiked?" loved":"";
+    return '<div class=k-item><img class=k-av src="'+pic+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=k-body><div class=k-user><b>@'+name+'</b><span> • '+time+'</span></div><div class=k-text>'+text+'</div><div class=k-actions><div class="k-act'+loved+'" onclick="loveKomen(\\''+k.id+'\\')"><span>❤️</span><span>'+(k.likes>0?k.likes:'Love')+'</span></div><div class=k-act onclick="replyKomen(\\''+name+'\\')"><span>💬</span><span>Balas</span></div></div></div></div>';
   }).join('');
 }
+async function loveKomen(komen_id){
+  const email=getEmail(); if(!email){ alert("Login dulu Bos!"); return; }
+  try{ await fetch("/api/tulis/komen/like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({komen_id:String(komen_id),email:email})}); await loadKomen(activeTulisId); }catch{}
+}
+function replyKomen(name){ let input=document.getElementById('kInput'); input.value="@"+name+" "; input.focus(); }
 async function sendKomen(){
-  let input=document.getElementById('kInput');
-  let text=input.value.trim();
-  if(!text) return;
-  const email=getEmail();
-  if(!email){ alert("Login dulu Bos!"); location.href="/akun"; return; }
-  input.value="";
-  try{
-    await fetch("/api/tulis/komen",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:String(activeTulisId), email:email, text:text, name:getName(), picture:getAvatar()})});
-    await loadKomen(activeTulisId);
-    loadTulis();
-  }catch(e){ alert("Gagal kirim komen Bos"); }
+  let input=document.getElementById('kInput'); let text=input.value.trim(); if(!text) return;
+  const email=getEmail(); if(!email){ alert("Login dulu Bos!"); location.href="/akun"; return; }
+  input.value=""; await fetch("/api/tulis/komen",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:String(activeTulisId),email:email,text:text,name:getName(),picture:getAvatar()})});
+  await loadKomen(activeTulisId); loadTulis();
 }
 document.getElementById('kInput').addEventListener('keydown',e=>{ if(e.key==='Enter') sendKomen(); });
-
 async function loadTulis(){
  try{
-  const me = getEmail();
-  if(me) document.getElementById('btnLoginTop').innerText = me.split('@')[0].toUpperCase().slice(0,8);
+  const me=getEmail(); if(me) document.getElementById('btnLoginTop').innerText=me.split('@')[0].toUpperCase().slice(0,8);
   let r=await fetch('/api/tulis?me='+encodeURIComponent(me)+'&t='+Date.now(),{cache:'no-store'}); 
-  let d=await r.json();
-  let list=Array.isArray(d)?d:(d.results||[]);
-  let h=document.getElementById('homeFeed');
-  if(!list.length){h.innerHTML='<div class=empty>Belum ada tulisan Bos</div>';return;}
-  let admin=isAdmin();
+  let d=await r.json(); let list=Array.isArray(d)?d:(d.results||[]);
+  let h=document.getElementById('homeFeed'); if(!list.length){h.innerHTML='<div class=empty>Belum ada tulisan Bos</div>';return;} let admin=isAdmin();
   h.innerHTML=list.map(x=>{
-   let text=x.text||x.isi||x.judul||'';
-   let img=x.tulisImg||x.img||'';
-   let name=x.name||(x.email||'').split('@')[0]||'Dunsanak';
-   let email=x.user_email||x.email||'';
-   let pic=x.picture||LOGO_FALLBACK;
-   let time=x.time||x.created_at||Date.now();
-   let likedClass = x.isLiked ? " liked" : "";
-   return '<div class=post id="post-'+x.id+'"><img class=post-av src="'+pic+'" onclick="openProfil(\\''+email+'\\')" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=post-body><div><span class=post-name onclick="openProfil(\\''+email+'\\')">'+name+'</span><span class=post-email>'+email+'</span><span class=post-time> • '+fmtTimeFull(time)+'</span></div><div class=post-text>'+text.replace(/</g,'&lt;')+'</div>'+(img?'<div class=post-img><img src="'+img+'" loading=lazy></div>':'')+'<div class=like-bar><button id="like-btn-'+x.id+'" class="btn-like'+likedClass+'" onclick="likeTulis(\\''+x.id+'\\')"> '+(x.isLiked?'❤️':'🤍')+' '+(x.likes||0)+'</button><button class=btn-like onclick="openKomen(\\''+x.id+'\\')">💬 Komen '+(x.komen_count||0)+'</button>'+(admin?'<button class=del onclick="hapusPost('+x.id+')">HAPUS</button>':'')+'</div></div></div>';
+   let text=x.text||x.isi||x.judul||''; let img=x.tulisImg||x.img||''; let name=x.name||(x.email||'').split('@')[0]||'Dunsanak'; let email=x.user_email||x.email||''; let pic=x.picture||LOGO_FALLBACK; let time=x.time||x.created_at||Date.now(); let likedClass=x.isLiked?" liked":"";
+   return '<div class=post id="post-'+x.id+'"><img class=post-av src="'+pic+'" onclick="openProfil(\\''+email+'\\')" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=post-body><div><span class=post-name onclick="openProfil(\\''+email+'\\')">'+name+'</span><span class=post-email>'+email+'</span><span class=post-time> • '+fmtTimeFull(time)+'</span></div><div class=post-text>'+text.replace(/</g,'&lt;')+'</div>'+(img?'<div class=post-img><img src="'+img+'" loading=lazy></div>':'')+'<div class=like-bar><button id="like-btn-'+x.id+'" class="btn-like'+likedClass+'" onclick="likeTulis(\\''+x.id+'\\')">❤️ '+(x.likes||0)+'</button><button class=btn-like onclick="openKomen(\\''+x.id+'\\')">💬 Komen '+(x.komen_count||0)+'</button>'+(admin?'<button class=del onclick="hapusPost('+x.id+')">HAPUS</button>':'')+'</div></div></div>';
   }).join('');
  }catch(e){document.getElementById('homeFeed').innerHTML='<div class=empty>Error: '+e.message+'</div>';}
 }
 async function addTulis(){
- let txt=document.getElementById('tulisIn').value.trim();
- if(!txt&&!selectedImg){alert("Tulis dulu sanak!");return;}
+ let txt=document.getElementById('tulisIn').value.trim(); if(!txt&&!selectedImg){alert("Tulis dulu sanak!");return;}
  let btn=document.querySelector('.btnKirim');btn.innerText="MENGIRIM...";btn.disabled=true;
  try{
-  let email=getEmail()||'anon@rumahgadang-ai.my.id';
-  if(!email.includes('@'))email=email+'@rumahgadang-ai.my.id';
+  let email=getEmail()||'anon@rumahgadang-ai.my.id'; if(!email.includes('@'))email=email+'@rumahgadang-ai.my.id';
   let payload={text:txt,email:email,user_email:email,name:getName(),picture:getAvatar(),tulisImg:selectedImg,isi:txt,img:selectedImg};
   let r=await fetch('/api/tulis/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   let j=await r.json(); if(j.ok===false)throw new Error(j.error||'Gagal');

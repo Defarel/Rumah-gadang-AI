@@ -39,29 +39,31 @@ export default `<!DOCTYPE html>
 .empty{text-align:center;padding:50px 20px;color:#666}
 #komenSheet{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.7)}
 #komenSheet.show{display:block}
-.komen-panel{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:525px;background:#0f0f0f;border-top-left-radius:18px;border-top-right-radius:18px;max-height:85vh;display:flex;flex-direction:column;border-top:2.5px solid #00ff88;animation:slideUp .3s ease}
+.komen-panel{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:525px;background:#121212;border-top-left-radius:18px;border-top-right-radius:18px;max-height:85vh;display:flex;flex-direction:column;border-top:2.5px solid #00ff88;animation:slideUp .3s ease}
 @keyframes slideUp{from{transform:translate(-50%,100%)}to{transform:translate(-50%,0)}}
 .komen-handle{width:40px;height:4px;background:#333;border-radius:10px;margin:10px auto}
-.komen-head{padding:0 16px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #222}
-.komen-title{font-weight:900;font-size:20px}
+.komen-head{padding:0 16px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #222}
+.komen-title{font-weight:900;font-size:20px;flex:1}
+.komen-back{font-size:22px;cursor:pointer;padding:4px 8px;display:none}
 .komen-close{font-size:22px;padding:6px 10px;cursor:pointer}
-.komen-list{flex:1;overflow-y:auto;padding:10px 16px;display:flex;flex-direction:column;gap:18px}
-.k-item{display:flex;flex-direction:column;gap:0}
-.k-row{display:flex;gap:10px}
+.komen-list{flex:1;overflow-y:auto;padding:0;display:flex;flex-direction:column}
+.k-item{padding:14px 16px;display:flex;gap:10px}
 .k-av{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#222;border:1px solid #333}
 .k-body{flex:1;min-width:0}
-.k-user{font-size:13px;color:#aaa;display:flex;gap:6px;flex-wrap:wrap}
+.k-user{font-size:13px;color:#aaa;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .k-user b{color:#fff}
 .k-text{margin-top:4px;font-size:14.5px;line-height:1.5;color:#f1f1f1;white-space:pre-wrap;word-break:break-word}
-.k-actions{margin-top:8px;display:flex;gap:12px;align-items:center}
-.k-act{display:flex;gap:6px;align-items:center;font-size:13px;color:#aaa;cursor:pointer;padding:6px 14px;border-radius:20px;border:1px solid #2a2a2a;background:#1a1a1a}
+.k-actions{margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.k-act{display:flex;gap:6px;align-items:center;font-size:13px;color:#aaa;cursor:pointer;padding:6px 14px;border-radius:20px;border:1px solid #2a2a2a;background:#1e1e1e}
 .k-act.loved{background:#ff2d55;color:#fff;border-color:#ff2d55;font-weight:900}
-/* INLINE REPLY BOS */
-.inline-box{display:none;margin-top:12px;margin-left:46px;gap:8px;align-items:center}
-.inline-box.show{display:flex}
-.inline-box input{flex:1;background:#1e1e1e;border:1px solid #333;color:#fff;padding:10px 14px;border-radius:20px;font-size:13px;outline:none}
-.inline-box button{width:34px;height:34px;background:#00ff88;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;color:#000;font-weight:900}
-.k-input-bar{padding:10px 12px;border-top:1px solid #222;display:flex;gap:10px;align-items:center;background:#0f0f0f}
+.k-del{color:#ff4444;font-size:12px;cursor:pointer;padding:5px 10px;border-radius:12px;border:1px solid #331111;background:#1a1111;margin-left:auto}
+.k-parent{padding:14px 16px;background:#161616;border-bottom:1px solid #222}
+.thread-wrap{position:relative;padding-left:0}
+.thread-wrap::before{content:"";position:absolute;left:33px;top:0;bottom:20px;width:2px;background:#2e2e2e}
+.thread-item{position:relative;padding:14px 16px 14px 54px;display:flex;gap:10px}
+.thread-item::before{content:"";position:absolute;left:33px;top:32px;width:20px;height:2px;background:#2e2e2e}
+.thread-dot{position:absolute;left:28px;top:31px;width:10px;height:10px;border-radius:50%;background:#00ff88;border:2px solid #121212;z-index:1}
+.k-input-bar{padding:10px 12px;border-top:1px solid #222;display:flex;gap:10px;align-items:center;background:#121212}
 .k-input{flex:1;background:#222;border:1px solid #333;color:#fff;padding:12px 16px;border-radius:24px;font-size:14px;outline:none}
 .k-send{width:40px;height:40px;background:#00ff88;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#000;font-weight:900;border:0;font-size:18px}
 </style></head><body>
@@ -90,7 +92,7 @@ export default `<!DOCTYPE html>
 <div id=komenSheet onclick="if(event.target.id==='komenSheet') closeKomen()">
 <div class=komen-panel>
 <div class=komen-handle></div>
-<div class=komen-head><div class=komen-title>Komentar</div><div class=komen-close onclick="closeKomen()">✕</div></div>
+<div class=komen-head><span id=backBtn class=komen-back onclick="showKomentar()">←</span><div id=komenTitle class=komen-title>Komentar</div><div class=komen-close onclick="closeKomen()">✕</div></div>
 <div id=komenList class=komen-list><div class=empty>Memuat komen...</div></div>
 <div class=k-input-bar><img id=kMyAv src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png" style="width:32px;height:32px;border-radius:50%;object-fit:cover"><input id=kInput class=k-input placeholder="Bagikan pemikiran Anda..."><button class=k-send onclick="sendKomen()">➤</button></div>
 </div>
@@ -99,7 +101,7 @@ export default `<!DOCTYPE html>
 <script>
 const LOGO_FALLBACK="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
 const ADMIN_EMAILS=["admin@rumahgadang-ai.my.id","naura@rumahgadang-ai.my.id","defarel@rumahgadang-ai.my.id"];
-let selectedImg=""; let activeTulisId=""; let activeKomen=[]; let openReplyId=null;
+let selectedImg=""; let activeTulisId=""; let activeKomen=[]; let mode="komentar"; let activeParent=null;
 function getEmail(){let e=(localStorage.getItem('rg_email')||"").toLowerCase().trim(); if(e && !e.includes('@')) e=e+'@rumahgadang-ai.my.id'; return e;}
 function getName(){return localStorage.getItem('rg_name')|| (getEmail()?getEmail().split('@')[0]:'Dunsanak');}
 function getAvatar(){return localStorage.getItem('rg_avatar')||LOGO_FALLBACK;}
@@ -129,61 +131,91 @@ function fmtTime(t){let diff=Date.now()-Number(t); if(diff<60000) return "baru";
 function fmtTimeFull(t){let d=new Date(Number(t)||Date.now()); return d.toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
 async function likeTulis(id){
   const email=getEmail(); if(!email){ alert("Login dulu Bos!"); location.href="/akun"; return; }
-  const btn=document.getElementById("like-btn-"+id); if(btn) btn.innerHTML="❤️ ⏳";
-  try{ await fetch("/api/tulis/like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:String(id),email:email})}); }catch{}
+  await fetch("/api/tulis/like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:String(id),email:email})});
   loadTulis();
 }
 function openKomen(id){
-  activeTulisId=id;
+  activeTulisId=id; mode="komentar"; activeParent=null;
   document.getElementById('kMyAv').src=getAvatar();
   document.getElementById('komenSheet').classList.add('show');
   document.getElementById('komenList').innerHTML='<div class=empty>Memuat...</div>';
   loadKomen(id);
 }
-function closeKomen(){ document.getElementById('komenSheet').classList.remove('show'); activeTulisId=""; openReplyId=null; }
+function closeKomen(){ document.getElementById('komenSheet').classList.remove('show'); activeTulisId=""; mode="komentar"; activeParent=null; }
+function showKomentar(){ mode="komentar"; activeParent=null; renderKomentar(); }
 async function loadKomen(id){
   const me=getEmail();
   let r=await fetch("/api/tulis/komen?id="+id+"&me="+encodeURIComponent(me)+"&t="+Date.now(),{cache:'no-store'});
-  activeKomen=await r.json(); renderKomen();
+  activeKomen=await r.json(); renderKomentar();
 }
-function renderKomen(){
+function renderKomentar(){
+  document.getElementById('komenTitle').innerText="Komentar";
+  document.getElementById('backBtn').style.display="none";
+  document.getElementById('kInput').placeholder="Bagikan pemikiran Anda...";
+  mode="komentar"; activeParent=null;
   let h=document.getElementById('komenList');
-  if(!activeKomen.length){ h.innerHTML='<div class=empty>Belum ada komentar. Jadi yang pertama Bos!</div>'; return; }
-  h.innerHTML=activeKomen.map(k=>{
-    let name=k.name||(k.email||'').split('@')[0]||'Dunsanak';
-    let pic=k.picture||LOGO_FALLBACK;
-    let time=fmtTime(k.time||Date.now());
-    let text=(k.text||'').replace(/</g,'&lt;');
-    let loved=k.isLiked?" loved":"";
-    return '<div class=k-item><div class=k-row><img class=k-av src="'+pic+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=k-body><div class=k-user><b>@'+name+'</b><span> • '+time+'</span></div><div class=k-text>'+text+'</div><div class=k-actions><div class="k-act'+loved+'" onclick="loveKomen(\\''+k.id+'\\')"><span>❤️</span><span>'+(k.likes>0?k.likes:'Love')+'</span></div><div class=k-act onclick="toggleInline(\\''+k.id+'\\',\\''+name+'\\')"><span>💬</span><span>Balas</span></div></div></div></div><div id="inline-'+k.id+'" class="inline-box"><input id="inline-input-'+k.id+'" placeholder="Balas @'+name+'..."><button onclick="sendInline(\\''+k.id+'\\')">➤</button></div></div>';
-  }).join('');
+  let parents=activeKomen.filter(k=>!k.parent_id||k.parent_id===""||k.parent_id==="null");
+  if(!parents.length){ h.innerHTML='<div class=empty>Belum ada komentar. Jadi yang pertama Bos!</div>'; return; }
+  h.innerHTML=parents.map(k=>'<div class=k-item>'+komenInner(k,true)+'</div>').join('');
+}
+function renderBalasan(parentId){
+  let parent=activeKomen.find(k=>String(k.id)===String(parentId)); if(!parent) return;
+  activeParent=parent; mode="balasan";
+  document.getElementById('komenTitle').innerText="Balasan";
+  document.getElementById('backBtn').style.display="block";
+  document.getElementById('kInput').placeholder="Balas @"+(parent.name||parent.email.split('@')[0])+"...";
+  let children=activeKomen.filter(k=>String(k.parent_id)===String(parentId));
+  let h=document.getElementById('komenList');
+  let parentHtml='<div class=k-parent>'+komenInner(parent,false)+'</div>';
+  let threadHtml='<div class=thread-wrap>'+(children.length?children.map(c=>'<div class=thread-item><div class=thread-dot></div>'+komenInner(c,true)+'</div>').join(''):'<div class=empty style="padding:18px">Belum ada balasan</div>')+'</div>';
+  h.innerHTML=parentHtml+threadHtml;
+}
+function komenInner(k, showBalas){
+  let me=getEmail().toLowerCase();
+  let name=k.name||(k.email||'').split('@')[0]||'Dunsanak';
+  let pic=k.picture||LOGO_FALLBACK;
+  let time=fmtTime(k.time||Date.now());
+  let text=(k.text||'').replace(/</g,'&lt;');
+  let loved=k.isLiked?" loved":"";
+  let isOwner=(k.email||"").toLowerCase()===me;
+  let canDel=isOwner||isAdmin();
+  let del=canDel?'<span class=k-del onclick="hapusKomen(\\''+k.id+'\\')">🗑️ Hapus</span>':'';
+  let balas=showBalas?'<div class=k-act onclick="handleBalas(\\''+k.id+'\\',\\''+name+'\\')"><span>💬</span><span>Balas</span></div>':'';
+  return '<img class=k-av src="'+pic+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=k-body><div class=k-user><b>@'+name+'</b><span> • '+time+'</span></div><div class=k-text>'+text+'</div><div class=k-actions><div class="k-act'+loved+'" onclick="loveKomen(\\''+k.id+'\\')"><span>❤️</span><span>'+(k.likes>0?k.likes:'Love')+'</span></div>'+balas+del+'</div></div>';
+}
+function handleBalas(komenId, name){
+  if(mode==="komentar"){ renderBalasan(komenId); document.getElementById('kInput').value="@"+name+" "; document.getElementById('kInput').focus(); }
+  else { document.getElementById('kInput').value="@"+name+" "; document.getElementById('kInput').focus(); }
 }
 async function loveKomen(komen_id){
   const email=getEmail(); if(!email){ alert("Login dulu Bos!"); return; }
   await fetch("/api/tulis/komen/like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({komen_id:String(komen_id),email:email})});
-  await loadKomen(activeTulisId);
+  const me=getEmail(); let r=await fetch("/api/tulis/komen?id="+activeTulisId+"&me="+encodeURIComponent(me)+"&t="+Date.now(),{cache:'no-store'});
+  activeKomen=await r.json();
+  if(mode==="komentar") renderKomentar(); else renderBalasan(activeParent.id);
 }
-function toggleInline(komen_id, name){
-  let box=document.getElementById("inline-"+komen_id);
-  if(!box) return;
-  if(openReplyId===komen_id){ box.classList.remove("show"); openReplyId=null; return; }
-  if(openReplyId){ let prev=document.getElementById("inline-"+openReplyId); if(prev) prev.classList.remove("show"); }
-  box.classList.add("show"); openReplyId=komen_id;
-  let inp=document.getElementById("inline-input-"+komen_id); inp.value="@"+name+" "; inp.focus();
+async function hapusKomen(komen_id){
+  if(!confirm("Hapus komen Bos? Kalau salah ketik bisa ketik ulang lagi")) return;
+  const email=getEmail(); if(!email) return;
+  let res=await fetch("/api/tulis/komen/delete",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:komen_id,email:email})});
+  let j=await res.json().catch(()=>({ok:false}));
+  if(!j.ok){ alert(j.error||"Gagal hapus, bukan punya kamu?"); return; }
+  const me=getEmail();
+  let r=await fetch("/api/tulis/komen?id="+activeTulisId+"&me="+encodeURIComponent(me)+"&t="+Date.now(),{cache:'no-store'});
+  activeKomen=await r.json();
+  if(mode==="komentar") renderKomentar();
+  else { if(activeParent && String(activeParent.id)===String(komen_id)) showKomentar(); else renderBalasan(activeParent.id); }
+  loadTulis();
 }
-async function sendInline(komen_id){
-  let inp=document.getElementById("inline-input-"+komen_id); let text=inp.value.trim(); if(!text) return;
-  const email=getEmail(); if(!email){ alert("Login dulu Bos!"); return; }
-  inp.value=""; document.getElementById("inline-"+komen_id).classList.remove("show"); openReplyId=null;
-  await fetch("/api/tulis/komen",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:String(activeTulisId),email:email,text:text,name:getName(),picture:getAvatar()})});
-  await loadKomen(activeTulisId); loadTulis();
-}
-// BALAS UTAMA TETAP BOTTOM SHEET BOS
 async function sendKomen(){
   let input=document.getElementById('kInput'); let text=input.value.trim(); if(!text) return;
   const email=getEmail(); if(!email){ alert("Login dulu Bos!"); location.href="/akun"; return; }
-  input.value=""; await fetch("/api/tulis/komen",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:String(activeTulisId),email:email,text:text,name:getName(),picture:getAvatar()})});
-  await loadKomen(activeTulisId); loadTulis();
+  input.value=""; let parent_id=mode==="balasan"&&activeParent?String(activeParent.id):"";
+  await fetch("/api/tulis/komen",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:String(activeTulisId),email:email,text:text,name:getName(),picture:getAvatar(),parent_id:parent_id})});
+  const me=getEmail(); let r=await fetch("/api/tulis/komen?id="+activeTulisId+"&me="+encodeURIComponent(me)+"&t="+Date.now(),{cache:'no-store'});
+  activeKomen=await r.json();
+  if(mode==="komentar") renderKomentar(); else renderBalasan(activeParent.id);
+  loadTulis();
 }
 document.getElementById('kInput').addEventListener('keydown',e=>{ if(e.key==='Enter') sendKomen(); });
 async function loadTulis(){

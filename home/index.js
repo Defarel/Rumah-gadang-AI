@@ -52,11 +52,13 @@ export default `<!DOCTYPE html>
 .k-body{flex:1;min-width:0}
 .k-user{font-size:13px;color:#aaa;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .k-user b{color:#fff}
+.k-badge{background:#00ff88;color:#000;font-size:10px;font-weight:900;padding:2px 6px;border-radius:8px;margin-left:4px}
 .k-text{margin-top:4px;font-size:14.5px;line-height:1.5;color:#f1f1f1;white-space:pre-wrap;word-break:break-word}
 .k-actions{margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .k-act{display:flex;gap:6px;align-items:center;font-size:13px;color:#aaa;cursor:pointer;padding:6px 14px;border-radius:20px;border:1px solid #2a2a2a;background:#1e1e1e}
 .k-act.loved{background:#ff2d55;color:#fff;border-color:#ff2d55;font-weight:900}
 .k-del{color:#ff4444;font-size:12px;cursor:pointer;padding:5px 10px;border-radius:12px;border:1px solid #331111;background:#1a1111;margin-left:auto}
+.k-reply-count{margin-top:10px;color:#00ff88;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px}
 .k-parent{padding:14px 16px;background:#161616;border-bottom:1px solid #222}
 .thread-wrap{position:relative;padding-left:0}
 .thread-wrap::before{content:"";position:absolute;left:33px;top:0;bottom:20px;width:2px;background:#2e2e2e}
@@ -149,28 +151,31 @@ async function loadKomen(id){
   activeKomen=await r.json(); renderKomentar();
 }
 function renderKomentar(){
-  document.getElementById('komenTitle').innerText="Komentar";
+  let parents=activeKomen.filter(k=>!k.parent_id||k.parent_id===""||k.parent_id==="null");
+  document.getElementById('komenTitle').innerText="Komentar • "+parents.length+" • "+activeKomen.length+" total";
   document.getElementById('backBtn').style.display="none";
   document.getElementById('kInput').placeholder="Bagikan pemikiran Anda...";
   mode="komentar"; activeParent=null;
   let h=document.getElementById('komenList');
-  let parents=activeKomen.filter(k=>!k.parent_id||k.parent_id===""||k.parent_id==="null");
   if(!parents.length){ h.innerHTML='<div class=empty>Belum ada komentar. Jadi yang pertama Bos!</div>'; return; }
-  h.innerHTML=parents.map(k=>'<div class=k-item>'+komenInner(k,true)+'</div>').join('');
+  h.innerHTML=parents.map(k=>{
+    let replyCount=activeKomen.filter(c=>String(c.parent_id)===String(k.id)).length;
+    return '<div class=k-item>'+komenInner(k,true,replyCount)+'</div>';
+  }).join('');
 }
 function renderBalasan(parentId){
   let parent=activeKomen.find(k=>String(k.id)===String(parentId)); if(!parent) return;
   activeParent=parent; mode="balasan";
-  document.getElementById('komenTitle').innerText="Balasan";
+  let children=activeKomen.filter(k=>String(k.parent_id)===String(parentId));
+  document.getElementById('komenTitle').innerText="Balasan • "+children.length+" balasan";
   document.getElementById('backBtn').style.display="block";
   document.getElementById('kInput').placeholder="Balas @"+(parent.name||parent.email.split('@')[0])+"...";
-  let children=activeKomen.filter(k=>String(k.parent_id)===String(parentId));
   let h=document.getElementById('komenList');
-  let parentHtml='<div class=k-parent>'+komenInner(parent,false)+'</div>';
-  let threadHtml='<div class=thread-wrap>'+(children.length?children.map(c=>'<div class=thread-item><div class=thread-dot></div>'+komenInner(c,true)+'</div>').join(''):'<div class=empty style="padding:18px">Belum ada balasan</div>')+'</div>';
+  let parentHtml='<div class=k-parent>'+komenInner(parent,false,children.length)+'</div>';
+  let threadHtml='<div class=thread-wrap>'+(children.length?children.map(c=>'<div class=thread-item><div class=thread-dot></div>'+komenInner(c,true,0)+'</div>').join(''):'<div class=empty style="padding:18px">Belum ada balasan</div>')+'</div>';
   h.innerHTML=parentHtml+threadHtml;
 }
-function komenInner(k, showBalas){
+function komenInner(k, showBalas, replyCount){
   let me=getEmail().toLowerCase();
   let name=k.name||(k.email||'').split('@')[0]||'Dunsanak';
   let pic=k.picture||LOGO_FALLBACK;
@@ -179,13 +184,19 @@ function komenInner(k, showBalas){
   let loved=k.isLiked?" loved":"";
   let isOwner=(k.email||"").toLowerCase()===me;
   let canDel=isOwner||isAdmin();
+  let badge=isAdmin()&&k.email.toLowerCase().includes('admin')?' <span class=k-badge>ADMIN</span>':'';
   let del=canDel?'<span class=k-del onclick="hapusKomen(\\''+k.id+'\\')">🗑️ Hapus</span>':'';
   let balas=showBalas?'<div class=k-act onclick="handleBalas(\\''+k.id+'\\',\\''+name+'\\')"><span>💬</span><span>Balas</span></div>':'';
-  return '<img class=k-av src="'+pic+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=k-body><div class=k-user><b>@'+name+'</b><span> • '+time+'</span></div><div class=k-text>'+text+'</div><div class=k-actions><div class="k-act'+loved+'" onclick="loveKomen(\\''+k.id+'\\')"><span>❤️</span><span>'+(k.likes>0?k.likes:'Love')+'</span></div>'+balas+del+'</div></div>';
+  let replyInfo='';
+  if(replyCount>0 && showBalas){
+    replyInfo='<div class=k-reply-count onclick="renderBalasan(\\''+k.id+'\\')">↳ '+replyCount+' balasan • Lihat balasan</div>';
+  }
+  return '<img class=k-av src="'+pic+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=k-body><div class=k-user><b>@'+name+'</b>'+badge+'<span> • '+time+'</span></div><div class=k-text>'+text+'</div><div class=k-actions><div class="k-act'+loved+'" onclick="loveKomen(\\''+k.id+'\\')"><span>❤️</span><span>'+(k.likes>0?k.likes:'Love')+'</span></div>'+balas+del+'</div>'+replyInfo+'</div>';
 }
 function handleBalas(komenId, name){
-  if(mode==="komentar"){ renderBalasan(komenId); document.getElementById('kInput').value="@"+name+" "; document.getElementById('kInput').focus(); }
-  else { document.getElementById('kInput').value="@"+name+" "; document.getElementById('kInput').focus(); }
+  renderBalasan(komenId);
+  document.getElementById('kInput').value="@"+name+" ";
+  document.getElementById('kInput').focus();
 }
 async function loveKomen(komen_id){
   const email=getEmail(); if(!email){ alert("Login dulu Bos!"); return; }
@@ -195,11 +206,11 @@ async function loveKomen(komen_id){
   if(mode==="komentar") renderKomentar(); else renderBalasan(activeParent.id);
 }
 async function hapusKomen(komen_id){
-  if(!confirm("Hapus komen Bos? Kalau salah ketik bisa ketik ulang lagi")) return;
+  if(!confirm("Hapus komen ini Bos?")) return;
   const email=getEmail(); if(!email) return;
   let res=await fetch("/api/tulis/komen/delete",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:komen_id,email:email})});
   let j=await res.json().catch(()=>({ok:false}));
-  if(!j.ok){ alert(j.error||"Gagal hapus, bukan punya kamu?"); return; }
+  if(!j.ok){ alert(j.error||"Gagal hapus"); return; }
   const me=getEmail();
   let r=await fetch("/api/tulis/komen?id="+activeTulisId+"&me="+encodeURIComponent(me)+"&t="+Date.now(),{cache:'no-store'});
   activeKomen=await r.json();

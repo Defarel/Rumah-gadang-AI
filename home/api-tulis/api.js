@@ -92,7 +92,42 @@ export const TULIS_API = {
         return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
-      // 3. POST /api/tulis/delete - HAPUS
+      // 3. LIKE / UNLIKE - INI YANG BIKIN GAK BISA LIKE KEMARIN BOS
+      if(path === "/api/tulis/like" && method === "POST"){
+        const b = await req.json().catch(()=>({}));
+        const id = String(b.id||b.tulis_id||"");
+        const email = (b.email||"").toLowerCase().trim();
+        if(!id || !email) return new Response(JSON.stringify({ok:false,error:"id/email kosong"}),{headers:h,status:400});
+        const ex = await env.DB.prepare(`SELECT 1 FROM tulis_likes WHERE tulis_id=? AND LOWER(email)=?`).bind(id,email).first();
+        if(ex){
+          await env.DB.prepare(`DELETE FROM tulis_likes WHERE tulis_id=? AND LOWER(email)=?`).bind(id,email).run();
+          return new Response(JSON.stringify({ok:true,status:"unliked"}),{headers:h});
+        }else{
+          await env.DB.prepare(`INSERT INTO tulis_likes (tulis_id,email,time) VALUES (?,?,?)`).bind(id,email,Date.now()).run();
+          return new Response(JSON.stringify({ok:true,status:"liked"}),{headers:h});
+        }
+
+      // 4. KOMEN - INI YANG BIKIN GAK BISA KOMEN KEMARIN BOS
+      if(path === "/api/tulis/komen" && method === "POST"){
+        const b = await req.json().catch(()=>({}));
+        const id = String(b.id||b.tulis_id||"");
+        const email = (b.email||"").toLowerCase().trim();
+        const text = (b.text||"").trim();
+        if(!id || !email || !text) return new Response(JSON.stringify({ok:false,error:"kosong"}),{headers:h,status:400});
+        const name = b.name||email.split('@')[0];
+        const pic = b.picture||"https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
+        await env.DB.prepare(`INSERT INTO tulis_komen (tulis_id,email,name,picture,text,time) VALUES (?,?,?,?,?,?)`).bind(id,email,name,pic,text,Date.now()).run();
+        return new Response(JSON.stringify({ok:true}),{headers:h});
+      }
+
+      // 5. LIST KOMEN
+      if(path === "/api/tulis/komen" && method === "GET"){
+        const id = url.searchParams.get("id")||url.searchParams.get("tulis_id")||"";
+        const r = await env.DB.prepare(`SELECT * FROM tulis_komen WHERE tulis_id=? ORDER BY time ASC LIMIT 100`).bind(String(id)).all();
+        return new Response(JSON.stringify(r.results||[]),{headers:h});
+      }
+      
+      // 6. POST /api/tulis/delete - HAPUS
       if (url.pathname === "/api/tulis/delete" && req.method === "POST") {
         const j = await req.json().catch(() => ({}));
         if (j.id) await env.DB.prepare("DELETE FROM tulis WHERE id=?").bind(j.id).run();

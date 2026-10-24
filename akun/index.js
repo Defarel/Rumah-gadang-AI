@@ -40,6 +40,7 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .btn-add-private{width:100%;background:#000;border:1.5px dashed #00ff88;color:#00ff88;padding:14px;border-radius:14px;font-weight:800;margin-bottom:12px;box-shadow:0 0 10px rgba(0,255,136,.2);cursor:pointer}
 .cardLogoFull{margin:14px 12px;border-radius:22px;overflow:hidden;border:3px solid #00ff88;box-shadow:0 0 0 1px #00ff88,0 0 25px rgba(0,255,136,.4);background:#000}
 .cardLogoFull img{width:100%;height:auto;display:block;object-fit:cover}
+.cardLogoFull video{width:100%;height:auto;display:block;object-fit:cover}
 .bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99}
 .bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#fff}
 #toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:#00ff88;color:#000;padding:12px 18px;border-radius:22px;font-weight:900;display:none;z-index:9999;box-shadow:0 0 20px #00ff88}
@@ -97,7 +98,11 @@ async function render(){
         </div>
         <button class="btnMasuk" onclick="doLogin()">Masuk Bos</button>
       </div>
-      <div class="cardLogoFull"><img src="\${LOGO_LOGIN}" alt="RG AI Foto 2"></div>\`;
+      <div class="cardLogoFull">
+        <video autoplay loop muted playsinline controls poster="\${LOGO_LOGIN}">
+          <source src="\${LOGO_VIDEO}" type="video/mp4">
+        </video>
+      </div>\`;
     return;
   }
   const target=viewingUserEmail||my; renderProfile(cont,target,target===my);
@@ -209,12 +214,10 @@ async function saveEdit(){
   let urlVal=document.getElementById('editPicUrl').value.trim();
   let pic=_editB64 || urlVal || getMyAvatar();
   if(!pic) pic=LOGO_INNER;
-  // SIMPEN LOKAL DULU BOS - JANGAN KUNCI BOS
   try{ 
     localStorage.setItem('rg_name',name); 
     localStorage.setItem('rg_avatar',pic); 
   }catch(e){ 
-    // KALO MASIH GAGAL BOS PAKSA LOGO BOS TAPI JANGAN KUNCI BOS
     console.log('localStorage penuh Bos, pakai link Bos'); 
     if(pic.startsWith('data:')){ pic=LOGO_INNER; localStorage.setItem('rg_avatar',pic); toast('Foto kegedean Bos, pakai link aja Bos biar bebas'); }
   }

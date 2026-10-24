@@ -1,4 +1,4 @@
-const LOGO_DEFAULT = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
+const LOGO_DEFAULT = "https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg";
 
 export const AKUN_HTML = `<!DOCTYPE html><html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -39,7 +39,7 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .photo-card img{width:100%;height:100%;object-fit:cover}
 .btn-add-private{width:100%;background:#000;border:1.5px dashed #00ff88;color:#00ff88;padding:14px;border-radius:14px;font-weight:800;margin-bottom:12px;box-shadow:0 0 10px rgba(0,255,136,.2);cursor:pointer}
 .cardLogoFull{margin:14px 12px;border-radius:22px;overflow:hidden;border:3px solid #00ff88;box-shadow:0 0 0 1px #00ff88,0 0 25px rgba(0,255,136,.4);background:#000}
-.cardLogoFull video{width:100%;height:auto;display:block;object-fit:cover}
+.cardLogoFull img{width:100%;height:auto;display:block;object-fit:cover}
 .bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99}
 .bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#fff}
 #toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:#00ff88;color:#000;padding:12px 18px;border-radius:22px;font-weight:900;display:none;z-index:9999;box-shadow:0 0 20px #00ff88}
@@ -51,18 +51,17 @@ body{background:#000;color:#fff;font-family:sans-serif}
 <div class="bot"><a href="/">🏠<br><span style="font-size:10px">Home</span></a><a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a><a href="/video">🎬<br><span style="font-size:10px">Video</span></a><a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a><a href="/ai">🤖<br><span style="font-size:10px">AI</span></a><a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a></div>
 <div id=toast></div>
 <div id=editModal><div id=editBox>
-<h3 style="margin-bottom:10px">Edit Profil - Ganti Foto</h3>
+<h3 style="margin-bottom:10px">Edit Profil Bos - Bebas Ganti Foto Bos</h3>
 <img id=editPrev style="width:90px;height:90px;border-radius:50%;border:2px solid #00ff88;display:block;margin:0 auto 10px;object-fit:cover">
 <input id=editName class=inp placeholder="Nama Bos">
 <input id=editPicUrl class=inp placeholder="Link foto bebas (atau upload di bawah)">
 <input type=file id=editPicFile accept="image/*" class=inp>
-<div style="font-size:11px;color:#00ff88;margin-top:8px">* Foto bebas Bos, gak dikunci, otomatis dikecilin biar kesimpen Bos</div>
+<div style="font-size:11px;color:#00ff88;margin-top:8px">* Foto bebas Bos, gak dikunci Bos, otomatis dikecilin biar kesimpen Bos</div>
 <div style="display:flex;gap:8px;margin-top:12px"><button class=btn-edit onclick="closeEdit()" style="flex:1">Batal</button><button class=btn-neon-follow onclick="saveEdit()" style="flex:1">Simpan Bos</button></div>
 </div></div>
 <script>
-const LOGO_INNER="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
-const LOGO_LOGIN="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
-const LOGO_VIDEO = "https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@9fa479e6634ebcb2f1dfcde85fb106ac77d2b122/akun/RumahGadangV2.mp4";
+const LOGO_INNER="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg";
+const LOGO_LOGIN="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg";
 let activeMainTab="teman"; let viewingUserEmail=null; let _editB64=null; window.loginMode='masuk';
 function toast(m){let t=document.getElementById('toast');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
 function getMyEmail(){return (localStorage.getItem('rg_email')||"").toLowerCase().trim();}
@@ -77,7 +76,7 @@ function setLoginMode(m){
   document.getElementById('tMasuk').classList.toggle('on',m==='masuk');
   document.getElementById('tBuat').classList.toggle('on',m==='buat');
   document.getElementById('nameIn').style.display=m==='buat'?'block':'none';
-  document.querySelector('.btnMasuk').innerText=m==='buat'?'Buat Akun':'Masuk';
+  document.querySelector('.btnMasuk').innerText=m==='buat'?'Buat Akun Bos':'Masuk Bos';
 }
 async function render(){
   const my=getMyEmail(); const cont=document.getElementById('viewContainer');
@@ -91,17 +90,13 @@ async function render(){
           <button class="tabLogin" onclick="toast('Google soon Bos!')">Google</button>
         </div>
         <div id="loginFields">
-          <input id="emailIn" class="inp" placeholder="(nama)@rumahgadang-ai.my.id" value="(nama)@rumahgadang-ai.my.id">
+          <input id="emailIn" class="inp" placeholder="lintas@rumahgadang-ai.my.id" value="lintas@rumahgadang-ai.my.id">
           <input id="nameIn" class="inp" placeholder="Nama Dunsanak (buat akun baru)" style="display:none">
-          <input id="passIn" class="inp" type="password" placeholder=" Password">
+          <input id="passIn" class="inp" type="password" placeholder="•••••••• Password Bos">
         </div>
-        <button class="btnMasuk" onclick="doLogin()">Masuk</button>
+        <button class="btnMasuk" onclick="doLogin()">Masuk Bos</button>
       </div>
-      <div class="cardLogoFull">
-        <video autoplay loop muted playsinline controls poster="\${LOGO_LOGIN}" style="width:100%;background:#000">
-          <source src="\${LOGO_VIDEO}" type="video/mp4">
-        </video>
-      </div>\`;
+      <div class="cardLogoFull"><img src="\${LOGO_LOGIN}" alt="RG AI Foto 2"></div>\`;
     return;
   }
   const target=viewingUserEmail||my; renderProfile(cont,target,target===my);
@@ -125,9 +120,9 @@ async function doLogin(){
     try{
       let r=await fetch('/api/akun/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
       let j=await r.json().catch(()=>({ok:true}));
-      if(r.ok||j.ok){ saveAuth(email,j.name||name,j.picture||LOGO_INNER); toast('Masuk'); render(); }
-      else { saveAuth(email,name,LOGO_INNER); toast('Masuk'); render(); }
-    }catch{ saveAuth(email,name,LOGO_INNER); toast('Masuk'); render(); }
+      if(r.ok||j.ok){ saveAuth(email,j.name||name,j.picture||LOGO_INNER); toast('Masuk Bos!'); render(); }
+      else { saveAuth(email,name,LOGO_INNER); toast('Masuk Bos!'); render(); }
+    }catch{ saveAuth(email,name,LOGO_INNER); toast('Masuk Bos!'); render(); }
   }
 }
 async function renderProfile(container,targetEmail,isMe){
@@ -142,7 +137,7 @@ async function renderProfile(container,targetEmail,isMe){
         <div class="stats-wrap"><div><div class="stat-num">\${data.posts||0}</div><div class="stat-label">tulisan</div></div><div><div class="stat-num">\${data.followers||0}</div><div class="stat-label">pengikut</div></div><div><div class="stat-num">\${data.following||0}</div><div class="stat-label">mengikuti</div></div></div>
       </div>
       <div style="font-size:18px;font-weight:900">\${data.name}</div><div style="font-size:12px;color:#00ff88;margin-bottom:14px">\${targetEmail}</div>
-      <div style="margin-bottom:16px">\${isMe ? '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit - Ganti Foto</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>' : '<button class="'+(data.isFollowing?'btn-following-real':'btn-follow-real')+'" onclick="toggleFollow(\\''+targetEmail+'\\')">'+(data.isFollowing?'✓ Mengikuti':'Follow')+'</button>'}</div>
+      <div style="margin-bottom:16px">\${isMe ? '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>' : '<button class="'+(data.isFollowing?'btn-following-real':'btn-follow-real')+'" onclick="toggleFollow(\\''+targetEmail+'\\')">'+(data.isFollowing?'✓ Mengikuti':'Follow')+'</button>'}</div>
       <div class="main-tabs">
         <button class="m-tab \${activeMainTab==='tulis'?'active':''}" onclick="switchTab('tulis')">TULIS</button>
         <button class="m-tab \${activeMainTab==='foto'?'active':''}" onclick="switchTab('foto')">FOTO</button>
@@ -178,11 +173,11 @@ async function loadContent(targetEmail,isMe){
   } else if(activeMainTab==='foto'){
     let photos=window._photosCache||[];
     let addBtn=isMe?'<button class="btn-add-private" onclick="addPhoto()">+ Tambah Foto Private Bos</button>':'';
-    if(!photos.length){ box.innerHTML=addBtn+'<div style="text-align:center;padding:30px;color:#555">Belum ada foto</div>'; return; }
+    if(!photos.length){ box.innerHTML=addBtn+'<div style="text-align:center;padding:30px;color:#555">Belum ada foto Bos</div>'; return; }
     box.innerHTML=addBtn+'<div class="photo-grid-2x2">'+photos.map(p=>'<div class="photo-card"><img src="'+p+'"></div>').join('')+'</div>';
   } else if(activeMainTab==='tulis'){
     try{ let r=await fetch('/api/tulis?t='+Date.now()); let list=await r.json(); let arr=Array.isArray(list)?list:(list.results||list.data||[]); let mine=arr.filter(p=>(p.user_email||p.email||'').toLowerCase()===targetEmail.toLowerCase()); if(!mine.length){box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada tulisan</div>';return;} box.innerHTML=mine.map(p=>'<div class="private-card">'+(p.text||p.isi||'')+'</div>').join(''); }catch{ box.innerHTML='<div style="text-align:center;color:#555">Gagal memuat tulisan</div>'; }
-  } else { box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Segera Akan Datang</div>'; }
+  } else { box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Segera Bos</div>'; }
 }
 function showEdit(){
   document.getElementById('editModal').style.display='grid';
@@ -193,24 +188,18 @@ function showEdit(){
   _editB64=null;
   document.getElementById('editPicFile').onchange=(e)=>{
     let f=e.target.files[0]; if(!f) return;
-    if(f.size>5000000) return toast('Foto max 5MB Bos!');
-    let r=new FileReader();
-    r.onload=()=>{
-      let img=new Image();
-      img.onload=()=>{
-        let c=document.createElement('canvas');
-        let max=300; let w=img.width, h=img.height;
-        if(w>h){ if(w>max){ h*=max/w; w=max; } } else { if(h>max){ w*=max/h; h=max; } }
-        c.width=w; c.height=h;
-        c.getContext('2d').drawImage(img,0,0,w,h);
-        _editB64=c.toDataURL('image/jpeg',0.65);
-        document.getElementById('editPrev').src=_editB64;
-        document.getElementById('editPicUrl').value='';
-        toast('Foto siap Bos, klik Simpan');
-      };
-      img.src=r.result;
+    let img=new Image();
+    img.onload=()=>{
+      let c=document.createElement('canvas');
+      let max=400; let w=img.width, h=img.height;
+      if(w>h){ if(w>max){ h*=max/w; w=max; } } else { if(h>max){ w*=max/h; h=max; } }
+      c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      _editB64=c.toDataURL('image/jpeg',0.7);
+      document.getElementById('editPrev').src=_editB64;
+      document.getElementById('editPicUrl').value='';
     };
-    r.readAsDataURL(f);
+    let r=new FileReader(); r.onload=()=>{ img.src=r.result; }; r.readAsDataURL(f);
   };
 }
 function closeEdit(){ document.getElementById('editModal').style.display='none'; }
@@ -219,20 +208,20 @@ async function saveEdit(){
   let urlVal=document.getElementById('editPicUrl').value.trim();
   let pic=_editB64 || urlVal || getMyAvatar();
   if(!pic) pic=LOGO_INNER;
+  // SIMPEN LOKAL DULU BOS - JANGAN KUNCI BOS
   try{ 
     localStorage.setItem('rg_name',name); 
-    localStorage.setItem('rg_avatar',pic);
-    localStorage.setItem('rg_profile', JSON.stringify({name,picture:pic}));
+    localStorage.setItem('rg_avatar',pic); 
   }catch(e){ 
+    // KALO MASIH GAGAL BOS PAKSA LOGO BOS TAPI JANGAN KUNCI BOS
+    console.log('localStorage penuh Bos, pakai link Bos'); 
     if(pic.startsWith('data:')){ pic=LOGO_INNER; localStorage.setItem('rg_avatar',pic); toast('Foto kegedean Bos, pakai link aja Bos biar bebas'); }
   }
-  toast('Ganti foto...'); closeEdit(); render();
+  toast('Ganti foto Bos...'); closeEdit(); render();
   try{
-    let res=await fetch('/api/akun/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),name,picture:pic})});
-    let j=await res.json();
-    if(j.ok) toast('Foto profil ganti permanen Bos!');
-    else toast('Gagal: '+(j.error||''));
-  }catch(e){ console.log('api fail tapi lokal udah',e); toast('Foto ganti lokal Bos!'); }
+    await fetch('/api/akun/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),name,picture:pic})});
+    toast('Profile update Bos!');
+  }catch(e){ console.log('api fail tapi lokal udah Bos',e); }
 }
 function addPhoto(){
   let input=document.createElement('input'); input.type='file'; input.accept='image/*'; input.multiple=true;

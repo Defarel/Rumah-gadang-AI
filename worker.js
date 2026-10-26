@@ -21,7 +21,6 @@ const KANTOR_HTML = getHtml(KANTOR_M);
 const AI_HTML = getHtml(AI_M);
 const AKUN_HTML = getHtml(AKUN_M);
 
-// === AUTO FIX CANONICAL BOS - BIAR GAK EDIT 5 FILE SATU-SATU ===
 function injectCanonical(html, canonicalUrl){
   if(!html || typeof html !== 'string') return html;
   if(html.includes('rel="canonical"')){
@@ -47,7 +46,12 @@ export default {
     const cors = {'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET,POST,OPTIONS,DELETE','Access-Control-Allow-Headers':'Content-Type', 'Cache-Control':'no-store', 'X-Robots-Tag':'noindex, nofollow'};
     if(req.method==="OPTIONS") return new Response("",{headers:cors});
 
-    // === FIX 1: REDIRECT /home -> / (PENYEBAB 4 DUPLIKAT) ===
+    // === FIX WWW + 4XX DARI SS TERAKHIR BOS ===
+    const host = (req.headers.get('host') || url.hostname).toLowerCase();
+    if(host.startsWith('www.')){
+      return Response.redirect("https://rumahgadang-ai.my.id"+url.pathname+url.search, 301);
+    }
+
     if(path === "/home" || path === "/home/"){
       return Response.redirect("https://rumahgadang-ai.my.id/", 301);
     }
@@ -65,23 +69,29 @@ export default {
       return new Response(xml,{headers:{"Content-Type":"application/xml;charset=utf-8"}});
     }
 
-    // === FIX 2: ROBOTS.TXT BARU - FIX 9 HALAMAN 404 API ===
     if(path === "/robots.txt" || path === "/robots" || path === "/robots/"){
       return new Response(`User-agent: *
 Allow: /
 
-# Blokir API private biar gak ke-index Google (fix 9 halaman 404)
+# Fix 404 + 4xx - Blokir semua API private biar gak ke-crawl
+Disallow: /api/
 Disallow: /api/akun/
 Disallow: /api/akun/update
 Disallow: /api/akun/register
+Disallow: /api/akun/profile
 Disallow: /api/follow
 Disallow: /api/follow-stats/
 Disallow: /api/register
 Disallow: /api/users
 Disallow: /api/search-users/
+Disallow: /api/tulis/
+Disallow: /api/tulis/delete
 Disallow: /api/debug
+Disallow: /api/ig-curated/
+Disallow: /api/images/
 
-Sitemap: https://rumahgadang-ai.my.id/sitemap.xml`,{headers:{"Content-Type":"text/plain;charset=utf-8"}});
+Sitemap: https://rumahgadang-ai.my.id/sitemap.xml
+Host: https://rumahgadang-ai.my.id`,{headers:{"Content-Type":"text/plain;charset=utf-8"}});
     }
 
     if(path==="/api/ig-curated/delete" || path==="/api/images/delete" || path==="/api/foto/delete" || path==="/api/delete" || path==="/api/tulis/delete" || path==="/api/home/delete"){
@@ -130,8 +140,12 @@ Sitemap: https://rumahgadang-ai.my.id/sitemap.xml`,{headers:{"Content-Type":"tex
     if(path==="/a"||path==="/a/") path="/ai";
 
     if(path.startsWith('/api/')){
-      // === FIX 3: BLOKIR API YANG BIKIN 9 HALAMAN 404 DI SS UDA ===
-      const blockedForGet = ["/api/akun/update","/api/follow-stats","/api/follow","/api/register","/api/users","/api/akun/register","/api/search-users"];
+      // FIX DARI 2 SS UDA: 404 9 halaman + 4xx 2 halaman
+      const blockedForGet = [
+        "/api/akun/update","/api/follow-stats","/api/follow","/api/register",
+        "/api/users","/api/akun/register","/api/search-users",
+        "/api/tulis/delete","/api/akun/profile","/api/akun/"
+      ];
       const isBlocked = blockedForGet.some(p => path.startsWith(p));
       if(path === "/api/ai" && req.method === "GET"){
         return new Response(JSON.stringify({ok:false,error:"Use POST"}),{headers:cors,status:404});
@@ -162,22 +176,18 @@ Sitemap: https://rumahgadang-ai.my.id/sitemap.xml`,{headers:{"Content-Type":"tex
       return new Response(JSON.stringify({ok:false,error:"No handler "+path}),{headers:cors,status:404});
     }
 
-    // ====== HALAMAN DENGAN CANONICAL OTOMATIS BOS ======
     if(path==="/"||path==="/home"||path.startsWith("/home/")) return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
     if(path.startsWith("/foto")) return htmlResponse(FOTO_HTML, "https://rumahgadang-ai.my.id/foto");
     if(path.startsWith("/video")) return htmlResponse(VIDEO_HTML, "https://rumahgadang-ai.my.id/video");
     if(path.startsWith("/ai")) return htmlResponse(AI_HTML, "https://rumahgadang-ai.my.id/ai");
     if(path.startsWith("/kantor")) return htmlResponse(KANTOR_HTML, "https://rumahgadang-ai.my.id/kantor");
-    
     if(path.startsWith("/akun") || path.startsWith("/profil") || path.startsWith("/profile") || path.startsWith("/u/")) {
       return htmlResponse(AKUN_HTML, "https://rumahgadang-ai.my.id/akun");
     }
-    
     let seg=path.replace(/^\/+/,"").split("/")[0];
     if(seg && !["home","foto","video","ai","kantor","akun","api","sitemap","robots","profil","profile","icon.png","favicon.ico"].includes(seg) && !seg.includes(".") && seg.length>=2){
       return htmlResponse(AKUN_HTML, "https://rumahgadang-ai.my.id/akun");
     }
-    
     return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
   }
-}
+      }

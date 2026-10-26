@@ -44,9 +44,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
     <div class="app-title">Rumah Gadang AI</div>
     <button class="floating-btn" id="musicBtn" onclick="toggleMusic()">🔊 RG Musik</button>
   </div>
-  <div class="chat-container" id="chatBox">
-    <div class="chat-bubble ai">Halo Bos! Rumah Gadang AI siap Bos!<br><br>• "Apa itu gonjong?" -> Chat Bos<br>• "Gambarkan Rumah Gadang neon hijau di sawah" -> Gambar Bos!</div>
-  </div>
+  <div class="chat-container" id="chatBox"></div>
   <div class="bottom-chat-bar">
     <input type="text" id="userInput" class="chat-input" placeholder="Tanya atau minta gambar..." onkeypress="handleKeyPress(event)">
     <button class="btn-kirim" id="sendBtn" onclick="handleSend()">KIRIM &rarr;</button>
@@ -103,7 +101,7 @@ function appendImageElement(imgEl, caption){
   const link = document.createElement('a');
   link.href = imgEl.src;
   link.target = '_blank';
-  link.textContent = '📥 Buka Full / Download Bos';
+  link.textContent = '📥 Buka Full / Download';
   link.style.cssText = 'display:block;margin-top:6px;color:#00ff88;font-size:12px;text-decoration:none';
   wrap.appendChild(link);
   chatBox.appendChild(wrap);
@@ -124,37 +122,28 @@ async function handleSend(){
   const isImage = /gambar|gambarkan|gambarin|foto|lukis|draw|image|fotoin|buatkan.*gambar|bikin.*gambar|buatkan.*foto/i.test(prompt);
 
   if(isImage){
-    const loadingDiv = appendMessage('🎨 Bikin gambar Bos... tunggu 8-15 detik Bos (Flux 2 Pro)...', 'ai');
+    const loadingDiv = appendMessage('Sebentar dunsanak sedang melukiskan untukmu dunsanak', 'ai');
     try{
       let cleanPrompt = prompt.replace(/buatkan|bikin|tolong|gambar|foto|gambarkan|gambarin|kan/gi,'').trim();
       if(cleanPrompt.length < 3) cleanPrompt = "Rumah Gadang";
-      const finalPrompt = cleanPrompt + ", Rumah Gadang Minangkabau traditional architecture, gonjong roof, photorealistic, highly detailed, 8k, masterpiece, neon green glowing";
+      const finalPrompt = cleanPrompt + ", photorealistic, highly detailed, 8k, masterpiece, neon green glowing";
 
-      // MODEL YANG BENER BOS SESUAI DOCS PUTER NOV 2025 - FLUX 2 BOS
       let imageElement = null;
       try {
-        imageElement = await puter.ai.txt2img(finalPrompt, {
-          model: "black-forest-labs/flux-2-pro"
-        });
+        imageElement = await puter.ai.txt2img(finalPrompt, { model: "black-forest-labs/flux-2-pro" });
       } catch(e1){
-        console.log("Flux 2 Pro gagal, coba klein Bos", e1);
         try {
-          imageElement = await puter.ai.txt2img(finalPrompt, {
-            model: "black-forest-labs/flux-2-klein-9b-base"
-          });
+          imageElement = await puter.ai.txt2img(finalPrompt, { model: "black-forest-labs/flux-2-klein-9b-base" });
         } catch(e2){
-          console.log("Klein gagal, coba tanpa model Bos", e2);
           imageElement = await puter.ai.txt2img(finalPrompt);
         }
       }
-
-      if(!imageElement) throw new Error("Puter lagi sibuk Bos");
-
+      if(!imageElement) throw new Error("Puter sibuk");
       loadingDiv.remove();
       appendImageElement(imageElement, finalPrompt);
     }catch(e){
       const errMsg = e?.message || e?.toString() || "unknown";
-      loadingDiv.textContent = "❌ Gagal gambar Bos: " + errMsg;
+      loadingDiv.textContent = "❌ Gagal: " + errMsg;
     }finally{
       sendBtn.disabled = false;
     }
@@ -168,10 +157,10 @@ async function handleSend(){
       });
       const data = await res.json();
       if(data.reply){ loadingDiv.textContent = data.reply; }
-      else if(data.error){ loadingDiv.textContent = "Maaf Bos: " + data.error; }
-      else { loadingDiv.textContent = "Respon tidak diketahui Bos."; }
+      else if(data.error){ loadingDiv.textContent = "Maaf: " + data.error; }
+      else { loadingDiv.textContent = "Respon tidak diketahui."; }
     } catch(e) {
-      loadingDiv.textContent = "Gagal terhubung ke AI Bos: " + e.message;
+      loadingDiv.textContent = "Gagal terhubung: " + e.message;
     } finally {
       sendBtn.disabled = false;
       chatBox.scrollTop = chatBox.scrollHeight;

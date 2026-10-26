@@ -61,21 +61,62 @@ export default {
       return Response.redirect("https://rumahgadang-ai.my.id"+path.slice(0,-1), 301);
     }
 
+    // ===== FIX SITEMAP BOS - INI YANG BIKIN 0 HALAMAN TADI BOS =====
     if(path === "/sitemap.xml" || path === "/sitemap/" || path === "/sitemap"){
-      try{
-        let m=getApi(SITEMAP_M);
-        if(m?.handle){ let r=await m.handle(req,env,url); if(r) return r; }
-        if(typeof m === 'string' && m.includes('<urlset')) return new Response(m,{headers:{"Content-Type":"application/xml;charset=utf-8"}});
-      }catch(e){}
-      const xml = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://rumahgadang-ai.my.id/</loc><priority>1.0</priority></url><url><loc>https://rumahgadang-ai.my.id/foto</loc><priority>0.8</priority></url><url><loc>https://rumahgadang-ai.my.id/video</loc><priority>0.8</priority></url><url><loc>https://rumahgadang-ai.my.id/ai</loc><priority>0.9</priority></url><url><loc>https://rumahgadang-ai.my.id/kantor</loc><priority>0.7</priority></url><url><loc>https://rumahgadang-ai.my.id/akun</loc><priority>0.5</priority></url></urlset>`;
-      return new Response(xml,{headers:{"Content-Type":"application/xml;charset=utf-8"}});
+      const now = new Date().toISOString().split('T')[0];
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://rumahgadang-ai.my.id/</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://rumahgadang-ai.my.id/foto</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://rumahgadang-ai.my.id/video</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://rumahgadang-ai.my.id/ai</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rumahgadang-ai.my.id/kantor</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://rumahgadang-ai.my.id/akun</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+</urlset>`;
+      return new Response(xml.trim(), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/xml; charset=UTF-8",
+          "Cache-Control": "no-cache",
+          "Access-Control-Allow-Origin": "*"
+        }
+      });
     }
 
     if(path === "/robots.txt" || path === "/robots" || path === "/robots/"){
-      return new Response(`User-agent: *
+      const robots = `User-agent: *
 Allow: /
 
-# FIX TEMAN - hanya blok yang bahaya aja
 Disallow: /api/akun/update
 Disallow: /api/akun/register
 Disallow: /api/register
@@ -84,7 +125,8 @@ Disallow: /api/ig-curated/delete
 Disallow: /api/debug
 
 Sitemap: https://rumahgadang-ai.my.id/sitemap.xml
-Host: https://rumahgadang-ai.my.id`,{headers:{"Content-Type":"text/plain;charset=utf-8"}});
+Host: https://rumahgadang-ai.my.id`;
+      return new Response(robots, {status:200, headers:{"Content-Type":"text/plain;charset=utf-8", "Cache-Control":"public, max-age=3600"}});
     }
 
     if(path==="/api/ig-curated/delete" || path==="/api/images/delete" || path==="/api/foto/delete" || path==="/api/delete" || path==="/api/tulis/delete" || path==="/api/home/delete"){
@@ -133,7 +175,6 @@ Host: https://rumahgadang-ai.my.id`,{headers:{"Content-Type":"text/plain;charset
     if(path==="/a"||path==="/a/") path="/ai";
 
     if(path.startsWith('/api/')){
-      // FIX TEMAN BOS - JANGAN BLOK API TEMAN
       const blockedForGet = [
         "/api/akun/update",
         "/api/akun/register",
@@ -158,7 +199,6 @@ Host: https://rumahgadang-ai.my.id`,{headers:{"Content-Type":"text/plain;charset
         if(path.startsWith('/api/video')){
           let m=getApi(VIDEO_API_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
         }
-        // TEMAN BUTUH INI BOS - JANGAN DI BLOK
         if(path.startsWith('/api/akun') || path.startsWith('/api/follow') || path.startsWith('/api/users') || path.startsWith('/api/search-users')){
           let m=getApi(AKUN_API_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
         }
@@ -185,4 +225,4 @@ Host: https://rumahgadang-ai.my.id`,{headers:{"Content-Type":"text/plain;charset
     }
     return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
   }
-      }
+}

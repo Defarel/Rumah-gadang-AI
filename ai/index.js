@@ -3,6 +3,7 @@ export const AI_HTML = `<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Rumah Gadang AI - AI Assistant</title>
+<link rel="canonical" href="https://rumahgadang-ai.my.id/ai">
 <link rel="icon" href="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}

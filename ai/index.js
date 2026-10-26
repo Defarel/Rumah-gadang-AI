@@ -45,7 +45,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
     <button class="floating-btn" id="musicBtn" onclick="toggleMusic()">🔊 RG Musik</button>
   </div>
   <div class="chat-container" id="chatBox">
-    <div class="chat-bubble ai">Halo Bos! Rumah Gadang AI siap Bos!<br><br>• Ketik "Apa itu gonjong?" -> Chat Bos<br>• Ketik "Buatkan gambar Rumah Gadang di sawah sunset" -> Gambar Flux 2 Pro Bos!</div>
+    <div class="chat-bubble ai">Halo Bos! Rumah Gadang AI siap Bos!<br><br>• "Apa itu gonjong?" -> Chat Bos<br>• "Gambarkan Rumah Gadang neon hijau di sawah" -> Gambar Bos!</div>
   </div>
   <div class="bottom-chat-bar">
     <input type="text" id="userInput" class="chat-input" placeholder="Tanya atau minta gambar..." onkeypress="handleKeyPress(event)">
@@ -97,9 +97,15 @@ function appendImageElement(imgEl, caption){
     cap.style.fontSize = '11px';
     cap.style.color = '#aaa';
     cap.style.marginTop = '6px';
-    cap.textContent = caption;
+    cap.textContent = caption.slice(0,120);
     wrap.appendChild(cap);
   }
+  const link = document.createElement('a');
+  link.href = imgEl.src;
+  link.target = '_blank';
+  link.textContent = '📥 Buka Full / Download Bos';
+  link.style.cssText = 'display:block;margin-top:6px;color:#00ff88;font-size:12px;text-decoration:none';
+  wrap.appendChild(link);
   chatBox.appendChild(wrap);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
@@ -115,22 +121,41 @@ async function handleSend(){
   inputEl.value = '';
   sendBtn.disabled = true;
 
-  const isImage = /gambar|foto|buatkan.*gambar|bikin.*gambar|lukis|draw|image|fotoin|generate.*gambar/i.test(prompt);
+  const isImage = /gambar|gambarkan|gambarin|foto|lukis|draw|image|fotoin|buatkan.*gambar|bikin.*gambar|buatkan.*foto/i.test(prompt);
 
   if(isImage){
-    const loadingDiv = appendMessage('🎨 Bikin gambar pakai Flux 2 Pro Bos... tunggu 8 detik Bos...', 'ai');
+    const loadingDiv = appendMessage('🎨 Bikin gambar Bos... tunggu 8-15 detik Bos (Flux Pro)...', 'ai');
     try{
-      const cleanPrompt = prompt.replace(/buatkan|bikin|tolong|gambar|foto/gi,'').trim() || prompt;
-      const finalPrompt = cleanPrompt + ", Rumah Gadang Minangkabau traditional architecture, gonjong roof, photorealistic, highly detailed, 8k, masterpiece";
+      let cleanPrompt = prompt.replace(/buatkan|bikin|tolong|gambar|foto|gambarkan|gambarin|kan/gi,'').trim();
+      if(cleanPrompt.length < 3) cleanPrompt = prompt;
+      const finalPrompt = cleanPrompt + ", Rumah Gadang Minangkabau traditional architecture, gonjong roof, photorealistic, highly detailed, 8k, masterpiece, neon green glowing, Indonesia";
 
-      const imageElement = await puter.ai.txt2img(finalPrompt, {
-        model: "black-forest-labs/flux-2-pro"
-      });
-      
+      let imageElement = null;
+      let lastError = null;
+      const modelsToTry = [
+        "black-forest-labs/flux.1.1-pro",
+        "black-forest-labs/flux.1-pro",
+        "black-forest-labs/flux.1-schnell",
+        "black-forest-labs/flux.1-dev"
+      ];
+
+      for(let m of modelsToTry){
+        try{
+          imageElement = await puter.ai.txt2img(finalPrompt, { model: m });
+          if(imageElement) break;
+        }catch(e){
+          lastError = e;
+          continue;
+        }
+      }
+
+      if(!imageElement) throw lastError || new Error("Puter lagi sibuk Bos");
+
       loadingDiv.remove();
       appendImageElement(imageElement, finalPrompt);
     }catch(e){
-      loadingDiv.textContent = "❌ Gagal gambar Bos: " + e.message;
+      const errMsg = e?.message || e?.toString() || "unknown error";
+      loadingDiv.textContent = "❌ Gagal gambar Bos: " + errMsg + ". Coba login dulu di puter.com Bos, trus refresh Bos!";
     }finally{
       sendBtn.disabled = false;
     }
@@ -147,7 +172,7 @@ async function handleSend(){
       else if(data.error){ loadingDiv.textContent = "Maaf Bos: " + data.error; }
       else { loadingDiv.textContent = "Respon tidak diketahui Bos."; }
     } catch(e) {
-      loadingDiv.textContent = "Gagal terhubung ke AI Bos: " + e.message;
+      loadingDiv.textContent = "Gagal terhubung ke AI Bos: " + e.message + " (cek GROQ_API_KEY Bos!)";
     } finally {
       sendBtn.disabled = false;
       chatBox.scrollTop = chatBox.scrollHeight;

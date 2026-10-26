@@ -46,7 +46,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
   </div>
   <div class="chat-container" id="chatBox"></div>
   <div class="bottom-chat-bar">
-    <input type="text" id="userInput" class="chat-input" placeholder="Tanya atau minta gambar..." onkeypress="handleKeyPress(event)">
+    <input type="text" id="userInput" class="chat-input" placeholder="Tanya atau Gambarkan Ke Rumah Gadang AI..." onkeypress="handleKeyPress(event)">
     <button class="btn-kirim" id="sendBtn" onclick="handleSend()">KIRIM &rarr;</button>
   </div>
 </div>

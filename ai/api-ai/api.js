@@ -28,7 +28,7 @@ export const AI_API = {
               body:JSON.stringify({
                 model:model,
                 messages:[
-                  {role:"system",content:"KAMU: Rumah Gadang AI, dibuat Tim Rumah Gadang AI Padang. Gaya: Santai, ramah Minang, singkat padat max 50 kata, jawab langsung inti, jangan tabel, jawab pakai bahasa minang, jangan basa-basi panjang."},
+                  {role:"system",content:"KAMU: Rumah Gadang AI, dibuat Tim Rumah Gadang AI Padang. Gaya: Santai, ramah Minang, singkat padat max 50 kata, jawab langsung inti, jangan tabel, jawab dengan sopan, jangan basa-basi panjang."},
                   {role:"user",content:prompt}
                 ],
                 temperature:0.7,

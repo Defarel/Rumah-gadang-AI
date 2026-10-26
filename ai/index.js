@@ -124,38 +124,37 @@ async function handleSend(){
   const isImage = /gambar|gambarkan|gambarin|foto|lukis|draw|image|fotoin|buatkan.*gambar|bikin.*gambar|buatkan.*foto/i.test(prompt);
 
   if(isImage){
-    const loadingDiv = appendMessage('🎨 Bikin gambar Bos... tunggu 8-15 detik Bos (Flux Pro)...', 'ai');
+    const loadingDiv = appendMessage('🎨 Bikin gambar Bos... tunggu 8-15 detik Bos (Flux 2 Pro)...', 'ai');
     try{
       let cleanPrompt = prompt.replace(/buatkan|bikin|tolong|gambar|foto|gambarkan|gambarin|kan/gi,'').trim();
-      if(cleanPrompt.length < 3) cleanPrompt = prompt;
-      const finalPrompt = cleanPrompt + ", Rumah Gadang Minangkabau traditional architecture, gonjong roof, photorealistic, highly detailed, 8k, masterpiece, neon green glowing, Indonesia";
+      if(cleanPrompt.length < 3) cleanPrompt = "Rumah Gadang";
+      const finalPrompt = cleanPrompt + ", Rumah Gadang Minangkabau traditional architecture, gonjong roof, photorealistic, highly detailed, 8k, masterpiece, neon green glowing";
 
+      // MODEL YANG BENER BOS SESUAI DOCS PUTER NOV 2025 - FLUX 2 BOS
       let imageElement = null;
-      let lastError = null;
-      const modelsToTry = [
-        "black-forest-labs/flux.1.1-pro",
-        "black-forest-labs/flux.1-pro",
-        "black-forest-labs/flux.1-schnell",
-        "black-forest-labs/flux.1-dev"
-      ];
-
-      for(let m of modelsToTry){
-        try{
-          imageElement = await puter.ai.txt2img(finalPrompt, { model: m });
-          if(imageElement) break;
-        }catch(e){
-          lastError = e;
-          continue;
+      try {
+        imageElement = await puter.ai.txt2img(finalPrompt, {
+          model: "black-forest-labs/flux-2-pro"
+        });
+      } catch(e1){
+        console.log("Flux 2 Pro gagal, coba klein Bos", e1);
+        try {
+          imageElement = await puter.ai.txt2img(finalPrompt, {
+            model: "black-forest-labs/flux-2-klein-9b-base"
+          });
+        } catch(e2){
+          console.log("Klein gagal, coba tanpa model Bos", e2);
+          imageElement = await puter.ai.txt2img(finalPrompt);
         }
       }
 
-      if(!imageElement) throw lastError || new Error("Puter lagi sibuk Bos");
+      if(!imageElement) throw new Error("Puter lagi sibuk Bos");
 
       loadingDiv.remove();
       appendImageElement(imageElement, finalPrompt);
     }catch(e){
-      const errMsg = e?.message || e?.toString() || "unknown error";
-      loadingDiv.textContent = "❌ Gagal gambar Bos: " + errMsg + ". Coba login dulu di puter.com Bos, trus refresh Bos!";
+      const errMsg = e?.message || e?.toString() || "unknown";
+      loadingDiv.textContent = "❌ Gagal gambar Bos: " + errMsg;
     }finally{
       sendBtn.disabled = false;
     }
@@ -172,7 +171,7 @@ async function handleSend(){
       else if(data.error){ loadingDiv.textContent = "Maaf Bos: " + data.error; }
       else { loadingDiv.textContent = "Respon tidak diketahui Bos."; }
     } catch(e) {
-      loadingDiv.textContent = "Gagal terhubung ke AI Bos: " + e.message + " (cek GROQ_API_KEY Bos!)";
+      loadingDiv.textContent = "Gagal terhubung ke AI Bos: " + e.message;
     } finally {
       sendBtn.disabled = false;
       chatBox.scrollTop = chatBox.scrollHeight;

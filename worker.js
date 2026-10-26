@@ -46,12 +46,15 @@ export default {
     const cors = {'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET,POST,OPTIONS,DELETE','Access-Control-Allow-Headers':'Content-Type', 'Cache-Control':'no-store', 'X-Robots-Tag':'noindex, nofollow'};
     if(req.method==="OPTIONS") return new Response("",{headers:cors});
 
-    // === FIX WWW + 4XX DARI SS TERAKHIR BOS ===
+    // === FIX 1: HTTPS + WWW + HOME (FIX SEMUA SS UDA) ===
+    const proto = req.headers.get('x-forwarded-proto') || url.protocol.replace(':','');
     const host = (req.headers.get('host') || url.hostname).toLowerCase();
+    if(proto === 'http'){
+      return Response.redirect("https://rumahgadang-ai.my.id"+url.pathname+url.search, 301);
+    }
     if(host.startsWith('www.')){
       return Response.redirect("https://rumahgadang-ai.my.id"+url.pathname+url.search, 301);
     }
-
     if(path === "/home" || path === "/home/"){
       return Response.redirect("https://rumahgadang-ai.my.id/", 301);
     }
@@ -73,22 +76,22 @@ export default {
       return new Response(`User-agent: *
 Allow: /
 
-# Fix 404 + 4xx - Blokir semua API private biar gak ke-crawl
 Disallow: /api/
 Disallow: /api/akun/
 Disallow: /api/akun/update
 Disallow: /api/akun/register
 Disallow: /api/akun/profile
+Disallow: /api/akun/photos
+Disallow: /api/akun/list
 Disallow: /api/follow
 Disallow: /api/follow-stats/
 Disallow: /api/register
 Disallow: /api/users
 Disallow: /api/search-users/
-Disallow: /api/tulis/
 Disallow: /api/tulis/delete
-Disallow: /api/debug
 Disallow: /api/ig-curated/
 Disallow: /api/images/
+Disallow: /api/debug
 
 Sitemap: https://rumahgadang-ai.my.id/sitemap.xml
 Host: https://rumahgadang-ai.my.id`,{headers:{"Content-Type":"text/plain;charset=utf-8"}});
@@ -140,11 +143,15 @@ Host: https://rumahgadang-ai.my.id`,{headers:{"Content-Type":"text/plain;charset
     if(path==="/a"||path==="/a/") path="/ai";
 
     if(path.startsWith('/api/')){
-      // FIX DARI 2 SS UDA: 404 9 halaman + 4xx 2 halaman
+      // FIX ?_t= ?t= BIAR GAK JADI 5 HALAMAN DI-CRAWL TIDAK DIINDEKS
+      if(url.search.includes("_t=") || url.search.includes("?t=") || url.search.includes("&t=") || url.search.includes("_t-") || url.search.includes("?t-")){
+        return new Response(JSON.stringify({ok:false,error:"blocked cache buster"}),{headers:cors,status:404});
+      }
       const blockedForGet = [
         "/api/akun/update","/api/follow-stats","/api/follow","/api/register",
         "/api/users","/api/akun/register","/api/search-users",
-        "/api/tulis/delete","/api/akun/profile","/api/akun/"
+        "/api/tulis/delete","/api/akun/profile","/api/akun/photos","/api/akun/list",
+        "/api/ig-curated","/api/akun/"
       ];
       const isBlocked = blockedForGet.some(p => path.startsWith(p));
       if(path === "/api/ai" && req.method === "GET"){
@@ -190,4 +197,4 @@ Host: https://rumahgadang-ai.my.id`,{headers:{"Content-Type":"text/plain;charset
     }
     return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
   }
-      }
+}

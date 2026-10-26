@@ -75,20 +75,13 @@ export default {
       return new Response(`User-agent: *
 Allow: /
 
+# FIX TEMAN - hanya blok yang bahaya aja
 Disallow: /api/akun/update
 Disallow: /api/akun/register
-Disallow: /api/akun/profile
-Disallow: /api/akun/photos
-Disallow: /api/akun/list
-Disallow: /api/follow
-Disallow: /api/follow-stats/
 Disallow: /api/register
-Disallow: /api/users
-Disallow: /api/search-users/
 Disallow: /api/tulis/delete
 Disallow: /api/ig-curated/delete
 Disallow: /api/debug
-Disallow: /api/debug/
 
 Sitemap: https://rumahgadang-ai.my.id/sitemap.xml
 Host: https://rumahgadang-ai.my.id`,{headers:{"Content-Type":"text/plain;charset=utf-8"}});
@@ -140,25 +133,19 @@ Host: https://rumahgadang-ai.my.id`,{headers:{"Content-Type":"text/plain;charset
     if(path==="/a"||path==="/a/") path="/ai";
 
     if(path.startsWith('/api/')){
-      // FIX GA KELUAR - JANGAN BLOK ?_t= & JANGAN BLOK ig-curated & akun utama
+      // FIX TEMAN BOS - JANGAN BLOK API TEMAN
       const blockedForGet = [
         "/api/akun/update",
         "/api/akun/register",
-        "/api/akun/profile",
-        "/api/akun/photos",
-        "/api/akun/list",
-        "/api/follow-stats",
         "/api/register",
-        "/api/users",
-        "/api/search-users/",
         "/api/tulis/delete"
       ];
       const isBlocked = blockedForGet.some(p => path.startsWith(p));
+      if(isBlocked && req.method === "GET"){
+        return new Response(JSON.stringify({ok:false,error:"API private - use POST"}),{headers:cors,status:404});
+      }
       if(path === "/api/ai" && req.method === "GET"){
         return new Response(JSON.stringify({ok:false,error:"Use POST"}),{headers:cors,status:404});
-      }
-      if(isBlocked && req.method === "GET"){
-        return new Response(JSON.stringify({ok:false,error:"API private"}),{headers:cors,status:404});
       }
 
       try{
@@ -171,7 +158,8 @@ Host: https://rumahgadang-ai.my.id`,{headers:{"Content-Type":"text/plain;charset
         if(path.startsWith('/api/video')){
           let m=getApi(VIDEO_API_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
         }
-        if(path.startsWith('/api/akun') || path.startsWith('/api/follow')){
+        // TEMAN BUTUH INI BOS - JANGAN DI BLOK
+        if(path.startsWith('/api/akun') || path.startsWith('/api/follow') || path.startsWith('/api/users') || path.startsWith('/api/search-users')){
           let m=getApi(AKUN_API_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
         }
         if(path.startsWith('/api/ai')){
@@ -197,4 +185,4 @@ Host: https://rumahgadang-ai.my.id`,{headers:{"Content-Type":"text/plain;charset
     }
     return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
   }
-        }
+      }

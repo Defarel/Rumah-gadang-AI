@@ -4,6 +4,8 @@ export default `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Rumah Gadang AI - Komunitas Minangkabau</title>
 <link rel="icon" href="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png">
+<link rel="canonical" href="https://rumahgadang-ai.my.id/">
+<meta name="description" content="Komunitas Minangkabau - Rumah Gadang AI, tempat dunsanak berbagi cerita">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{background:#000;color:#fff;font-family:system-ui,sans-serif}
 #app{max-width:520px;margin:0 auto;background:#000;min-height:100vh;padding-bottom:90px;border-left:2.5px solid #00ff88;border-right:2.5px solid #00ff88;border-bottom:2.5px solid #00ff88;box-shadow:0 0 18px rgba(0,255,136,0.55)}
@@ -52,7 +54,6 @@ export default `<!DOCTYPE html>
 .k-body{flex:1;min-width:0}
 .k-user{font-size:13px;color:#aaa;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .k-user b{color:#fff}
-.k-badge{background:#00ff88;color:#000;font-size:10px;font-weight:900;padding:2px 6px;border-radius:8px;margin-left:4px}
 .k-text{margin-top:4px;font-size:14.5px;line-height:1.5;color:#f1f1f1;white-space:pre-wrap;word-break:break-word}
 .k-actions{margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .k-act{display:flex;gap:6px;align-items:center;font-size:13px;color:#aaa;cursor:pointer;padding:6px 14px;border-radius:20px;border:1px solid #2a2a2a;background:#1e1e1e}
@@ -101,6 +102,13 @@ export default `<!DOCTYPE html>
 </div>
 
 <script>
+// FIX DUPLIKAT KANONIS DI HOME - GOOGLE SEARCH CONSOLE
+if(location.pathname.toLowerCase()==='/home' || location.pathname.toLowerCase()==='/home/'){
+  history.replaceState(null,'','/');
+  let link=document.querySelector('link[rel="canonical"]');
+  if(link) link.href='https://rumahgadang-ai.my.id/';
+}
+
 const LOGO_FALLBACK="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
 const ADMIN_EMAILS=["admin@rumahgadang-ai.my.id","naura@rumahgadang-ai.my.id","defarel@rumahgadang-ai.my.id"];
 let selectedImg=""; let activeTulisId=""; let activeKomen=[]; let mode="komentar"; let activeParent=null;
@@ -184,14 +192,13 @@ function komenInner(k, showBalas, replyCount){
   let loved=k.isLiked?" loved":"";
   let isOwner=(k.email||"").toLowerCase()===me;
   let canDel=isOwner||isAdmin();
-  let badge=isAdmin()&&k.email.toLowerCase().includes('admin')?' <span class=k-badge>ADMIN</span>':'';
   let del=canDel?'<span class=k-del onclick="hapusKomen(\\''+k.id+'\\')">🗑️ Hapus</span>':'';
   let balas=showBalas?'<div class=k-act onclick="handleBalas(\\''+k.id+'\\',\\''+name+'\\')"><span>💬</span><span>Balas</span></div>':'';
   let replyInfo='';
   if(replyCount>0 && showBalas){
     replyInfo='<div class=k-reply-count onclick="renderBalasan(\\''+k.id+'\\')">↳ '+replyCount+' balasan • Lihat balasan</div>';
   }
-  return '<img class=k-av src="'+pic+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=k-body><div class=k-user><b>@'+name+'</b>'+badge+'<span> • '+time+'</span></div><div class=k-text>'+text+'</div><div class=k-actions><div class="k-act'+loved+'" onclick="loveKomen(\\''+k.id+'\\')"><span>❤️</span><span>'+(k.likes>0?k.likes:'Love')+'</span></div>'+balas+del+'</div>'+replyInfo+'</div>';
+  return '<img class=k-av src="'+pic+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=k-body><div class=k-user><b>@'+name+'</b><span> • '+time+'</span></div><div class=k-text>'+text+'</div><div class=k-actions><div class="k-act'+loved+'" onclick="loveKomen(\\''+k.id+'\\')"><span>❤️</span><span>'+(k.likes>0?k.likes:'Love')+'</span></div>'+balas+del+'</div>'+replyInfo+'</div>';
 }
 function handleBalas(komenId, name){
   renderBalasan(komenId);

@@ -213,7 +213,7 @@ function toIn(){
     setTimeout(() => { window.location.href = '/dalam'; }, 800);
 }
 
-let camYaw = 0, camPitch = 18, camDist = 12, keys = {x: 0, y: 0}, spd = 0.8, rspd = 1.5, run = false, nearT = null, nearNPC = null, nearD = false, isSit = false;
+let camYaw = 0, camPitch = 18, camDist = 12, keys = {x: 0, y: 0}, spd = 0.4, rspd = 1.0, run = false, nearT = null, nearNPC = null, nearD = false, isSit = false;
 let bj = document.getElementById('joy'), st = document.getElementById('stick'), dg = false, br;
 function gbr(){ br = bj.getBoundingClientRect(); }
 function mv(cx, cy){

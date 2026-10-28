@@ -6,7 +6,7 @@ export const KANTOR_LUAR_HTML = `<!DOCTYPE html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-    <title>KANTOR LUAR - BOS PRABOWO</title>
+    <title>KANTOR LUAR - RUMAH GADANG AI</title>
     <script type="importmap">
     {
         "imports": {
@@ -36,15 +36,12 @@ export const KANTOR_LUAR_HTML = `<!DOCTYPE html>
     </style>
 </head>
 <body>
-<div id="loading">LOADING KANTOR LUAR - BOS PRABOWO...<br><span id="loadDetail" style="font-size:10px;color:#aaa">Memuat Aset 3D...</span></div>
+<div id="loading">LOADING KANTOR LUAR<br><span id="loadDetail" style="font-size:10px;color:#aaa">Memuat Aset 3D...</span></div>
 <div id="fade">BERPINDAH AREA...</div>
-<div id="top"><b id="topTitle">KANTOR LUAR - BOS PRABOWO</b><span id="locStatus" style="background:#00C853;padding:3px 8px;border-radius:10px;color:#fff">AREA LUAR</span></div>
-<div id="gps"><span id="gpsText">Init Bos...</span> | <span id="modeText">Robot Kecil Jalan-Jalan</span></div>
+<div id="top"><b id="topTitle">KANTOR LUAR - RUMAH GADANG AI</b><span id="locStatus" style="background:#00C853;padding:3px 8px;border-radius:10px;color:#fff">AREA LUAR</span></div>
+<div id="gps"><span id="gpsText">Init Bos...</span> | <span id="modeText"></span></div>
 <div id="joy"><div id="stick"></div></div>
 <div id="right">
-    <button id="cam" class="btn">360<br>ZOOM</button>
-    <button id="zin" class="btn">ZOOM<br>IN</button>
-    <button id="zout" class="btn">ZOOM<br>OUT</button>
     <button id="run" class="btn">LARI</button>
     <button id="jump" class="btn">DUDUK</button>
 </div>
@@ -123,8 +120,8 @@ function hit(nx, nz){
 
 function updateLoad(name, pct){
     let overall = Math.round((loaded / TOTAL) * 100 + (pct ? pct / TOTAL : 0));
-    document.getElementById('loading').innerHTML = 'LOADING ' + overall + '% KANTOR LUAR<br><span id="loadDetail" style="font-size:10px;color:#aaa">' + name + ' ' + pct + '% Bos</span>';
-    document.getElementById('gpsText').innerText = name + ':' + pct + '% Bos';
+    document.getElementById('loading').innerHTML = 'LOADING ' + overall + '% KANTOR LUAR<br><span id="loadDetail" style="font-size:10px;color:#aaa">' + name + ' ' + pct + '%</span>';
+    document.getElementById('gpsText').innerText = name + ':' + pct + '%';
 }
 function check(name){
     loaded++;
@@ -135,7 +132,7 @@ function check(name){
         document.getElementById('gpsText').innerText = 'Siap Bos! Area Luar Siap!';
     }
 }
-function fail(name){ check(name + ' SKIP Bos'); }
+function fail(name){ check(name + ' SKIP'); }
 
 let loader = new GLTFLoader();
 function loadHF(url, label, onOk){
@@ -185,14 +182,13 @@ loadHF(RUKO_URL, 'Ruko-Storefront', (g) => {
 
 // ✅ NPC dengan Data Patroli (Titik Asal, Tujuan Jalan-Jalan, Waktu Ubah Arah)
 let NPC_OUT = [
-    {nama: "Pak Sales Robot", role: "Sales Robot", emoji: "🤖", x: -26, z: 45, startX: -26, startZ: 45, targetX: -26, targetZ: 10, speed: 0.04},
-    {nama: "Pak Kasir Robot", role: "Kasir Toko 2 Robot", emoji: "🤖", x: 26, z: 25, startX: 26, startZ: 25, targetX: 26, targetZ: -10, speed: 0.04}
+    {nama: "Pak Sales Robot", role: "Sales Robot", emoji: "🤖", x: -26, z: 45, startX: -26, startZ: 45, targetX: -26, targetZ: -30, speed: 0.1},
+    {nama: "Pak Kasir Robot", role: "Kasir Toko 2 Robot", emoji: "🤖", x: 26, z: 25, startX: 26, startZ: 25, targetX: 26, targetZ: -30, speed: 0.04}
 ];
 
 function spawnRobotNPCs(){
     if (!robotBase) return;
     NPC_OUT.forEach(d => {
-        // Skala dikecilkan dari 2.5 menjadi 1.3 agar pas dan proporsional
         let o = robotBase.clone(true); 
         o.scale.set(0.8, 0.8, 0.8); 
         o.position.set(d.x, 0, d.z); 
@@ -202,10 +198,10 @@ function spawnRobotNPCs(){
 }
 
 loadHF(NPC_URL, 'Robot-NPC', (g) => { robotBase = g.scene; spawnRobotNPCs(); check('Robot-NPC'); });
-loadHF(PLAYER_URL, 'Prabowo-BOS-Player', (g) => {
+loadHF(PLAYER_URL, 'RG-Player', (g) => {
     if (fallbackPlayer && fallbackPlayer.parent) fallbackPlayer.parent.remove(fallbackPlayer);
     let m = g.scene; m.scale.set(2.5, 2.5, 2.5); let pl = m.clone(true); pl.position.set(0, 0, 55); pl.rotation.y = Math.PI; outG.add(pl); player = pl;
-    check('Prabowo-Player');
+    check('RG-Player');
 });
 
 function toIn(){
@@ -244,7 +240,7 @@ document.getElementById('jump').addEventListener('click', () => { isSit = !isSit
 
 window.closeNPC = () => { document.getElementById('npcPanel').style.display = 'none'; activeNPC = null; };
 window.closeSewa = () => { document.getElementById('sewaModal').style.display = 'none'; };
-window.chatWA = () => { window.open('https://wa.me/6282230439966?text=Halo%20Bos%20saya%20mau%20sewa%20toko%20V9.5%20Bos%20Prabowo%20%2B%20Robot%20Bos!', '_blank'); };
+window.chatWA = () => { window.open('https://wa.me/6282230439966?text=Halo%20Bos%20saya%20mau%20sewa%20toko%20V1.8%20Dunsanak%20Rg%20%2B%20Robot%20Bos!', '_blank'); };
 
 let activeNPC = null;
 function openNPC(n){
@@ -328,7 +324,7 @@ function animate(){
     }
     let inter = document.getElementById('inter');
     if (nearNPC){ inter.style.display = 'block'; document.getElementById('it').innerText = nearNPC.emoji + ' ' + nearNPC.nama; document.getElementById('idp').innerText = nearNPC.role; document.getElementById('btnTap').innerText = 'TANYA ROBOT'; }
-    else if (nearD){ inter.style.display = 'block'; document.getElementById('it').innerText = 'MASUK MEETING'; document.getElementById('idp').innerText = 'Bos Prabowo Bos'; document.getElementById('btnTap').innerText = 'MASUK!'; }
+    else if (nearD){ inter.style.display = 'block'; document.getElementById('it').innerText = 'MASUK MEETING'; document.getElementById('idp').innerText = 'RG player'; document.getElementById('btnTap').innerText = 'MASUK!'; }
     else if (nearT){
         inter.style.display = 'block';
         let isToko2 = nearT.nama.includes("TOKO 2");

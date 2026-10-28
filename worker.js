@@ -1,7 +1,9 @@
 import * as HOME_M from './home/index.js';
 import * as FOTO_M from './foto/index.js';
 import * as VIDEO_M from './video/index.js';
-import * as KANTOR_M from './kantor/index.js';
+// === FIX KANTOR BOS - PISAH LUAR DALAM BOS! ===
+import * as LUAR_M from './kantor/Luar/index.js';
+import * as DALAM_M from './kantor/Dalam/index.js';
 import * as AI_M from './ai/index.js';
 import * as AKUN_M from './akun/index.js';
 import * as TULIS_M from './home/api-tulis/api.js';
@@ -11,13 +13,18 @@ import * as AKUN_API_M from './akun/api-akun/api.js';
 import * as AI_API_M from './ai/api-ai/api.js';
 import * as SITEMAP_M from './api-sitemap/index.js';
 
-function getHtml(mod){ return mod.default || mod.HOME_HTML || mod.HOME || mod.FOTO_HTML || mod.FOTO || mod.VIDEO_HTML || mod.VIDEO || mod.AI_HTML || mod.AI || mod.KANTOR_HTML || mod.KANTOR || mod.AKUN_HTML || mod.AKUN || Object.values(mod)[0]; }
+function getHtml(mod){ 
+  return mod.default || mod.HOME_HTML || mod.HOME || mod.FOTO_HTML || mod.FOTO || mod.VIDEO_HTML || mod.VIDEO || mod.AI_HTML || mod.AI || mod.KANTOR_HTML || mod.KANTOR || mod.LUAR_HTML || mod.LUAR || mod.DALAM_HTML || mod.DALAM || mod.AKUN_HTML || mod.AKUN || Object.values(mod)[0]; 
+}
 function getApi(mod){ return mod.FOTO_API || mod.VIDEO_API || mod.AKUN_API || mod.AI_API || mod.TULIS_API || mod.SITEMAP_API || mod.default || mod; }
 
 const HOME_HTML = getHtml(HOME_M);
 const FOTO_HTML = getHtml(FOTO_M);
 const VIDEO_HTML = getHtml(VIDEO_M);
-const KANTOR_HTML = getHtml(KANTOR_M);
+// FIX KANTOR BOS 2 FOLDER BOS!
+const LUAR_HTML = getHtml(LUAR_M);
+const DALAM_HTML = getHtml(DALAM_M);
+const KANTOR_HTML = LUAR_HTML; // default kantor ke luar Bos biar gak error Bos
 const AI_HTML = getHtml(AI_M);
 const AKUN_HTML = getHtml(AKUN_M);
 
@@ -57,51 +64,22 @@ export default {
     if(path === "/home" || path === "/home/"){
       return Response.redirect("https://rumahgadang-ai.my.id/", 301);
     }
-    if(["/foto/","/video/","/kantor/","/ai/","/akun/"].includes(path)){
+    if(["/foto/","/video/","/kantor/","/ai/","/akun/","/luar/","/dalam/"].includes(path)){
       return Response.redirect("https://rumahgadang-ai.my.id"+path.slice(0,-1), 301);
     }
 
-    // ===== FIX SITEMAP BOS - INI YANG BIKIN 0 HALAMAN TADI BOS =====
     if(path === "/sitemap.xml" || path === "/sitemap/" || path === "/sitemap"){
       const now = new Date().toISOString().split('T')[0];
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://rumahgadang-ai.my.id/</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://rumahgadang-ai.my.id/foto</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://rumahgadang-ai.my.id/video</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://rumahgadang-ai.my.id/ai</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://rumahgadang-ai.my.id/kantor</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://rumahgadang-ai.my.id/akun</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
+  <url><loc>https://rumahgadang-ai.my.id/</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://rumahgadang-ai.my.id/foto</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://rumahgadang-ai.my.id/video</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://rumahgadang-ai.my.id/ai</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://rumahgadang-ai.my.id/kantor</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://rumahgadang-ai.my.id/luar</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://rumahgadang-ai.my.id/dalam</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://rumahgadang-ai.my.id/akun</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
 </urlset>`;
       return new Response(xml.trim(), {
         status: 200,
@@ -215,12 +193,17 @@ Host: https://rumahgadang-ai.my.id`;
     if(path.startsWith("/foto")) return htmlResponse(FOTO_HTML, "https://rumahgadang-ai.my.id/foto");
     if(path.startsWith("/video")) return htmlResponse(VIDEO_HTML, "https://rumahgadang-ai.my.id/video");
     if(path.startsWith("/ai")) return htmlResponse(AI_HTML, "https://rumahgadang-ai.my.id/ai");
-    if(path.startsWith("/kantor")) return htmlResponse(KANTOR_HTML, "https://rumahgadang-ai.my.id/kantor");
+    // === FIX KANTOR LUAR DALAM BOS ===
+    if(path.startsWith("/luar")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/luar");
+    if(path.startsWith("/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/dalam");
+    if(path.startsWith("/kantor/luar")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor/luar");
+    if(path.startsWith("/kantor/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/kantor/dalam");
+    if(path.startsWith("/kantor")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor");
     if(path.startsWith("/akun") || path.startsWith("/profil") || path.startsWith("/profile") || path.startsWith("/u/")) {
       return htmlResponse(AKUN_HTML, "https://rumahgadang-ai.my.id/akun");
     }
     let seg=path.replace(/^\/+/,"").split("/")[0];
-    if(seg && !["home","foto","video","ai","kantor","akun","api","sitemap","robots","profil","profile","icon.png","favicon.ico"].includes(seg) && !seg.includes(".") && seg.length>=2){
+    if(seg && !["home","foto","video","ai","kantor","luar","dalam","akun","api","sitemap","robots","profil","profile","icon.png","favicon.ico"].includes(seg) && !seg.includes(".") && seg.length>=2){
       return htmlResponse(AKUN_HTML, "https://rumahgadang-ai.my.id/akun");
     }
     return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");

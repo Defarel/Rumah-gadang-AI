@@ -194,7 +194,7 @@ function spawnRobotNPCs(){
     NPC_OUT.forEach(d => {
         // Skala dikecilkan dari 2.5 menjadi 1.3 agar pas dan proporsional
         let o = robotBase.clone(true); 
-        o.scale.set(1.3, 1.3, 1.3); 
+        o.scale.set(0.8, 0.8, 0.8); 
         o.position.set(d.x, 0, d.z); 
         outG.add(o); 
         npcs.push({...d, group: o, timer: Math.random() * 100});

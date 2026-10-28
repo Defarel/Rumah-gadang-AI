@@ -5,7 +5,7 @@ export const FOTO_HTML = `<!DOCTYPE html>
 <title>Foto - Rumah Gadang AI</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{background:#000;color:#fff;font-family:sans-serif}
-#app{max-width:85vw;width:100%;margin:0 auto;padding-bottom:80px}
+#app{max-width:100vw;width:100%;margin:0 auto;padding-bottom:80px}
 .top{padding:12px;border-bottom:1px solid #222;position:sticky;top:0;background:#000;z-index:10;display:flex;justify-content:space-between}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:10px}
 .cell{aspect-ratio:3/4;background:#111;position:relative;overflow:hidden;cursor:pointer;border-radius:14px;border:1.2px solid rgba(0,255,136,0.45);box-shadow:0 0 6px rgba(0,255,136,0.55), 0 0 12px rgba(0,255,136,0.18), inset 0 0 6px rgba(0,255,136,0.1);transition:0.2s}

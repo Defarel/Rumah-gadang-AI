@@ -50,7 +50,14 @@ input{width:100%;background:#0a0a0a;border:1px solid #333;color:#fff;padding:12p
 <div style="margin-top:14px;border-top:1px solid #222;padding-top:12px"><input id=fFile type=file accept="image/*"><button class="btn btn-w" onclick="upFoto()">📤 UPLOAD FOTO BIASA</button><div id=upInfo style="font-size:10px;color:#00ff88;margin-top:6px;text-align:center"></div></div>
 </div></div>
 <div id=modal><div style="padding:10px;display:flex;justify-content:space-between;align-items:center"><span id=mCount style="font-size:12px;color:#888">1/6</span><span id=mAkun style="color:#00ff88;font-size:12px"></span><div style="display:flex;gap:6px"><button id=delInside onclick="hapusCurrent()" style="background:#ff0000;color:#fff;border:1px solid #fff;padding:6px 14px;border-radius:20px;font-weight:900;display:none">🗑️ HAPUS</button><button onclick="closeM()" style="background:#222;color:#fff;border:0;padding:6px 14px;border-radius:20px">Tutup X</button></div></div><div id=swipeWrap></div><div style="padding:10px;border-top:1px solid #222;display:flex;gap:8px;background:#111"><button onclick="swipe(-1)" style="flex:1;background:#222;color:#fff;border:1px solid #333;padding:12px;border-radius:10px">←</button><a id=mLink target=_blank style="flex:2;background:#00ff88;color:#000;text-align:center;padding:12px;border-radius:10px;font-weight:900;text-decoration:none">Buka di IG ↗</a><button onclick="swipe(1)" style="flex:1;background:#222;color:#fff;border:1px solid #333;padding:12px;border-radius:10px">→</button></div></div>
-<div class=bot><a href="/">🏠</a><a href="/foto" class=on>🖼️</a><a href="/video">🎬</a><a href="/kantor">🏢</a><a href="/ai">🤖</a><a href="/akun">👤</a></div>
+<div class=bot>
+<a href="/" class=on>🏠<br><span>Home</span></a>
+<a href="/foto">🖼️<br><span>Foto</span></a>
+<a href="/video">🎬<br><span>Video</span></a>
+<a href="/kantor">🏢<br><span>Kantor</span></a>
+<a href="/ai">🤖<br><span>AI</span></a>
+<a href="/akun">👤<br><span>Akun</span></a>
+</div>
 <script>
 let allData=[]; let curIdx=0; let tempIG={}; let manualThumb="";
 function isAdmin(){ let e=(localStorage.getItem('rg_email')||'').toLowerCase(); return e.includes('defarel') || e.includes('admin') || localStorage.getItem('rg_admin')==='1'; }

@@ -51,8 +51,8 @@ input{width:100%;background:#0a0a0a;border:1px solid #333;color:#fff;padding:12p
 </div></div>
 <div id=modal><div style="padding:10px;display:flex;justify-content:space-between;align-items:center"><span id=mCount style="font-size:12px;color:#888">1/6</span><span id=mAkun style="color:#00ff88;font-size:12px"></span><div style="display:flex;gap:6px"><button id=delInside onclick="hapusCurrent()" style="background:#ff0000;color:#fff;border:1px solid #fff;padding:6px 14px;border-radius:20px;font-weight:900;display:none">🗑️ HAPUS</button><button onclick="closeM()" style="background:#222;color:#fff;border:0;padding:6px 14px;border-radius:20px">Tutup X</button></div></div><div id=swipeWrap></div><div style="padding:10px;border-top:1px solid #222;display:flex;gap:8px;background:#111"><button onclick="swipe(-1)" style="flex:1;background:#222;color:#fff;border:1px solid #333;padding:12px;border-radius:10px">←</button><a id=mLink target=_blank style="flex:2;background:#00ff88;color:#000;text-align:center;padding:12px;border-radius:10px;font-weight:900;text-decoration:none">Buka di IG ↗</a><button onclick="swipe(1)" style="flex:1;background:#222;color:#fff;border:1px solid #333;padding:12px;border-radius:10px">→</button></div></div>
 <div class=bot>
-<a href="/" class=on>🏠<br><span>Home</span></a>
-<a href="/foto">🖼️<br><span>Foto</span></a>
+<a href="/home">🏠<br><span>Home</span></a>
+<a href="/" class=on>🖼️<br><span>Foto</span></a>
 <a href="/video">🎬<br><span>Video</span></a>
 <a href="/kantor">🏢<br><span>Kantor</span></a>
 <a href="/ai">🤖<br><span>AI</span></a>

@@ -203,9 +203,15 @@ loadHF(PLAYER_URL, 'Prabowo-BOS-Player', (g) => {
     check('Prabowo-Player');
 });
 
+// ✅ FIX: Fungsi masuk ke Kantor Dalam disesuaikan dengan rute Cloudflare Worker (/dalam)
 function toIn(){
-    let f = document.getElementById('fade'); f.style.opacity = '1'; f.style.pointerEvents = 'auto'; f.innerHTML = 'MASUK KE KANTOR DALAM...';
-    setTimeout(() => { window.location.href = '/kantor-dalam'; }, 800);
+    let f = document.getElementById('fade'); 
+    f.style.opacity = '1'; 
+    f.style.pointerEvents = 'auto'; 
+    f.innerHTML = 'MASUK KE KANTOR DALAM...';
+    setTimeout(() => { 
+        window.location.href = '/dalam'; 
+    }, 800);
 }
 
 let camYaw = 0, camPitch = 18, camDist = 12, keys = {x: 0, y: 0}, spd = 0.8, rspd = 1.5, run = false, nearT = null, nearNPC = null, nearD = false, isSit = false;

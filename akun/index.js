@@ -106,7 +106,7 @@ async function render(){
           <button class="tabLogin" onclick="toast('Google soon Bos!')">Google</button>
         </div>
         <div id="loginFields">
-          <input id="emailIn" class="inp" placeholder="   @rumahgadang-ai.my.id" value="   @rumahgadang-ai.my.id">
+          <input id="emailIn" class="inp" placeholder="@rumahgadang-ai.my.id" value="@rumahgadang-ai.my.id">
           <input id="nameIn" class="inp" placeholder="Nama Dunsanak (buat akun baru)" style="display:none">
           <input id="passIn" class="inp" type="password" placeholder="Password">
         </div>

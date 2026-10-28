@@ -1,5 +1,5 @@
 // ==========================================
-// KANTOR LUAR - INDEX.HTML (AREA OUTDOOR)
+// KANTOR LUAR - INDEX.HTML (AREA OUTDOOR - ROBOT KECIL & JALAN-JALAN)
 // ==========================================
 export const KANTOR_LUAR_HTML = `<!DOCTYPE html>
 <html>
@@ -39,7 +39,7 @@ export const KANTOR_LUAR_HTML = `<!DOCTYPE html>
 <div id="loading">LOADING KANTOR LUAR - BOS PRABOWO...<br><span id="loadDetail" style="font-size:10px;color:#aaa">Memuat Aset 3D...</span></div>
 <div id="fade">BERPINDAH AREA...</div>
 <div id="top"><b id="topTitle">KANTOR LUAR - BOS PRABOWO</b><span id="locStatus" style="background:#00C853;padding:3px 8px;border-radius:10px;color:#fff">AREA LUAR</span></div>
-<div id="gps"><span id="gpsText">Init Bos...</span> | <span id="modeText">Prabowo Bos + Robot NPC</span></div>
+<div id="gps"><span id="gpsText">Init Bos...</span> | <span id="modeText">Robot Kecil Jalan-Jalan</span></div>
 <div id="joy"><div id="stick"></div></div>
 <div id="right">
     <button id="cam" class="btn">360<br>ZOOM</button>
@@ -183,16 +183,21 @@ loadHF(RUKO_URL, 'Ruko-Storefront', (g) => {
     check('Ruko');
 });
 
+// ✅ NPC dengan Data Patroli (Titik Asal, Tujuan Jalan-Jalan, Waktu Ubah Arah)
 let NPC_OUT = [
-    {nama: "Pak Sales Robot", role: "Sales Robot", emoji: "🤖", x: -26, z: 45},
-    {nama: "Pak Kasir Robot", role: "Kasir Toko 2 Robot", emoji: "🤖", x: 26, z: 25}
+    {nama: "Pak Sales Robot", role: "Sales Robot", emoji: "🤖", x: -26, z: 45, startX: -26, startZ: 45, targetX: -26, targetZ: 10, speed: 0.04},
+    {nama: "Pak Kasir Robot", role: "Kasir Toko 2 Robot", emoji: "🤖", x: 26, z: 25, startX: 26, startZ: 25, targetX: 26, targetZ: -10, speed: 0.04}
 ];
 
 function spawnRobotNPCs(){
     if (!robotBase) return;
     NPC_OUT.forEach(d => {
-        let o = robotBase.clone(true); o.scale.set(2.5, 2.5, 2.5); o.position.set(d.x, 0, d.z); o.rotation.y = Math.PI;
-        outG.add(o); npcs.push({...d, group: o});
+        // Skala dikecilkan dari 2.5 menjadi 1.3 agar pas dan proporsional
+        let o = robotBase.clone(true); 
+        o.scale.set(1.3, 1.3, 1.3); 
+        o.position.set(d.x, 0, d.z); 
+        outG.add(o); 
+        npcs.push({...d, group: o, timer: Math.random() * 100});
     });
 }
 
@@ -203,15 +208,9 @@ loadHF(PLAYER_URL, 'Prabowo-BOS-Player', (g) => {
     check('Prabowo-Player');
 });
 
-// ✅ FIX: Fungsi masuk ke Kantor Dalam disesuaikan dengan rute Cloudflare Worker (/dalam)
 function toIn(){
-    let f = document.getElementById('fade'); 
-    f.style.opacity = '1'; 
-    f.style.pointerEvents = 'auto'; 
-    f.innerHTML = 'MASUK KE KANTOR DALAM...';
-    setTimeout(() => { 
-        window.location.href = '/dalam'; 
-    }, 800);
+    let f = document.getElementById('fade'); f.style.opacity = '1'; f.style.pointerEvents = 'auto'; f.innerHTML = 'MASUK KE KANTOR DALAM...';
+    setTimeout(() => { window.location.href = '/dalam'; }, 800);
 }
 
 let camYaw = 0, camPitch = 18, camDist = 12, keys = {x: 0, y: 0}, spd = 0.8, rspd = 1.5, run = false, nearT = null, nearNPC = null, nearD = false, isSit = false;
@@ -278,7 +277,30 @@ window.handleInteract = function(){
 };
 
 function animate(){
-    requestAnimationFrame(animate); if (!player){ renderer.render(scene, camera); return; }
+    requestAnimationFrame(animate); 
+
+    // ✅ Logika Robot NPC Jalan-Jalan / Patroli Bolak-balik Otomatis
+    npcs.forEach(n => {
+        if (!n.group) return;
+        let dx = n.targetX - n.group.position.x;
+        let dz = n.targetZ - n.group.position.z;
+        let dist = Math.hypot(dx, dz);
+        
+        if (dist > 1.0) {
+            n.group.position.x += (dx / dist) * n.speed;
+            n.group.position.z += (dz / dist) * n.speed;
+            n.group.rotation.y = Math.atan2(dx, dz);
+            // Animasi langkah kecil naik-turun
+            n.group.position.y = Math.abs(Math.sin(Date.now() * 0.01)) * 0.1;
+        } else {
+            // Tukar titik tujuan patroli (bolak-balik)
+            let tempX = n.startX; let tempZ = n.startZ;
+            n.startX = n.targetX; n.startZ = n.targetZ;
+            n.targetX = tempX; n.targetZ = tempZ;
+        }
+    });
+
+    if (!player){ renderer.render(scene, camera); return; }
     let moving = Math.hypot(keys.x, keys.y) > 0.15 && !isSit;
     if (moving){ walkTime += run ? 0.35 : 0.22; player.position.y = baseY + Math.abs(Math.sin(walkTime * 2)) * 0.18; player.rotation.z = Math.sin(walkTime) * 0.12; player.rotation.x = Math.sin(walkTime * 1.5) * 0.08; }
     else { player.position.y = THREE.MathUtils.lerp(player.position.y, baseY, 0.2); player.rotation.z = THREE.MathUtils.lerp(player.rotation.z, 0, 0.2); player.rotation.x = THREE.MathUtils.lerp(player.rotation.x, 0, 0.2); }
@@ -301,7 +323,7 @@ function animate(){
         let d = Math.hypot(player.position.x, player.position.z + 78);
         document.getElementById('gpsText').innerText = 'RG:' + Math.round(d) + 'm Prabowo Bos';
         tokos.forEach(t => { let dd = Math.hypot(player.position.x - t.x, player.position.z - t.z); if (dd < md && dd < 18){ md = dd; nearT = t; } });
-        npcs.forEach(n => { let dd = Math.hypot(player.position.x - n.x, player.position.z - n.z); if (dd < mn && dd < 8){ mn = dd; nearNPC = n; } });
+        npcs.forEach(n => { let dd = Math.hypot(player.position.x - n.group.position.x, player.position.z - n.group.position.z); if (dd < mn && dd < 8){ mn = dd; nearNPC = n; } });
         if (d < 11) nearD = true;
     }
     let inter = document.getElementById('inter');

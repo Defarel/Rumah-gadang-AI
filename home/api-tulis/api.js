@@ -1,4 +1,4 @@
-// KUNCI 1: TULIS API - LOVE + KOMEN THREAD + HAPUS SENDIRI FINAL BOS
+// KUNCI 1: TULIS API - LOVE + KOMEN THREAD + HAPUS SENDIRI OPTIMIZED FAST
 export const TULIS_API = {
   async handle(req, env, url, cors) {
     const h = { "Content-Type": "application/json", ...cors, "Cache-Control": "no-store" };
@@ -18,28 +18,38 @@ export const TULIS_API = {
         for (const c of newCols) { try { await env.DB.prepare(`ALTER TABLE tulis ADD COLUMN ${c}`).run(); } catch {} }
       }
 
-      // 1. GET FEED
+      // 1. GET FEED - OPTIMIZED WITH SQL JOIN (SUPER CEPAT < 1 DETIK)
       if (pathname === "/api/tulis" && method === "GET") {
         const me = (url.searchParams.get("me")||"").toLowerCase();
-        const r = await env.DB.prepare("SELECT * FROM tulis ORDER BY id DESC LIMIT 100").all();
+        
+        const query = `
+          SELECT t.*, 
+                 COALESCE(l.like_count, 0) AS likes,
+                 COALESCE(c.komen_count, 0) AS komen_count,
+                 CASE WHEN ul.tulis_id IS NOT NULL THEN 1 ELSE 0 END AS isLiked
+          FROM tulis t
+          LEFT JOIN (SELECT tulis_id, COUNT(*) as like_count FROM tulis_likes GROUP BY tulis_id) l ON t.id = l.tulis_id
+          LEFT JOIN (SELECT tulis_id, COUNT(*) as komen_count FROM tulis_komen GROUP BY tulis_id) c ON t.id = c.tulis_id
+          LEFT JOIN (SELECT tulis_id FROM tulis_likes WHERE LOWER(email) = ?) ul ON t.id = ul.tulis_id
+          ORDER BY t.id DESC 
+          LIMIT 50
+        `;
+        
+        const r = await env.DB.prepare(query).bind(me).all();
         const list = r.results || [];
+        
         for (const x of list) {
-          const email = (x.user_email || x.email || "").toLowerCase().trim();
-          if (email) {
-            try {
-              let u = await env.DB.prepare("SELECT picture FROM users WHERE LOWER(email)=? LIMIT 1").bind(email).first();
-              if (!u) u = await env.DB.prepare("SELECT picture FROM rg_users WHERE LOWER(email)=? LIMIT 1").bind(email).first();
-              if (u?.picture && u.picture.length > 10) { x.picture = u.picture; x.avatar = u.picture; }
-            } catch {}
+          if (!x.picture || x.picture.includes("icon.png")) {
+            const email = (x.user_email || x.email || "").toLowerCase().trim();
+            if (email) {
+              try {
+                let u = await env.DB.prepare("SELECT picture FROM users WHERE LOWER(email)=? LIMIT 1").bind(email).first();
+                if (!u) u = await env.DB.prepare("SELECT picture FROM rg_users WHERE LOWER(email)=? LIMIT 1").bind(email).first();
+                if (u?.picture && u.picture.length > 10) { x.picture = u.picture; x.avatar = u.picture; }
+              } catch {}
+            }
           }
-          try{
-            const lc = await env.DB.prepare(`SELECT COUNT(*) as c FROM tulis_likes WHERE tulis_id=?`).bind(String(x.id)).first();
-            const kc = await env.DB.prepare(`SELECT COUNT(*) as c FROM tulis_komen WHERE tulis_id=?`).bind(String(x.id)).first();
-            const liked = me ? await env.DB.prepare(`SELECT 1 FROM tulis_likes WHERE tulis_id=? AND email=?`).bind(String(x.id), me).first() : null;
-            x.likes = lc?.c || 0;
-            x.komen_count = kc?.c || 0;
-            x.isLiked = !!liked;
-          }catch{}
+          x.isLiked = !!x.isLiked;
         }
         return new Response(JSON.stringify(list), { headers: h });
       }
@@ -123,7 +133,7 @@ export const TULIS_API = {
         return new Response(JSON.stringify({ok:true,status:"loved"}),{headers:h});
       }
 
-      // 7. HAPUS KOMEN SENDIRI - BUKAN CUMA ADMIN BOS
+      // 7. HAPUS KOMEN SENDIRI
       if(pathname === "/api/tulis/komen/delete" && method === "POST"){
         const b = await req.json().catch(()=>({}));
         const komen_id = String(b.id||b.komen_id||"");

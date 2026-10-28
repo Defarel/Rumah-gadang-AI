@@ -46,7 +46,7 @@ park.add(new THREE.Mesh(new THREE.BoxGeometry(90,0.3,60),new THREE.MeshStandardM
 let isIn=false,cOut=[],cIn=[],tokos=[],npcs=[],player=null,playerMeshes=[],baseY=0,walkTime=0,loaded=0;const TOTAL=4;
 function addC(a,x,z,w,d){a.push({x,z,w,d})}
 function hit(nx,nz){let L=isIn?cIn:cOut;for(let c of L){if(Math.abs(nx-c.x)<c.w/2+0.8&&Math.abs(nz-c.z)<c.d/2+0.8)return true}return false}
-function check(){loaded++;let p=Math.round(loaded/TOTAL*100);document.getElementById('loading').innerText='LOADING '+p+'% V7.3';if(loaded>=TOTAL){document.getElementById('loading').style.display='none';document.getElementById('gpsText').innerText='RG: 0m';}}
+function check(){loaded++;let p=Math.round(loaded/TOTAL*100);document.getElementById('loading').innerText='LOADING '+p+'% V1.3';if(loaded>=TOTAL){document.getElementById('loading').style.display='none';document.getElementById('gpsText').innerText='RG: 0m';}}
 let loader=new GLTFLoader();
 loader.load("https://files.catbox.moe/oqxwoa.glb",(g)=>{let m=g.scene;m.scale.set(5,5,5);m.position.set(0,1,0);m.rotation.y=Math.PI;park.add(m);addC(cOut,-13,-90,12,28);addC(cOut,13,-90,12,28);check();},null,()=>{check();});
 loader.load("https://files.catbox.moe/s126rl.glb",(g)=>{

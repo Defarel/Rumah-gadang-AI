@@ -1,7 +1,7 @@
 const RUMAH_GADANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/rumah_gadang_sumatra_barat_indonesia.glb";
 const RUKO_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/storefront_house_01.glb";
 const INTERIOR_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/office_room-v1.glb";
-const ORANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/robot_Npc.glb";
+const ORANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/prabowo_3d_model.glb";
 const PRABOWO_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/prabowo_3d_model.glb";
 
 export const KANTOR_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>V9.0 HF FULL - SEWA</title>

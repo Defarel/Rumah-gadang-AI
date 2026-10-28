@@ -67,14 +67,25 @@ body{background:#000;color:#fff;font-family:sans-serif}
 const LOGO_INNER="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
 const LOGO_LOGIN="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
 const LOGO_VIDEO = "https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@9fa479e6634ebcb2f1dfcde85fb106ac77d2b122/akun/RumahGadangV2.mp4";
-let activeMainTab="teman"; let viewingUserEmail=null; let _editB64=null; window.loginMode='masuk';
+
+let activeMainTab="teman"; 
+const urlParams = new URLSearchParams(window.location.search);
+let viewingUserEmail = urlParams.get('profil') ? decodeURIComponent(urlParams.get('profil')).toLowerCase().trim() : null;
+let _editB64=null; window.loginMode='masuk';
+
+window.addEventListener('popstate', () => {
+  const p = new URLSearchParams(window.location.search).get('profil');
+  viewingUserEmail = p ? decodeURIComponent(p).toLowerCase().trim() : null;
+  render();
+});
+
 function toast(m){let t=document.getElementById('toast');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
 function getMyEmail(){return (localStorage.getItem('rg_email')||"").toLowerCase().trim();}
 function getMyName(){return localStorage.getItem('rg_name')||"Dunsanak";}
 function getMyAvatar(){ let i=localStorage.getItem('rg_avatar'); return (i&&i.trim()!=="")?i:LOGO_INNER; }
 function saveAuth(e,n,a){localStorage.setItem('rg_email',e.toLowerCase().trim());localStorage.setItem('rg_name',n||"Dunsanak");localStorage.setItem('rg_avatar',(a&&a.trim()!=="")?a:LOGO_INNER);}
 function logout(){ if(confirm("Keluar?")){localStorage.clear();viewingUserEmail=null;history.pushState(null,'','/akun');render();}}
-function viewUser(e){ viewingUserEmail=e; activeMainTab='tulis'; history.pushState(null,'','/akun?profil='+encodeURIComponent(e)); render(); }
+function viewUser(e){ viewingUserEmail=e.toLowerCase().trim(); activeMainTab='tulis'; history.pushState(null,'','/akun?profil='+encodeURIComponent(e)); render(); }
 function switchTab(t){ activeMainTab=t; const me=viewingUserEmail||getMyEmail(); loadContent(me, me===getMyEmail()); document.querySelectorAll('.m-tab').forEach(b=>{ b.classList.toggle('active', b.innerText.toLowerCase()===t); }); }
 function setLoginMode(m){
   window.loginMode=m;

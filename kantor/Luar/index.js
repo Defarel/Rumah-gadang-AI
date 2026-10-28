@@ -1,30 +1,25 @@
 const RUMAH_GADANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/rumah_gadang_sumatra_barat_indonesia.glb";
 const RUKO_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/storefront_house_01.glb";
-const ORANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/robot_Npc.glb";
+const ORANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/robot_Npc.glb"; // PAKAI ROBOT BIAR ENTENG BOS!
 
-export const LUAR_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>LUAR - Rumah Gadang</title>
+export const LUAR_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>LUAR - Rumah Gadang V9.2</title>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
-<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#000;overflow:hidden;height:100vh;font-family:sans-serif;touch-action:none}#top{height:48px;background:#111;color:#FFD700;display:flex;align-items:center;justify-content:space-between;padding:0 10px;position:absolute;top:0;left:0;right:0;z-index:50;font-weight:900;font-size:12px}#joy{position:absolute;bottom:85px;left:12px;width:110px;height:110px;background:rgba(0,0,0,0.3);border-radius:50%;border:2px solid #fff;z-index:40}#stick{position:absolute;left:32px;top:32px;width:46px;height:46px;background:#fff;border-radius:50%}#right{position:absolute;bottom:80px;right:10px;display:flex;flex-direction:column;gap:5px;z-index:40;align-items:center}.btn{width:58px;height:58px;border-radius:50%;border:2px solid #fff;color:#fff;font-weight:900;font-size:10px;background:#000}#inter{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#000;padding:16px 20px;border-radius:16px;border:4px solid #000;display:none;z-index:9999;text-align:center;min-width:310px}#inter button{width:100%;background:#FFD700;color:#000;border:3px solid #000;padding:14px;border-radius:12px;font-weight:900;font-size:16px;margin-top:10px}#loading{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#000;color:#FFD700;padding:12px 18px;border-radius:10px;border:2px solid #FFD700;z-index:100;font-weight:900;font-size:12px;min-width:280px;text-align:center}#fade{position:absolute;top:0;left:0;right:0;bottom:0;background:#000;z-index:999;opacity:0;pointer-events:none;transition:opacity 0.8s;display:flex;align-items:center;justify-content:center;color:#FFD700;font-weight:900;font-size:20px}#gps{position:absolute;top:55px;left:10px;background:rgba(0,0,0,0.8);color:#00ff88;padding:6px 10px;border-radius:8px;font-size:10px;z-index:45;border:1px solid #00ff88}.bot{position:fixed;bottom:0;left:0;right:0;height:58px;background:#000;border-top:1px solid #333;display:flex;z-index:99}.bot a{flex:1;text-align:center;padding:7px 0;color:#888;text-decoration:none;font-size:15px}.bot a.on{color:#fff}</style></head><body>
-<div id="loading">LOADING LUAR V9.1...<br><span id="loadDetail">HF Space Bos</span></div><div id="fade">MASUK DALAM...</div>
-<div id="top"><b>LUAR - RUMAH GADANG AI</b><span style="background:#00C853;padding:3px 8px;border-radius:10px;color:#fff">LUAR</span></div>
-<div id="gps"><span id="gpsText">Init HF Bos...</span></div>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#000;overflow:hidden;height:100vh;font-family:sans-serif;touch-action:none}#top{height:48px;background:#111;color:#FFD700;display:flex;align-items:center;justify-content:space-between;padding:0 10px;position:absolute;top:0;left:0;right:0;z-index:50;font-weight:900;font-size:12px}#joy{position:absolute;bottom:85px;left:12px;width:110px;height:110px;background:rgba(0,0,0,0.3);border-radius:50%;border:2px solid #fff;z-index:40}#stick{position:absolute;left:32px;top:32px;width:46px;height:46px;background:#fff;border-radius:50%}#right{position:absolute;bottom:80px;right:10px;display:flex;flex-direction:column;gap:5px;z-index:40;align-items:center}.btn{width:58px;height:58px;border-radius:50%;border:2px solid #fff;color:#fff;font-weight:900;font-size:10px;background:#000}#inter{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#000;padding:16px 20px;border-radius:16px;border:4px solid #000;display:none;z-index:9999;text-align:center;min-width:310px}#inter button{width:100%;background:#FFD700;color:#000;border:3px solid #000;padding:14px;border-radius:12px;font-weight:900;font-size:16px;margin-top:10px}#loading{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#000;color:#FFD700;padding:12px 18px;border-radius:10px;border:2px solid #FFD700;z-index:100;font-weight:900;font-size:11px;min-width:300px;text-align:center}#fade{position:absolute;top:0;left:0;right:0;bottom:0;background:#000;z-index:999;opacity:0;pointer-events:none;transition:opacity 0.8s;display:flex;align-items:center;justify-content:center;color:#FFD700;font-weight:900;font-size:20px}#gps{position:absolute;top:55px;left:10px;background:rgba(0,0,0,0.8);color:#00ff88;padding:6px 10px;border-radius:8px;font-size:10px;z-index:45;border:1px solid #00ff88}.bot{position:fixed;bottom:0;left:0;right:0;height:58px;background:#000;border-top:1px solid #333;display:flex;z-index:99}.bot a{flex:1;text-align:center;padding:7px 0;color:#888;text-decoration:none;font-size:15px}.bot a.on{color:#fff}</style></head><body>
+<div id="loading">LOADING V9.2 ANTI STUCK BOS...<br><span id="loadDetail" style="color:#0f0;font-size:10px">Siap jalan Bos walau toko belum Bos!</span></div><div id="fade">MASUK DALAM...</div>
+<div id="top"><b>LUAR V9.2 - ANTI STUCK</b><span style="background:#00C853;padding:3px 8px;border-radius:10px;color:#fff">LUAR</span></div>
+<div id="gps"><span id="gpsText">Jalan Bos!</span></div>
 <div id="joy"><div id="stick"></div></div><div id="right"><button id="cam" class="btn">360<br>ZOOM</button><button id="zin" class="btn">IN</button><button id="zout" class="btn">OUT</button><button id="run" class="btn">LARI</button><button id="toDalam" class="btn" style="background:#FFD700;color:#000">DALAM<br>→</button></div>
 <div id="inter"><h2 id="it">PINTU</h2><p id="idp"></p><button id="btnTap">KLIK</button></div>
 <div id="sewaModal" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#000;padding:18px;border-radius:16px;border:4px solid #000;display:none;z-index:9999;min-width:320px"><b>🏢 SEWA TOKO 50K/BLN</b><br>WA 082230439966<br><button onclick="window.open('https://wa.me/6282230439966','_blank')" style="width:100%;background:#25D366;color:#fff;padding:12px;border-radius:10px;font-weight:900;margin-top:8px">WA</button><button onclick="document.getElementById('sewaModal').style.display='none'" style="width:100%;margin-top:6px">TUTUP</button></div>
 <div class=bot>
-<a href="/" class=on>🏠<br><span>Home</span></a>
-<a href="/foto">🖼️<br><span>Foto</span></a>
-<a href="/video">🎬<br><span>Video</span></a>
-<a href="/kantor">🏢<br><span>Kantor</span></a>
-<a href="/ai">🤖<br><span>AI</span></a>
-<a href="/akun">👤<br><span>Akun</span></a>
+<a href="/" class=on>🏠<br><span>Home</span></a><a href="/foto">🖼️<br><span>Foto</span></a><a href="/video">🎬<br><span>Video</span></a><a href="/kantor">🏢<br><span>Kantor</span></a><a href="/ai">🤖<br><span>AI</span></a><a href="/akun">👤<br><span>Akun</span></a>
 </div>
 <script type="module">
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 const RUMAH_GADANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/rumah_gadang_sumatra_barat_indonesia.glb";
 const RUKO_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/storefront_house_01.glb";
-const ORANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/prabowo_3d_model.glb";
+const ORANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/robot_Npc.glb";
 let scene=new THREE.Scene();scene.background=new THREE.Color(0x87CEEB);
 let camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.1,1000);
 let renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);document.body.appendChild(renderer.domElement);
@@ -36,13 +31,53 @@ let outG=new THREE.Group();scene.add(outG);
 let park=new THREE.Group();park.position.set(0,-0.9,-90);outG.add(park);park.add(new THREE.Mesh(new THREE.BoxGeometry(90,0.3,60),new THREE.MeshStandardMaterial({color:0x2ecc71})));
 let cOut=[],tokos=[],player=null,loaded=0;const TOTAL=3;
 function addC(x,z,w,d){cOut.push({x,z,w,d})}function hit(nx,nz){for(let c of cOut){if(Math.abs(nx-c.x)<c.w/2+0.8&&Math.abs(nz-c.z)<c.d/2+0.8)return true}return false}
-function check(n){loaded++;document.getElementById('loading').innerText='LOADING LUAR '+Math.round(loaded/TOTAL*100)+'% '+n;if(loaded>=TOTAL)document.getElementById('loading').style.display='none';}
+// PLAYER FALLBACK BOS - JADI KOTAK DULU BOS BIAR LANGSUNG JALAN!
+let fallbackPlayer=new THREE.Mesh(new THREE.BoxGeometry(1,2,1),new THREE.MeshStandardMaterial({color:0xFFD700}));fallbackPlayer.position.set(0,1,55);outG.add(fallbackPlayer);player=fallbackPlayer;
+function hideLoading(){document.getElementById('loading').style.display='none'; document.getElementById('gpsText').innerText='Siap Bos! V9.2';}
+function check(n){
+  loaded++; 
+  let pct=Math.round(loaded/TOTAL*100);
+  document.getElementById('loading').innerHTML='LOADING LUAR '+pct+'% '+n+'<br><span style="color:#0f0">Tetap bisa jalan Bos!</span>';
+  document.getElementById('loadDetail').innerText=n+' OK Bos '+pct+'%';
+  if(loaded>=2) hideLoading(); // KALAU UDAH 2 AJA BOS LANGSUNG HILANG BOS LOADING NYA!
+}
 let loader=new GLTFLoader();
-function loadHF(url,label,ok){loader.load(url,(g)=>ok(g),(xhr)=>{if(xhr.lengthComputable){let p=Math.round(xhr.loaded/xhr.total*100);document.getElementById('loadDetail').innerText=label+' '+p+'% Bos';}},()=>check(label+' SKIP')); }
+function loadHF(url,label,ok){
+  let timeout=setTimeout(()=>{console.log('TIMEOUT Bos',label); check(label+' TIMEOUT SKIP Bos');}, 12000);
+  loader.load(url,(g)=>{
+    clearTimeout(timeout); ok(g);
+  },(xhr)=>{
+    if(xhr.lengthComputable){
+      let p=Math.round(xhr.loaded/xhr.total*100);
+      document.getElementById('loadDetail').innerText=label+' '+p+'% Bos';
+      document.getElementById('gpsText').innerText=label+':'+p+'%';
+    }
+  },()=>{
+    clearTimeout(timeout);
+    console.log('FAIL Bos',label);
+    check(label+' FAIL SKIP Bos');
+  });
+}
 loadHF(RUMAH_GADANG_URL,'RumahGadang',(g)=>{let m=g.scene;m.scale.set(5,5,5);m.position.set(0,1,0);m.rotation.y=Math.PI;park.add(m);addC(-13,-90,12,28);addC(13,-90,12,28);check('RumahGadang');});
-loadHF(RUKO_URL,'Ruko',(g)=>{let base=g.scene;let b=new THREE.Box3().setFromObject(base);let yOff=-b.min.y;let POS=[{x:-32,z:45,n:"DISEWAKAN",color:"#39FF14"},{x:-32,z:25,n:"TOKO 2",color:"#FF0000"},{x:-32,z:5,n:"DISEWAKAN",color:"#39FF14"},{x:-32,z:-15,n:"DISEWAKAN",color:"#39FF14"},{x:-32,z:-35,n:"DISEWAKAN",color:"#39FF14"},{x:32,z:45,n:"DISEWAKAN",color:"#39FF14"},{x:32,z:25,n:"DISEWAKAN",color:"#39FF14"},{x:32,z:5,n:"DISEWAKAN",color:"#39FF14"},{x:32,z:-15,n:"DISEWAKAN",color:"#39FF14"},{x:32,z:-35,n:"DISEWAKAN",color:"#39FF14"}];POS.forEach(p=>{let gr=base.clone(true);gr.scale.set(10,10,10);gr.position.set(p.x,yOff*10+0.5,p.z);gr.rotation.y=p.x>0?-1.57:1.57;outG.add(gr);let cv=document.createElement('canvas');cv.width=1024;cv.height=256;let ctx=cv.getContext('2d');ctx.fillStyle=p.color;ctx.fillRect(0,0,1024,256);ctx.fillStyle=p.color==="#FF0000"?"#FFF":"#000";ctx.font='bold 72px sans-serif';ctx.textAlign='center';ctx.fillText(p.n,512,160);let tx=new THREE.CanvasTexture(cv);let board=new THREE.Mesh(new THREE.PlaneGeometry(14,3.5),new THREE.MeshStandardMaterial({map:tx,side:THREE.DoubleSide}));board.position.set(p.x+(p.x<0?16:-16),14,p.z);board.lookAt(0,14,p.z);outG.add(board);tokos.push({x:p.x,z:p.z,nama:p.n});addC(p.x,p.z,14,14);});check('Ruko');});
+loadHF(RUKO_URL,'Ruko',(g)=>{
+  let base=g.scene;let b=new THREE.Box3().setFromObject(base);let yOff=-b.min.y;
+  let POS=[{x:-32,z:45,n:"DISEWAKAN",color:"#39FF14"},{x:-32,z:25,n:"TOKO 2",color:"#FF0000"},{x:-32,z:5,n:"DISEWAKAN",color:"#39FF14"},{x:-32,z:-15,n:"DISEWAKAN",color:"#39FF14"},{x:-32,z:-35,n:"DISEWAKAN",color:"#39FF14"},{x:32,z:45,n:"DISEWAKAN",color:"#39FF14"},{x:32,z:25,n:"DISEWAKAN",color:"#39FF14"},{x:32,z:5,n:"DISEWAKAN",color:"#39FF14"},{x:32,z:-15,n:"DISEWAKAN",color:"#39FF14"},{x:32,z:-35,n:"DISEWAKAN",color:"#39FF14"}];
+  POS.forEach(p=>{
+    let gr=base.clone(true);gr.scale.set(10,10,10);gr.position.set(p.x,yOff*10+0.5,p.z);gr.rotation.y=p.x>0?-1.57:1.57;outG.add(gr);
+    let cv=document.createElement('canvas');cv.width=1024;cv.height=256;let ctx=cv.getContext('2d');ctx.fillStyle=p.color;ctx.fillRect(0,0,1024,256);ctx.fillStyle=p.color==="#FF0000"?"#FFF":"#000";ctx.font='bold 72px sans-serif';ctx.textAlign='center';ctx.fillText(p.n,512,160);let tx=new THREE.CanvasTexture(cv);
+    let board=new THREE.Mesh(new THREE.PlaneGeometry(14,3.5),new THREE.MeshStandardMaterial({map:tx,side:THREE.DoubleSide}));board.position.set(p.x+(p.x<0?16:-16),14,p.z);board.lookAt(0,14,p.z);outG.add(board);tokos.push({x:p.x,z:p.z,nama:p.n});addC(p.x,p.z,14,14);
+  });check('Ruko');
+});
 let tor=new THREE.TorusGeometry(2.2,0.25,16,50);let pRG=new THREE.Mesh(tor,new THREE.MeshStandardMaterial({color:0x00FFFF,emissive:0x00FFFF,emissiveIntensity:1.5}));pRG.position.set(0,1.8,-78);pRG.rotation.y=Math.PI/2;outG.add(pRG);
-loadHF(ORANG_URL,'Prabowo-Luar',(g)=>{let base=g.scene;let pl=base.clone(true);pl.scale.set(2.5,2.5,2.5);pl.position.set(0,0,55);pl.rotation.y=Math.PI;outG.add(pl);player=pl;check('Orang');});
+loadHF(ORANG_URL,'Robot-Player',(g)=>{
+  let base=g.scene;
+  // HAPUS FALLBACK KOTAK BOS GANTI ROBOT BOS!
+  if(fallbackPlayer && fallbackPlayer.parent) fallbackPlayer.parent.remove(fallbackPlayer);
+  let pl=base.clone(true);pl.scale.set(2.5,2.5,2.5);pl.position.set(0,0,55);pl.rotation.y=Math.PI;outG.add(pl);player=pl;
+  check('Orang');
+});
+// AUTO HIDE BOS SETELAH 8 DETIK BOS BIAR GAK STUCK 33% TERUS BOS!
+setTimeout(()=>{hideLoading();},8000);
 let camYaw=0,camPitch=18,camDist=12,keys={x:0,y:0},spd=0.8,rspd=1.5,run=false,nearT=null,nearD=false,walkTime=0,baseY=0;
 let bj=document.getElementById('joy'),st=document.getElementById('stick'),dg=false,br;function gbr(){br=bj.getBoundingClientRect()}function mv(cx,cy){let bx=br.left+br.width/2,by=br.top+br.height/2,dx=cx-bx,dy=cy-by,m=38,d=Math.hypot(dx,dy);if(d>m){dx=dx/d*m;dy=dy/d*m}st.style.transform='translate('+dx+'px,'+dy+'px)';keys.x=dx/m;keys.y=dy/m}
 bj.addEventListener('touchstart',e=>{dg=true;gbr();mv(e.touches[0].clientX,e.touches[0].clientY)});window.addEventListener('touchmove',e=>{if(!dg)return;mv(e.touches[0].clientX,e.touches[0].clientY)});window.addEventListener('touchend',()=>{dg=false;st.style.transform='translate(0,0)';keys.x=0;keys.y=0});
@@ -52,5 +87,5 @@ document.getElementById('cam').addEventListener('click',()=>{camYaw+=90;});docum
 document.getElementById('run').addEventListener('touchstart',()=>{run=true});document.getElementById('run').addEventListener('touchend',()=>{run=false});
 document.getElementById('toDalam').addEventListener('click',()=>{let f=document.getElementById('fade');f.style.opacity='1';f.style.pointerEvents='auto';setTimeout(()=>{location.href='/dalam';},600);});
 document.getElementById('btnTap').addEventListener('click',()=>{if(nearT){document.getElementById('sewaModal').style.display='block';}if(nearD){let f=document.getElementById('fade');f.style.opacity='1';f.style.pointerEvents='auto';setTimeout(()=>{location.href='/dalam';},600);}});
-function animate(){requestAnimationFrame(animate);if(!player){renderer.render(scene,camera);return}let moving=Math.hypot(keys.x,keys.y)>0.15;if(moving){walkTime+=run?0.35:0.22;player.position.y=baseY+Math.abs(Math.sin(walkTime*2))*0.18;}let rad=camYaw*0.01745,fw=keys.y,stt=keys.x,cs=run?rspd:spd;let mx=(Math.sin(rad)*fw+Math.cos(rad)*stt)*cs,mz=(Math.cos(rad)*fw-Math.sin(rad)*stt)*cs;let nx=player.position.x+mx,nz=player.position.z+mz;if(!hit(nx,nz)){player.position.x=nx;player.position.z=nz}if(Math.abs(mx)>0.01||Math.abs(mz)>0.01)player.rotation.y=Math.atan2(mx,mz);let yr=camYaw*0.01745,pr=camPitch*0.01745;let cx=player.position.x+camDist*Math.sin(yr)*Math.cos(pr),cy=player.position.y+camDist*Math.sin(pr)+2.0,cz=player.position.z+camDist*Math.cos(yr)*Math.cos(pr);camera.position.lerp(new THREE.Vector3(cx,cy,cz),0.15);camera.lookAt(player.position.x,player.position.y+1,player.position.z);pRG.rotation.z+=0.04;nearT=null;nearD=false;let md=100;let d=Math.hypot(player.position.x,player.position.z+78);document.getElementById('gpsText').innerText='RG:'+Math.round(d)+'m LUAR';tokos.forEach(t=>{let dd=Math.hypot(player.position.x-t.x,player.position.z-t.z);if(dd<md&&dd<18){md=dd;nearT=t}});if(d<11)nearD=true;let inter=document.getElementById('inter');if(nearD){inter.style.display='block';document.getElementById('it').innerText='MASUK DALAM';document.getElementById('idp').innerText='Ke Kantor Bos';document.getElementById('btnTap').innerText='MASUK DALAM!';}else if(nearT){inter.style.display='block';document.getElementById('it').innerText=nearT.nama;document.getElementById('idp').innerText='Toko Disewakan';document.getElementById('btnTap').innerText='DETAIL SEWA';}else inter.style.display='none';renderer.render(scene,camera);}animate();
+function animate(){requestAnimationFrame(animate);if(!player){renderer.render(scene,camera);return}let moving=Math.hypot(keys.x,keys.y)>0.15;if(moving){walkTime+=run?0.35:0.22;player.position.y=baseY+Math.abs(Math.sin(walkTime*2))*0.18;}let rad=camYaw*0.01745,fw=keys.y,stt=keys.x,cs=run?rspd:spd;let mx=(Math.sin(rad)*fw+Math.cos(rad)*stt)*cs,mz=(Math.cos(rad)*fw-Math.sin(rad)*stt)*cs;let nx=player.position.x+mx,nz=player.position.z+mz;if(!hit(nx,nz)){player.position.x=nx;player.position.z=nz}if(Math.abs(mx)>0.01||Math.abs(mz)>0.01)player.rotation.y=Math.atan2(mx,mz);let yr=camYaw*0.01745,pr=camPitch*0.01745;let cx=player.position.x+camDist*Math.sin(yr)*Math.cos(pr),cy=player.position.y+camDist*Math.sin(pr)+2.0,cz=player.position.z+camDist*Math.cos(yr)*Math.cos(pr);camera.position.lerp(new THREE.Vector3(cx,cy,cz),0.15);camera.lookAt(player.position.x,player.position.y+1,player.position.z);pRG.rotation.z+=0.04;nearT=null;nearD=false;let md=100;let d=Math.hypot(player.position.x,player.position.z+78);document.getElementById('gpsText').innerText='RG:'+Math.round(d)+'m LUAR V9.2';tokos.forEach(t=>{let dd=Math.hypot(player.position.x-t.x,player.position.z-t.z);if(dd<md&&dd<18){md=dd;nearT=t}});if(d<11)nearD=true;let inter=document.getElementById('inter');if(nearD){inter.style.display='block';document.getElementById('it').innerText='MASUK DALAM';document.getElementById('idp').innerText='Ke Kantor Bos';document.getElementById('btnTap').innerText='MASUK DALAM!';}else if(nearT){inter.style.display='block';document.getElementById('it').innerText=nearT.nama;document.getElementById('idp').innerText='Toko Disewakan';document.getElementById('btnTap').innerText='DETAIL SEWA';}else inter.style.display='none';renderer.render(scene,camera);}animate();
 <\/script></body></html>`;

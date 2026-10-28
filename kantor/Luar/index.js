@@ -1,5 +1,5 @@
 // ==========================================
-// KANTOR LUAR - INDEX.HTML (TOMBOL UI BERSIH, ROTASI & ZOOM TETAP AKTIF)
+// KANTOR LUAR - INDEX.HTML (DENGAN NAMA DI ATAS KEPALA NPC)
 // ==========================================
 export const KANTOR_LUAR_HTML = `<!DOCTYPE html>
 <html>
@@ -156,16 +156,16 @@ pRG.position.set(0, 1.8, -78); pRG.rotation.y = Math.PI / 2; outG.add(pRG);
 loadHF(RUKO_URL, 'Ruko-Storefront', (g) => {
     let base = g.scene; let b = new THREE.Box3().setFromObject(base); let yOff = -b.min.y;
     let POS = [
-        {x: -32, z: 45, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: -32, z: 25, n: "TOKO 2 - TERSEWA", l: "https://lynk.id/annrisel", color: "#FF0000"},
-        {x: -32, z: 5, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: -32, z: -15, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: -32, z: -35, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: 32, z: 45, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: 32, z: 25, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: 32, z: 5, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: 32, z: -15, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: 32, z: -35, n: "DISEWAKAN", l: "", color: "#39FF14"}
+        {x: -26, z: 45, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: -26, z: 25, n: "TOKO 2 - TERSEWA", l: "https://lynk.id/annrisel", color: "#FF0000"},
+        {x: -26, z: 5, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: -26, z: -15, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: -26, z: -35, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: 26, z: 45, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: 26, z: 25, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: 26, z: 5, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: 26, z: -15, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: 26, z: -35, n: "DISEWAKAN", l: "", color: "#39FF14"}
     ];
     POS.forEach(p => {
         let gr = base.clone(true); gr.scale.set(10, 10, 10); gr.position.set(p.x, yOff * 10 + 0.5, p.z); gr.rotation.y = p.x > 0 ? -1.57 : 1.57; outG.add(gr);
@@ -180,17 +180,47 @@ loadHF(RUKO_URL, 'Ruko-Storefront', (g) => {
     check('Ruko');
 });
 
+// ✅ Fungsi untuk membuat Sprite Nama di atas kepala NPC
+function createTextSprite(text) {
+    let canvas = document.createElement('canvas');
+    canvas.width = 512; canvas.height = 128;
+    let ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.roundRect ? ctx.roundRect(10, 10, 492, 108, 20) : ctx.fillRect(10, 10, 492, 108);
+    ctx.fill();
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = '#00ff88';
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 44px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 256, 64);
+    
+    let texture = new THREE.CanvasTexture(canvas);
+    let spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true });
+    let sprite = new THREE.Sprite(spriteMaterial);
+    sprite.scale.set(2.5, 0.6, 1);
+    return sprite;
+}
+
 let NPC_OUT = [
-    {nama: "Pak Sales Robot", role: "Sales Robot", emoji: "🤖", x: -26, z: 45, startX: -26, startZ: 45, targetX: -26, targetZ: -30, speed: 0.05},
-    {nama: "Pak Kasir Robot", role: "Kasir Toko 2 Robot", emoji: "🤖", x: 26, z: 25, startX: 26, startZ: 25, targetX: 26, targetZ: -30, speed: 0.04}
+    {nama: "Pak Sales", role: "Sales Robot", emoji: "🤖", x: -30, z: 45, startX: -30, startZ: 45, targetX: -30, targetZ: -30, speed: 0.05},
+    {nama: "Pak Kasir", role: "Kasir Toko 2", emoji: "🤖", x: 30, z: 25, startX: 30, startZ: 25, targetX: 30, targetZ: -30, speed: 0.04}
 ];
 
 function spawnRobotNPCs(){
     if (!robotBase) return;
     NPC_OUT.forEach(d => {
         let o = robotBase.clone(true); 
-        o.scale.set(0.8, 0.8, 0.8); 
+        o.scale.set(0.8, 0.8, 0.8); // Ukuran 0.8 
         o.position.set(d.x, 0, d.z); 
+        
+        // Tambahkan Nama di Atas Kepala
+        let nameSprite = createTextSprite(d.nama);
+        nameSprite.position.set(0, 2.3, 0); // Posisi melayang di atas kepala robot
+        o.add(nameSprite);
+
         outG.add(o); 
         npcs.push({...d, group: o});
     });
@@ -220,7 +250,6 @@ bj.addEventListener('touchstart', e => { dg = true; gbr(); mv(e.touches[0].clien
 window.addEventListener('touchmove', e => { if (!dg) return; mv(e.touches[0].clientX, e.touches[0].clientY); }, {passive: false});
 window.addEventListener('touchend', () => { dg = false; st.style.transform = 'translate(0,0)'; keys.x = 0; keys.y = 0; });
 
-// ✅ Kontrol 360 (Geser Layar) & Zoom (Pinch / Scroll) tetap aktif sepenuhnya
 let camDrag = false, lx = 0, ly = 0, lastPinch = 0;
 function sCam(x, y){ if (x > innerWidth * 0.3){ camDrag = true; lx = x; ly = y; } }
 function mCam(x, y){ if (!camDrag) return; let dx = x - lx, dy = y - ly; camYaw -= dx * 0.6; camPitch += dy * 0.5; camPitch = Math.max(-30, Math.min(80, camPitch)); lx = x; ly = y; }

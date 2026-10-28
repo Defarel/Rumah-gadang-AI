@@ -5,7 +5,21 @@ export const FOTO_HTML = `<!DOCTYPE html>
 <title>Foto - Rumah Gadang AI</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{background:#000;color:#fff;font-family:sans-serif}
-#app{max-width:100vw;width:100%;margin:0 auto;padding-bottom:80px}
+
+/* ✅ KONTAINER UTAMA DENGAN GARIS NEON DI PINGGIR LAYAR */
+#app{
+  max-width:90vw;
+  width:100%;
+  margin:0 auto;
+  min-height:100vh;
+  padding-bottom:100px; /* Jarak bawah agar foto terakhir tidak tertutup menu */
+  border-left:2px solid #00ff88;
+  border-right:2px solid #00ff88;
+  box-shadow:0 0 18px rgba(0,255,136,0.45);
+  background:#000;
+  position:relative;
+}
+
 .top{padding:12px;border-bottom:1px solid #222;position:sticky;top:0;background:#000;z-index:10;display:flex;justify-content:space-between}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:10px}
 .cell{aspect-ratio:3/4;background:#111;position:relative;overflow:hidden;cursor:pointer;border-radius:14px;border:1.2px solid rgba(0,255,136,0.45);box-shadow:0 0 6px rgba(0,255,136,0.55), 0 0 12px rgba(0,255,136,0.18), inset 0 0 6px rgba(0,255,136,0.1);transition:0.2s}
@@ -13,13 +27,39 @@ export const FOTO_HTML = `<!DOCTYPE html>
 .cell img{width:100%;height:100%;object-fit:cover;background:#222;display:block;border-radius:14px}
 .cell .play{position:absolute;top:6px;right:6px;width:28px;height:28px;background:#00ff88;border-radius:50%;display:grid;place-items:center;box-shadow:0 0 8px #00ff88, 0 0 14px rgba(0,255,136,0.7);border:1px solid #00ff88;z-index:2}
 .cell .play div{width:28px;height:28px;background:transparent;border-radius:50%;display:grid;place-items:center;font-size:12px;color:#000;font-weight:900}
-.fab{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#00ff88;color:#000;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:30px;font-weight:900;z-index:50;box-shadow:0 0 16px #00ff88}
+.fab{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#00ff88;color:#000;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:30px;font-weight:900;z-index:50;box-shadow:0 0 16px #00ff88}
 #upPanel{position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:100;display:none;padding:16px;overflow-y:auto}
 .box{max-width:480px;margin:20px auto;background:#111;border:1px solid #333;border-radius:16px;padding:16px}
 input{width:100%;background:#0a0a0a;border:1px solid #333;color:#fff;padding:12px;border-radius:10px;margin-top:8px}
 .btn{width:100%;margin-top:10px;padding:12px;border-radius:10px;border:0;font-weight:900;cursor:pointer}.btn-g{background:#00ff88;color:#000}.btn-w{background:#222;color:#fff;border:1px solid #333}
-.bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:85vw;background:#000;border-top:1px solid #222;display:flex}
-.bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:22px}.bot a.on{color:#fff}
+
+/* ✅ MENU NAVIGASI BAWAH RAPI & ADA GARIS NEON */
+.bot{
+  position:fixed;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:100%;
+  max-width:90vw;
+  background:#000;
+  border-top:2px solid #00ff88;
+  border-left:2px solid #00ff88;
+  border-right:2px solid #00ff88;
+  display:flex;
+  z-index:99;
+  box-shadow:0 -4px 15px rgba(0,255,136,0.3);
+}
+.bot a{
+  flex:1;
+  text-align:center;
+  padding:8px 0;
+  color:#666;
+  text-decoration:none;
+  font-size:18px;
+}
+.bot a.on{color:#00ff88}
+.bot a span{font-size:10px;display:block;margin-top:1px;font-weight:700}
+
 #modal{position:fixed;inset:0;background:#000;z-index:999;display:none;flex-direction:column}
 #swipeWrap{flex:1;display:flex;overflow-x:scroll;scroll-snap-type:x mandatory}
 .slide{flex:0 0 100%;scroll-snap-align:start;position:relative;background:#000;display:flex;align-items:center;justify-content:center}
@@ -50,14 +90,16 @@ input{width:100%;background:#0a0a0a;border:1px solid #333;color:#fff;padding:12p
 <div style="margin-top:14px;border-top:1px solid #222;padding-top:12px"><input id=fFile type=file accept="image/*"><button class="btn btn-w" onclick="upFoto()">📤 UPLOAD FOTO BIASA</button><div id=upInfo style="font-size:10px;color:#00ff88;margin-top:6px;text-align:center"></div></div>
 </div></div>
 <div id=modal><div style="padding:10px;display:flex;justify-content:space-between;align-items:center"><span id=mCount style="font-size:12px;color:#888">1/6</span><span id=mAkun style="color:#00ff88;font-size:12px"></span><div style="display:flex;gap:6px"><button id=delInside onclick="hapusCurrent()" style="background:#ff0000;color:#fff;border:1px solid #fff;padding:6px 14px;border-radius:20px;font-weight:900;display:none">🗑️ HAPUS</button><button onclick="closeM()" style="background:#222;color:#fff;border:0;padding:6px 14px;border-radius:20px">Tutup X</button></div></div><div id=swipeWrap></div><div style="padding:10px;border-top:1px solid #222;display:flex;gap:8px;background:#111"><button onclick="swipe(-1)" style="flex:1;background:#222;color:#fff;border:1px solid #333;padding:12px;border-radius:10px">←</button><a id=mLink target=_blank style="flex:2;background:#00ff88;color:#000;text-align:center;padding:12px;border-radius:10px;font-weight:900;text-decoration:none">Buka di IG ↗</a><button onclick="swipe(1)" style="flex:1;background:#222;color:#fff;border:1px solid #333;padding:12px;border-radius:10px">→</button></div></div>
+
 <div class=bot>
 <a href="/home">🏠<br><span>Home</span></a>
-<a href="/" class=on>🖼️<br><span>Foto</span></a>
+<a href="/foto" class=on>🖼️<br><span>Foto</span></a>
 <a href="/video">🎬<br><span>Video</span></a>
 <a href="/kantor">🏢<br><span>Kantor</span></a>
 <a href="/ai">🤖<br><span>AI</span></a>
 <a href="/akun">👤<br><span>Akun</span></a>
 </div>
+
 <script>
 let allData=[]; let curIdx=0; let tempIG={}; let manualThumb="";
 function isAdmin(){ let e=(localStorage.getItem('rg_email')||'').toLowerCase(); return e.includes('defarel') || e.includes('admin') || localStorage.getItem('rg_admin')==='1'; }

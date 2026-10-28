@@ -1,5 +1,5 @@
 // ==========================================
-// KANTOR DALAM - INDEX.HTML (AREA INTERIOR LUAS, TANPA ATAP, RUANG KERJA & SHOLAT)
+// KANTOR DALAM - INDEX.HTML (3 NPC DUDUK, 2 JALAN-JALAN, UKURAN 0.8)
 // ==========================================
 export const KANTOR_DALAM_HTML = `<!DOCTYPE html>
 <html>
@@ -152,7 +152,6 @@ fallbackPlayer.position.set(0, 1, 15); inG.add(fallbackPlayer); player = fallbac
 
 loadHF(INTERIOR_URL, 'MeetingRoom', (g) => {
     let m = g.scene; 
-    // Otomatis sembunyikan bagian atap jika ada di model GLTF agar terbuka tanpa atap
     m.traverse(o => {
         if (o.isMesh) {
             o.material.side = THREE.DoubleSide;
@@ -180,20 +179,32 @@ let tor = new THREE.TorusGeometry(2.2, 0.25, 16, 50);
 let pEX = new THREE.Mesh(tor, new THREE.MeshStandardMaterial({color: 0xFF3333, emissive: 0xFF0000, emissiveIntensity: 1.5}));
 pEX.position.set(0, 1.8, 25); pEX.rotation.y = Math.PI / 2; inG.add(pEX);
 
-// NPC Workspace & NPC Ruang Sholat
+// Konfigurasi NPC: 3 Duduk (isSit: true), 2 Jalan-Jalan (isSit: false dengan titik patroli)
 let NPC_IN = [
-    {nama: "Uni Excel Robot", role: "Excel Robot (Workspace)", emoji: "🤖", x: 10, z: -10},
-    {nama: "Uda Video Robot", role: "Video Robot (Workspace)", emoji: "🤖", x: 15, z: -5},
-    {nama: "Naura Robot", role: "Admin Robot (Workspace)", emoji: "🤖", x: 10, z: 5},
-    {nama: "Uda Chatbot Robot", role: "Chatbot Robot (Workspace)", emoji: "🤖", x: 15, z: 10},
-    {nama: "Da Min Robot", role: "Marbot / Pengurus Ruang Sholat", emoji: "🕌", x: -20, z: 0}
+    {nama: "Uni Excel Robot", role: "Excel Robot (Duduk)", emoji: "🤖", x: -4, z: -2, isSit: true},
+    {nama: "Uda Video Robot", role: "Video Robot (Duduk)", emoji: "🤖", x: 0, z: -2, isSit: true},
+    {nama: "Naura Robot", role: "Admin Robot (Duduk)", emoji: "🤖", x: 4, z: -2, isSit: true},
+    {nama: "Uda Chatbot Robot", role: "Chatbot Robot (Jalan)", emoji: "🤖", x: 10, z: 5, startX: 10, startZ: 5, targetX: 10, targetZ: -10, speed: 0.03, isSit: false},
+    {nama: "Da Min Robot", role: "Marbot Ruang Sholat (Jalan)", emoji: "🕌", x: -20, z: 0, startX: -20, startZ: 0, targetX: -25, targetZ: 10, speed: 0.03, isSit: false}
 ];
 
 function spawnRobotNPCs(){
     if (!robotBase) return;
     NPC_IN.forEach(d => {
-        let o = robotBase.clone(true); o.scale.set(2.2, 2.2, 2.2); o.position.set(d.x, 0, d.z); o.rotation.y = Math.PI;
-        inG.add(o); npcs.push({...d, group: o});
+        let o = robotBase.clone(true); 
+        // Ukuran diatur ke 0.8 sesuai permintaan Bos
+        o.scale.set(0.8, 0.8, 0.8); 
+        
+        // Jika status duduk, turunkan posisi Y sedikit agar pas di kursi
+        let yPos = d.isSit ? -0.2 : 0;
+        o.position.set(d.x, yPos, d.z); 
+        
+        if (d.isSit) {
+            o.rotation.y = 0; // Menghadap ke depan meja meeting
+        }
+        
+        inG.add(o); 
+        npcs.push({...d, group: o});
     });
 }
 
@@ -205,8 +216,13 @@ loadHF(PLAYER_URL, 'Prabowo-BOS-Player', (g) => {
 });
 
 function toOut(){
-    let f = document.getElementById('fade'); f.style.opacity = '1'; f.style.pointerEvents = 'auto'; f.innerHTML = 'KELUAR KE KANTOR LUAR...';
-    setTimeout(() => { window.location.href = '/kantor'; }, 800);
+    let f = document.getElementById('fade'); 
+    f.style.opacity = '1'; 
+    f.style.pointerEvents = 'auto'; 
+    f.innerHTML = 'KELUAR KE KANTOR LUAR...';
+    setTimeout(() => { 
+        window.location.href = '/kantor'; 
+    }, 800);
 }
 
 let camYaw = 0, camPitch = 25, camDist = 14, keys = {x: 0, y: 0}, spd = 0.9, rspd = 1.8, run = false, nearNPC = null, nearD = false, isSit = false;
@@ -268,7 +284,30 @@ window.handleInteract = function(){
 };
 
 function animate(){
-    requestAnimationFrame(animate); if (!player){ renderer.render(scene, camera); return; }
+    requestAnimationFrame(animate); 
+
+    // ✅ Logika Robot NPC: 3 Duduk diam, 2 Jalan-Jalan (Patroli)
+    npcs.forEach(n => {
+        if (!n.group) return;
+        if (!n.isSit) {
+            let dx = n.targetX - n.group.position.x;
+            let dz = n.targetZ - n.group.position.z;
+            let dist = Math.hypot(dx, dz);
+            
+            if (dist > 1.0) {
+                n.group.position.x += (dx / dist) * n.speed;
+                n.group.position.z += (dz / dist) * n.speed;
+                n.group.rotation.y = Math.atan2(dx, dz);
+                n.group.position.y = Math.abs(Math.sin(Date.now() * 0.01)) * 0.1;
+            } else {
+                let tempX = n.startX; let tempZ = n.startZ;
+                n.startX = n.targetX; n.startZ = n.targetZ;
+                n.targetX = tempX; n.targetZ = tempZ;
+            }
+        }
+    });
+
+    if (!player){ renderer.render(scene, camera); return; }
     let moving = Math.hypot(keys.x, keys.y) > 0.15 && !isSit;
     if (moving){ walkTime += run ? 0.35 : 0.22; player.position.y = baseY + Math.abs(Math.sin(walkTime * 2)) * 0.18; player.rotation.z = Math.sin(walkTime) * 0.12; player.rotation.x = Math.sin(walkTime * 1.5) * 0.08; }
     else { player.position.y = THREE.MathUtils.lerp(player.position.y, baseY, 0.2); player.rotation.z = THREE.MathUtils.lerp(player.rotation.z, 0, 0.2); player.rotation.x = THREE.MathUtils.lerp(player.rotation.x, 0, 0.2); }
@@ -292,7 +331,7 @@ function animate(){
         let areaName = isSholatArea ? "🕌 Ruang Sholat" : "💻 Ruang Kerja / Workspace";
         document.getElementById('gpsText').innerText = areaName + ' Bos';
 
-        npcs.forEach(n => { let dd = Math.hypot(player.position.x - n.x, player.position.z - n.z); if (dd < mn && dd < 7){ mn = dd; nearNPC = n; } });
+        npcs.forEach(n => { let dd = Math.hypot(player.position.x - n.group.position.x, player.position.z - n.group.position.z); if (dd < mn && dd < 6){ mn = dd; nearNPC = n; } });
         let de = Math.hypot(player.position.x, player.position.z - 25);
         if (de < 6) nearD = true;
     }

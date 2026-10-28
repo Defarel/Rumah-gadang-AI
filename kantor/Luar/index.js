@@ -11,7 +11,14 @@ export const LUAR_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
 <div id="joy"><div id="stick"></div></div><div id="right"><button id="cam" class="btn">360<br>ZOOM</button><button id="zin" class="btn">IN</button><button id="zout" class="btn">OUT</button><button id="run" class="btn">LARI</button><button id="toDalam" class="btn" style="background:#FFD700;color:#000">DALAM<br>→</button></div>
 <div id="inter"><h2 id="it">PINTU</h2><p id="idp"></p><button id="btnTap">KLIK</button></div>
 <div id="sewaModal" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#000;padding:18px;border-radius:16px;border:4px solid #000;display:none;z-index:9999;min-width:320px"><b>🏢 SEWA TOKO 50K/BLN</b><br>WA 082230439966<br><button onclick="window.open('https://wa.me/6282230439966','_blank')" style="width:100%;background:#25D366;color:#fff;padding:12px;border-radius:10px;font-weight:900;margin-top:8px">WA</button><button onclick="document.getElementById('sewaModal').style.display='none'" style="width:100%;margin-top:6px">TUTUP</button></div>
-<div class="bot"><a href="/">🏠<br>Home</a><a href="/luar" class="on">🌏<br>Luar</a><a href="/dalam">🏢<br>Dalam</a><a href="/kantor">🏢<br>Kantor</a><a href="/ai">🤖<br>AI</a></div>
+<div class=bot>
+<a href="/" class=on>🏠<br><span>Home</span></a>
+<a href="/foto">🖼️<br><span>Foto</span></a>
+<a href="/video">🎬<br><span>Video</span></a>
+<a href="/kantor">🏢<br><span>Kantor</span></a>
+<a href="/ai">🤖<br><span>AI</span></a>
+<a href="/akun">👤<br><span>Akun</span></a>
+</div>
 <script type="module">
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';

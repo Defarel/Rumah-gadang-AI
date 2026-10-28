@@ -225,7 +225,7 @@ function toOut(){
     }, 800);
 }
 
-let camYaw = 0, camPitch = 25, camDist = 14, keys = {x: 0, y: 0}, spd = 0.9, rspd = 1.8, run = false, nearNPC = null, nearD = false, isSit = false;
+let camYaw = 0, camPitch = 25, camDist = 14, keys = {x: 0, y: 0}, spd = 0.5, rspd = 1.0, run = false, nearNPC = null, nearD = false, isSit = false;
 let bj = document.getElementById('joy'), st = document.getElementById('stick'), dg = false, br;
 function gbr(){ br = bj.getBoundingClientRect(); }
 function mv(cx, cy){

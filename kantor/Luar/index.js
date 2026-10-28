@@ -1,5 +1,5 @@
 // ==========================================
-// KANTOR LUAR - INDEX.HTML (AREA OUTDOOR - ROBOT KECIL & JALAN-JALAN)
+// KANTOR LUAR - INDEX.HTML (TOMBOL UI BERSIH, ROTASI & ZOOM TETAP AKTIF)
 // ==========================================
 export const KANTOR_LUAR_HTML = `<!DOCTYPE html>
 <html>
@@ -180,9 +180,8 @@ loadHF(RUKO_URL, 'Ruko-Storefront', (g) => {
     check('Ruko');
 });
 
-// ✅ NPC dengan Data Patroli (Titik Asal, Tujuan Jalan-Jalan, Waktu Ubah Arah)
 let NPC_OUT = [
-    {nama: "Pak Sales Robot", role: "Sales Robot", emoji: "🤖", x: -26, z: 45, startX: -26, startZ: 45, targetX: -26, targetZ: -30, speed: 0.1},
+    {nama: "Pak Sales Robot", role: "Sales Robot", emoji: "🤖", x: -26, z: 45, startX: -26, startZ: 45, targetX: -26, targetZ: -30, speed: 0.05},
     {nama: "Pak Kasir Robot", role: "Kasir Toko 2 Robot", emoji: "🤖", x: 26, z: 25, startX: 26, startZ: 25, targetX: 26, targetZ: -30, speed: 0.04}
 ];
 
@@ -193,7 +192,7 @@ function spawnRobotNPCs(){
         o.scale.set(0.8, 0.8, 0.8); 
         o.position.set(d.x, 0, d.z); 
         outG.add(o); 
-        npcs.push({...d, group: o, timer: Math.random() * 100});
+        npcs.push({...d, group: o});
     });
 }
 
@@ -221,6 +220,7 @@ bj.addEventListener('touchstart', e => { dg = true; gbr(); mv(e.touches[0].clien
 window.addEventListener('touchmove', e => { if (!dg) return; mv(e.touches[0].clientX, e.touches[0].clientY); }, {passive: false});
 window.addEventListener('touchend', () => { dg = false; st.style.transform = 'translate(0,0)'; keys.x = 0; keys.y = 0; });
 
+// ✅ Kontrol 360 (Geser Layar) & Zoom (Pinch / Scroll) tetap aktif sepenuhnya
 let camDrag = false, lx = 0, ly = 0, lastPinch = 0;
 function sCam(x, y){ if (x > innerWidth * 0.3){ camDrag = true; lx = x; ly = y; } }
 function mCam(x, y){ if (!camDrag) return; let dx = x - lx, dy = y - ly; camYaw -= dx * 0.6; camPitch += dy * 0.5; camPitch = Math.max(-30, Math.min(80, camPitch)); lx = x; ly = y; }
@@ -231,9 +231,6 @@ renderer.domElement.addEventListener('touchmove', e => { if (e.touches.length ==
 renderer.domElement.addEventListener('touchend', eCam); renderer.domElement.addEventListener('mousedown', e => sCam(e.clientX, e.clientY)); window.addEventListener('mousemove', e => { if (camDrag) mCam(e.clientX, e.clientY); }); window.addEventListener('mouseup', eCam);
 renderer.domElement.addEventListener('wheel', e => { camDist += e.deltaY * 0.01; camDist = Math.max(3, Math.min(25, camDist)); e.preventDefault(); }, {passive: false});
 
-document.getElementById('cam').addEventListener('click', () => { camYaw += 90; });
-document.getElementById('zin').addEventListener('click', () => { camDist = Math.max(3, camDist - 2); });
-document.getElementById('zout').addEventListener('click', () => { camDist = Math.min(25, camDist + 2); });
 document.getElementById('run').addEventListener('touchstart', () => { run = true; }, {passive: false});
 document.getElementById('run').addEventListener('touchend', () => { run = false; });
 document.getElementById('jump').addEventListener('click', () => { isSit = !isSit; document.getElementById('gpsText').innerText = isSit ? 'DUDUK Bos' : 'BERDIRI Bos'; });
@@ -275,7 +272,6 @@ window.handleInteract = function(){
 function animate(){
     requestAnimationFrame(animate); 
 
-    // ✅ Logika Robot NPC Jalan-Jalan / Patroli Bolak-balik Otomatis
     npcs.forEach(n => {
         if (!n.group) return;
         let dx = n.targetX - n.group.position.x;
@@ -286,10 +282,8 @@ function animate(){
             n.group.position.x += (dx / dist) * n.speed;
             n.group.position.z += (dz / dist) * n.speed;
             n.group.rotation.y = Math.atan2(dx, dz);
-            // Animasi langkah kecil naik-turun
             n.group.position.y = Math.abs(Math.sin(Date.now() * 0.01)) * 0.1;
         } else {
-            // Tukar titik tujuan patroli (bolak-balik)
             let tempX = n.startX; let tempZ = n.startZ;
             n.startX = n.targetX; n.startZ = n.targetZ;
             n.targetX = tempX; n.targetZ = tempZ;
@@ -319,7 +313,12 @@ function animate(){
         let d = Math.hypot(player.position.x, player.position.z + 78);
         document.getElementById('gpsText').innerText = 'RG:' + Math.round(d) + 'm Prabowo Bos';
         tokos.forEach(t => { let dd = Math.hypot(player.position.x - t.x, player.position.z - t.z); if (dd < md && dd < 18){ md = dd; nearT = t; } });
-        npcs.forEach(n => { let dd = Math.hypot(player.position.x - n.group.position.x, player.position.z - n.group.position.z); if (dd < mn && dd < 8){ mn = dd; nearNPC = n; } });
+        npcs.forEach(n => { 
+            if (n.group) {
+                let dd = Math.hypot(player.position.x - n.group.position.x, player.position.z - n.group.position.z); 
+                if (dd < mn && dd < 8){ mn = dd; nearNPC = n; } 
+            }
+        });
         if (d < 11) nearD = true;
     }
     let inter = document.getElementById('inter');

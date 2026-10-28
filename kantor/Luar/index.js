@@ -1,6 +1,6 @@
 const RUMAH_GADANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/rumah_gadang_sumatra_barat_indonesia.glb";
 const RUKO_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/storefront_house_01.glb";
-const INTERIOR_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/office_room-v1.glb";
+const INTERIOR_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/meeting_room.glb";
 const ORANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/prabowo_3d_model.glb";
 const PRABOWO_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/prabowo_3d_model.glb";
 
@@ -27,9 +27,9 @@ export const KANTOR_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><me
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 const RUMAH_GADANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/rumah_gadang_sumatra_barat_indonesia.glb";
-const RUKO_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/ruko.glb";
-const INTERIOR_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/office_room-v1.glb";
-const ORANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/robot_Npc.glb";
+const RUKO_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/storefront_house_01.glb";
+const INTERIOR_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/meeting_room.glb";
+const ORANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/prabowo_3d_model.glb";
 const PRABOWO_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/prabowo_3d_model.glb";
 let scene=new THREE.Scene();scene.background=new THREE.Color(0x87CEEB);
 let camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.1,1000);

@@ -1,7 +1,8 @@
-const RUMAH_GADANG_URL = "https://files.catbox.moe/oqxwoa.glb";
-const RUKO_URL = "https://files.catbox.moe/cqte21.glb";
-const INTERIOR_URL = "https://files.catbox.moe/s126rl.glb";
-const ORANG_URL = "https://files.catbox.moe/fzuxip.glb";
+const RUMAH_GADANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/rumah_gadang_sumatra_barat_indonesia.glb";
+const RUKO_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/ruko.glb";
+const INTERIOR_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/office_room-v1.glb";
+const ORANG_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/robot_Npc.glb";
+const PRABOWO_URL = "https://huggingface.co/spaces/Defarel/Rumah-Gadang-AI/resolve/main/prabowo_3d_model.glb";
 
 export const KANTOR_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>V1.3 SEWA</title>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>

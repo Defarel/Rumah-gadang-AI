@@ -6,7 +6,7 @@ export const KANTOR_DALAM_HTML = `<!DOCTYPE html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-    <title>KANTOR DALAM - LUAS & RUANG SHOLAT</title>
+    <title>KANTOR DALAM - RUMAH GADANG AI</title>
     <script type="importmap">
     {
         "imports": {
@@ -38,8 +38,8 @@ export const KANTOR_DALAM_HTML = `<!DOCTYPE html>
 <body>
 <div id="loading">LOADING KANTOR LUAR BIASA LUAS (TANPA ATAP)...<br><span id="loadDetail" style="font-size:10px;color:#aaa">Merakit Ruang Kerja & Sholat Bos...</span></div>
 <div id="fade">BERPINDAH AREA...</div>
-<div id="top"><b id="topTitle">KANTOR DALAM - TANPA ATAP & SHOLAT</b><span id="locStatus" style="background:#00C853;padding:3px 8px;border-radius:10px;color:#fff">LUAS</span></div>
-<div id="gps"><span id="gpsText">Init Bos...</span> | <span id="modeText">Workspace + Ruang Sholat</span></div>
+<div id="top"><b id="topTitle">KANTOR DALAM - RUMAH GADANG AI</b><span id="locStatus" style="background:#00C853;padding:3px 8px;border-radius:10px;color:#fff">LUAS</span></div>
+<div id="gps"><span id="gpsText">Init Bos...</span> | <span id="modeText">Workspace</span></div>
 <div id="joy"><div id="stick"></div></div>
 <div id="right">
     <button id="cam" class="btn">360<br>ZOOM</button>
@@ -89,7 +89,7 @@ let inG = new THREE.Group(); scene.add(inG);
 
 // Lantai Kantor Diperbesar Luas (80x80 meter)
 let largeFloor = new THREE.Mesh(
-    new THREE.PlaneGeometry(80, 80),
+    new THREE.PlaneGeometry(100, 100),
     new THREE.MeshStandardMaterial({color: 0x1f202e, roughness: 0.8})
 );
 largeFloor.rotation.x = -Math.PI / 2;
@@ -181,9 +181,9 @@ pEX.position.set(0, 1.8, 25); pEX.rotation.y = Math.PI / 2; inG.add(pEX);
 
 // Konfigurasi NPC: 3 Duduk (isSit: true), 2 Jalan-Jalan (isSit: false dengan titik patroli)
 let NPC_IN = [
-    {nama: "Uni Excel Robot", role: "Excel Robot (Duduk)", emoji: "🤖", x: -4, z: -2, isSit: true},
-    {nama: "Uda Video Robot", role: "Video Robot (Duduk)", emoji: "🤖", x: 0, z: -2, isSit: true},
-    {nama: "Naura Robot", role: "Admin Robot (Duduk)", emoji: "🤖", x: 4, z: -2, isSit: true},
+    {nama: "Uni Excel Robot", role: "Excel Robot (Duduk)", emoji: "🤖", x: 2, z: 4, isSit: true},
+    {nama: "Uda Video Robot", role: "Video Robot (Duduk)", emoji: "🤖", x: 2, z: 0, isSit: true},
+    {nama: "Naura Robot", role: "Admin Robot (Duduk)", emoji: "🤖", x: 2, z: -4, isSit: true},
     {nama: "Uda Chatbot Robot", role: "Chatbot Robot (Jalan)", emoji: "🤖", x: 10, z: 5, startX: 10, startZ: 5, targetX: 10, targetZ: -10, speed: 0.03, isSit: false},
     {nama: "Da Min Robot", role: "Marbot Ruang Sholat (Jalan)", emoji: "🕌", x: -20, z: 0, startX: -20, startZ: 0, targetX: -25, targetZ: 10, speed: 0.03, isSit: false}
 ];
@@ -225,7 +225,7 @@ function toOut(){
     }, 800);
 }
 
-let camYaw = 0, camPitch = 25, camDist = 14, keys = {x: 0, y: 0}, spd = 0.5, rspd = 1.0, run = false, nearNPC = null, nearD = false, isSit = false;
+let camYaw = 0, camPitch = 25, camDist = 14, keys = {x: 0, y: 0}, spd = 0.4, rspd = 1.0, run = false, nearNPC = null, nearD = false, isSit = false;
 let bj = document.getElementById('joy'), st = document.getElementById('stick'), dg = false, br;
 function gbr(){ br = bj.getBoundingClientRect(); }
 function mv(cx, cy){

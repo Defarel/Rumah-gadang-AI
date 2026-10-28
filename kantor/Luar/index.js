@@ -218,7 +218,7 @@ function spawnRobotNPCs(){
         
         // Tambahkan Nama di Atas Kepala
         let nameSprite = createTextSprite(d.nama);
-        nameSprite.position.set(0, 2.3, 0); // Posisi melayang di atas kepala robot
+        nameSprite.position.set(0, 3.5, 0); // Posisi melayang di atas kepala robot
         o.add(nameSprite);
 
         outG.add(o); 

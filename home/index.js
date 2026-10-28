@@ -1,4 +1,7 @@
-export default `<!DOCTYPE html>
+// ==========================================
+// RUMAH GADANG AI - HOME INDEX.HTML FINAL
+// ==========================================
+export const HOME_HTML = `<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -7,7 +10,8 @@ export default `<!DOCTYPE html>
 <link rel="canonical" href="https://rumahgadang-ai.my.id/">
 <meta name="description" content="Komunitas Minangkabau - Rumah Gadang AI, tempat dunsanak berbagi cerita">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}body{background:#000;color:#fff;font-family:system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#fff;font-family:system-ui,sans-serif}
 #app{max-width:520px;margin:0 auto;background:#000;min-height:100vh;padding-bottom:90px;border-left:2.5px solid #00ff88;border-right:2.5px solid #00ff88;border-bottom:2.5px solid #00ff88;box-shadow:0 0 18px rgba(0,255,136,0.55)}
 .top{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #151515;position:sticky;top:0;background:#000;z-index:20}
 .logo{width:38px;height:38px;border-radius:50%;border:2px solid #00ff88;object-fit:cover}
@@ -102,7 +106,6 @@ export default `<!DOCTYPE html>
 </div>
 
 <script>
-// FIX DUPLIKAT KANONIS DI HOME - GOOGLE SEARCH CONSOLE
 if(location.pathname.toLowerCase()==='/home' || location.pathname.toLowerCase()==='/home/'){
   history.replaceState(null,'','/');
   let link=document.querySelector('link[rel="canonical"]');
@@ -117,7 +120,13 @@ function getName(){return localStorage.getItem('rg_name')|| (getEmail()?getEmail
 function getAvatar(){return localStorage.getItem('rg_avatar')||LOGO_FALLBACK;}
 function isAdmin(){return ADMIN_EMAILS.includes(getEmail());}
 function clearImg(){selectedImg="";document.getElementById('preview').style.display='none';document.getElementById('prevImg').src="";document.getElementById('fileIn').value="";}
-function openProfil(email){ if(!email) return; location.href='/akun?profil='+encodeURIComponent(email); }
+
+// ✅ FIX: Fungsi openProfil mengarah ke /akun?profil=email dengan benar
+function openProfil(email){ 
+  if(!email) return; 
+  location.href='/akun?profil='+encodeURIComponent(email.toLowerCase().trim()); 
+}
+
 document.getElementById('fileIn').addEventListener('change',function(e){
  let f=e.target.files[0]; if(!f) return;
  let r=new FileReader();
@@ -137,13 +146,16 @@ document.getElementById('fileIn').addEventListener('change',function(e){
  };
  r.readAsDataURL(f);
 });
+
 function fmtTime(t){let diff=Date.now()-Number(t); if(diff<60000) return "baru"; if(diff<3600000) return Math.floor(diff/60000)+" mnt lalu"; if(diff<86400000) return Math.floor(diff/3600000)+" jam lalu"; if(diff<2592000000) return Math.floor(diff/86400000)+" hr lalu"; if(diff<31536000000) return Math.floor(diff/2592000000)+" bln lalu"; return Math.floor(diff/31536000000)+" thn lalu"; }
 function fmtTimeFull(t){let d=new Date(Number(t)||Date.now()); return d.toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
+
 async function likeTulis(id){
   const email=getEmail(); if(!email){ alert("Login dulu Bos!"); location.href="/akun"; return; }
   await fetch("/api/tulis/like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:String(id),email:email})});
   loadTulis();
 }
+
 function openKomen(id){
   activeTulisId=id; mode="komentar"; activeParent=null;
   document.getElementById('kMyAv').src=getAvatar();
@@ -153,11 +165,13 @@ function openKomen(id){
 }
 function closeKomen(){ document.getElementById('komenSheet').classList.remove('show'); activeTulisId=""; mode="komentar"; activeParent=null; }
 function showKomentar(){ mode="komentar"; activeParent=null; renderKomentar(); }
+
 async function loadKomen(id){
   const me=getEmail();
   let r=await fetch("/api/tulis/komen?id="+id+"&me="+encodeURIComponent(me)+"&t="+Date.now(),{cache:'no-store'});
   activeKomen=await r.json(); renderKomentar();
 }
+
 function renderKomentar(){
   let parents=activeKomen.filter(k=>!k.parent_id||k.parent_id===""||k.parent_id==="null");
   document.getElementById('komenTitle').innerText="Komentar • "+parents.length+" • "+activeKomen.length+" total";
@@ -171,6 +185,7 @@ function renderKomentar(){
     return '<div class=k-item>'+komenInner(k,true,replyCount)+'</div>';
   }).join('');
 }
+
 function renderBalasan(parentId){
   let parent=activeKomen.find(k=>String(k.id)===String(parentId)); if(!parent) return;
   activeParent=parent; mode="balasan";
@@ -183,14 +198,16 @@ function renderBalasan(parentId){
   let threadHtml='<div class=thread-wrap>'+(children.length?children.map(c=>'<div class=thread-item><div class=thread-dot></div>'+komenInner(c,true,0)+'</div>').join(''):'<div class=empty style="padding:18px">Belum ada balasan</div>')+'</div>';
   h.innerHTML=parentHtml+threadHtml;
 }
+
 function komenInner(k, showBalas, replyCount){
   let me=getEmail().toLowerCase();
-  let name=k.name||(k.email||'').split('@')[0]||'Dunsanak';
+  let email=k.email||'';
+  let name=k.name||email.split('@')[0]||'Dunsanak';
   let pic=k.picture||LOGO_FALLBACK;
   let time=fmtTime(k.time||Date.now());
   let text=(k.text||'').replace(/</g,'&lt;');
   let loved=k.isLiked?" loved":"";
-  let isOwner=(k.email||"").toLowerCase()===me;
+  let isOwner=email.toLowerCase()===me;
   let canDel=isOwner||isAdmin();
   let del=canDel?'<span class=k-del onclick="hapusKomen(\\''+k.id+'\\')">🗑️ Hapus</span>':'';
   let balas=showBalas?'<div class=k-act onclick="handleBalas(\\''+k.id+'\\',\\''+name+'\\')"><span>💬</span><span>Balas</span></div>':'';
@@ -198,13 +215,15 @@ function komenInner(k, showBalas, replyCount){
   if(replyCount>0 && showBalas){
     replyInfo='<div class=k-reply-count onclick="renderBalasan(\\''+k.id+'\\')">↳ '+replyCount+' balasan • Lihat balasan</div>';
   }
-  return '<img class=k-av src="'+pic+'" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=k-body><div class=k-user><b>@'+name+'</b><span> • '+time+'</span></div><div class=k-text>'+text+'</div><div class=k-actions><div class="k-act'+loved+'" onclick="loveKomen(\\''+k.id+'\\')"><span>❤️</span><span>'+(k.likes>0?k.likes:'Love')+'</span></div>'+balas+del+'</div>'+replyInfo+'</div>';
+  return '<img class=k-av src="'+pic+'" onclick="openProfil(\\''+email+'\\')" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=k-body><div class=k-user><b onclick="openProfil(\\''+email+'\\')" style="cursor:pointer">@'+name+'</b><span> • '+time+'</span></div><div class=k-text>'+text+'</div><div class=k-actions><div class="k-act'+loved+'" onclick="loveKomen(\\''+k.id+'\\')"><span>❤️</span><span>'+(k.likes>0?k.likes:'Love')+'</span></div>'+balas+del+'</div>'+replyInfo+'</div>';
 }
+
 function handleBalas(komenId, name){
   renderBalasan(komenId);
   document.getElementById('kInput').value="@"+name+" ";
   document.getElementById('kInput').focus();
 }
+
 async function loveKomen(komen_id){
   const email=getEmail(); if(!email){ alert("Login dulu Bos!"); return; }
   await fetch("/api/tulis/komen/like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({komen_id:String(komen_id),email:email})});
@@ -212,6 +231,7 @@ async function loveKomen(komen_id){
   activeKomen=await r.json();
   if(mode==="komentar") renderKomentar(); else renderBalasan(activeParent.id);
 }
+
 async function hapusKomen(komen_id){
   if(!confirm("Hapus komen ini Bos?")) return;
   const email=getEmail(); if(!email) return;
@@ -225,6 +245,7 @@ async function hapusKomen(komen_id){
   else { if(activeParent && String(activeParent.id)===String(komen_id)) showKomentar(); else renderBalasan(activeParent.id); }
   loadTulis();
 }
+
 async function sendKomen(){
   let input=document.getElementById('kInput'); let text=input.value.trim(); if(!text) return;
   const email=getEmail(); if(!email){ alert("Login dulu Bos!"); location.href="/akun"; return; }
@@ -236,6 +257,7 @@ async function sendKomen(){
   loadTulis();
 }
 document.getElementById('kInput').addEventListener('keydown',e=>{ if(e.key==='Enter') sendKomen(); });
+
 async function loadTulis(){
  try{
   const me=getEmail(); if(me) document.getElementById('btnLoginTop').innerText=me.split('@')[0].toUpperCase().slice(0,8);
@@ -248,6 +270,7 @@ async function loadTulis(){
   }).join('');
  }catch(e){document.getElementById('homeFeed').innerHTML='<div class=empty>Error: '+e.message+'</div>';}
 }
+
 async function addTulis(){
  let txt=document.getElementById('tulisIn').value.trim(); if(!txt&&!selectedImg){alert("Tulis dulu sanak!");return;}
  let btn=document.querySelector('.btnKirim');btn.innerText="MENGIRIM...";btn.disabled=true;
@@ -260,7 +283,10 @@ async function addTulis(){
  }catch(e){alert("Gagal Bos: "+e.message);}
  btn.innerText="KIRIM";btn.disabled=false;
 }
+
 async function hapusPost(id){if(!confirm("Hapus Bos?"))return;await fetch('/api/tulis/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});location.reload();}
 loadTulis();
 <\/script></body></html>
 `;
+
+export default HOME_HTML;

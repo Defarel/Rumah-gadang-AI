@@ -156,16 +156,16 @@ pRG.position.set(0, 1.8, -78); pRG.rotation.y = Math.PI / 2; outG.add(pRG);
 loadHF(RUKO_URL, 'Ruko-Storefront', (g) => {
     let base = g.scene; let b = new THREE.Box3().setFromObject(base); let yOff = -b.min.y;
     let POS = [
-        {x: -26, z: 45, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: -26, z: 25, n: "TOKO 2 - TERSEWA", l: "https://lynk.id/annrisel", color: "#FF0000"},
-        {x: -26, z: 5, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: -26, z: -15, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: -26, z: -35, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: 26, z: 45, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: 26, z: 25, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: 26, z: 5, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: 26, z: -15, n: "DISEWAKAN", l: "", color: "#39FF14"},
-        {x: 26, z: -35, n: "DISEWAKAN", l: "", color: "#39FF14"}
+        {x: -37, z: 45, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: -37, z: 25, n: "TOKO 2 - TERSEWA", l: "https://lynk.id/annrisel", color: "#FF0000"},
+        {x: -37, z: 5, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: -37, z: -15, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: -37, z: -35, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: 37, z: 45, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: 37, z: 25, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: 37, z: 5, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: 37, z: -15, n: "DISEWAKAN", l: "", color: "#39FF14"},
+        {x: 37, z: -35, n: "DISEWAKAN", l: "", color: "#39FF14"}
     ];
     POS.forEach(p => {
         let gr = base.clone(true); gr.scale.set(10, 10, 10); gr.position.set(p.x, yOff * 10 + 0.5, p.z); gr.rotation.y = p.x > 0 ? -1.57 : 1.57; outG.add(gr);
@@ -205,8 +205,8 @@ function createTextSprite(text) {
 }
 
 let NPC_OUT = [
-    {nama: "Pak Sales", role: "Sales Robot", emoji: "🤖", x: -30, z: 45, startX: -30, startZ: 45, targetX: -30, targetZ: -30, speed: 0.05},
-    {nama: "Pak Kasir", role: "Kasir Toko 2", emoji: "🤖", x: 30, z: 25, startX: 30, startZ: 25, targetX: 30, targetZ: -30, speed: 0.04}
+    {nama: "Pak Sales", role: "Sales Robot", emoji: "🤖", x: -22, z: 45, startX: -22, startZ: 45, targetX: -22, targetZ: -30, speed: 0.05},
+    {nama: "Pak Kasir", role: "Kasir Toko 2", emoji: "🤖", x: 22, z: 25, startX: 22, startZ: 25, targetX: 22, targetZ: -30, speed: 0.04}
 ];
 
 function spawnRobotNPCs(){

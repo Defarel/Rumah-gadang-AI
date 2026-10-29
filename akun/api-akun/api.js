@@ -139,15 +139,15 @@ export const AKUN_API = {
         }
       }
 
-      // ✅ 8. API LIKE PERMANEN (FIX TOGGLE / LIKE & UNLIKE)
+      // ✅ 8. API LIKE & UNLIKE PERMANEN (DIPERKETAT LOWERCASE & TRIM)
       if (path === "/api/photo/like") {
-        let photo_key = url.searchParams.get("photo_key");
-        let user_email = url.searchParams.get("user_email") || "";
+        let photo_key = url.searchParams.get("photo_key") || "";
+        let user_email = (url.searchParams.get("user_email") || "").toLowerCase().trim();
 
         if (method === "POST") {
           const body = await req.json().catch(()=>({}));
           photo_key = body.photo_key || photo_key;
-          user_email = body.user_email || user_email;
+          user_email = (body.user_email || user_email).toLowerCase().trim();
           
           if (!photo_key || !user_email) return new Response(JSON.stringify({ ok: false, error: "Missing data" }), { headers: h, status: 400 });
           

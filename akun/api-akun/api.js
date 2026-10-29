@@ -7,16 +7,16 @@ export const AKUN_API = {
     const method = req.method;
 
     try {
-      // INIT TABLES TERMASUK LIKE & KOMENTAR PERMANEN
+      // INIT TABLES
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER)`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS rg_users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER)`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS follows (follower_email TEXT, following_email TEXT, created_at INTEGER, PRIMARY KEY(follower_email, following_email))`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS d1consule_photos_v2 (email TEXT, idx INTEGER, photo TEXT, updated_at INTEGER, PRIMARY KEY(email, idx))`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, user_email TEXT, name TEXT, picture TEXT, time INTEGER)`).run();
       
-      // ✅ TABEL BARU UNTUK LIKE & KOMENTAR PERMANEN
+      // TABEL LIKE & KOMENTAR PERMANEN
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_likes (photo_key TEXT, user_email TEXT, PRIMARY KEY(photo_key, user_email))`).run();
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, photo_key TEXT, user_name TEXT, comment TEXT, time INTEGER)`).run();
+      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, photo_key TEXT, user_email TEXT, user_name TEXT, comment TEXT, time INTEGER)`).run();
 
       // 1. REGISTER / LOGIN
       if (path === "/api/akun/register" && method === "POST") {
@@ -139,9 +139,9 @@ export const AKUN_API = {
         }
       }
 
-      // ✅ 8. API LIKE & UNLIKE PERMANEN (DIPERKETAT LOWERCASE & TRIM)
+      // 8. API LIKE PERMANEN
       if (path === "/api/photo/like") {
-        let photo_key = url.searchParams.get("photo_key") || "";
+        let photo_key = url.searchParams.get("photo_key");
         let user_email = (url.searchParams.get("user_email") || "").toLowerCase().trim();
 
         if (method === "POST") {
@@ -170,15 +170,24 @@ export const AKUN_API = {
         return new Response(JSON.stringify({ ok: true, likes: countRes?.c || 0, likedByMe: !!likedRes }), { headers: h });
       }
 
-      // 9. API KOMENTAR PERMANEN
+      // ✅ 9. API KOMENTAR PERMANEN & DELETE KOMENTAR
       if (path === "/api/photo/comment") {
         if (method === "POST") {
-          const { photo_key, user_name, comment } = await req.json();
-          if (!photo_key || !comment) return new Response(JSON.stringify({ ok: false }), { headers: h, status: 400 });
-          await env.DB.prepare("INSERT INTO photo_comments (photo_key, user_name, comment, time) VALUES (?,?,?,?)").bind(photo_key, user_name || "Dunsanak", comment.trim(), Date.now()).run();
+          const { photo_key, user_email, user_name, comment } = await req.json().catch(()=>({}));
+          if (!photo_key || !comment) return new Response(JSON.stringify({ ok: false, error: "Missing data" }), { headers: h, status: 400 });
+          await env.DB.prepare("INSERT INTO photo_comments (photo_key, user_email, user_name, comment, time) VALUES (?,?,?,?,?)")
+            .bind(photo_key, (user_email || "").toLowerCase().trim(), user_name || "Dunsanak", comment.trim(), Date.now()).run();
+          return new Response(JSON.stringify({ ok: true }), { headers: h });
         }
+        if (method === "DELETE") {
+          const { comment_id, user_email } = await req.json().catch(()=>({}));
+          if (!comment_id || !user_email) return new Response(JSON.stringify({ ok: false, error: "Missing data" }), { headers: h, status: 400 });
+          await env.DB.prepare("DELETE FROM photo_comments WHERE id=? AND LOWER(user_email)=?").bind(comment_id, user_email.toLowerCase().trim()).run();
+          return new Response(JSON.stringify({ ok: true }), { headers: h });
+        }
+        
         const photo_key = url.searchParams.get("photo_key");
-        const comments = await env.DB.prepare("SELECT user_name as user, comment as text FROM photo_comments WHERE photo_key=? ORDER BY id ASC").bind(photo_key).all().catch(()=>({results:[]}));
+        const comments = await env.DB.prepare("SELECT id, user_email, user_name as user, comment as text, time FROM photo_comments WHERE photo_key=? ORDER BY id ASC").bind(photo_key).all().catch(()=>({results:[]}));
         return new Response(JSON.stringify(comments.results || []), { headers: h });
       }
 

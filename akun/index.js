@@ -57,11 +57,14 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .postImgWrap{width:100%;background:#000;display:flex;justify-content:center;align-items:center}
 .postImgWrap img{width:100%;height:auto;max-height:80vh;object-fit:cover;display:block}
 .postActions{display:flex;gap:16px;padding:12px 16px;align-items:center;font-size:20px}
-.postComments{padding:0 16px 14px;max-height:140px;overflow-y:auto;font-size:13px}
-.commentItem{padding:6px 0;border-bottom:1px dashed #222}
-.commentInputWrap{display:flex;gap:8px;padding:10px 16px;background:#080808;border-top:1px solid #222}
-.commentInputWrap input{flex:1;background:#1a1a1a;border:1px solid #333;color:#fff;padding:8px 12px;border-radius:10px;font-size:13px}
-.commentInputWrap button{background:#00ff88;color:#000;border:0;padding:8px 14px;border-radius:10px;font-weight:900;cursor:pointer}
+
+/* Modal Layer Komentar Melayang (Slide-up) */
+#commentModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; align-items:flex-end; justify-content:center; }
+#commentBoxSheet { background:#111; border-top:2px solid #00ff88; border-top-left-radius:20px; border-top-right-radius:20px; width:100%; max-width:600px; height:75vh; display:flex; flex-direction:column; box-shadow:0 -5px 25px rgba(0,255,136,0.3); animation: slideUp 0.3s ease-out; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.commentSheetHeader { padding:14px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #222; font-weight:900; }
+.commentSheetBody { flex:1; overflow-y:auto; padding:16px; }
+.commentSheetInput { padding:12px 16px; background:#080808; border-top:1px solid #222; display:flex; gap:8px; }
 </style></head><body>
 <div id="app">
   <div class="top"><div style="display:flex;gap:10px;align-items:center"><img src="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg" class="logo"><b>RUMAH GADANG AI</b></div><button class="btn-home" onclick="location.href='/'">HOME</button></div>
@@ -76,6 +79,7 @@ body{background:#000;color:#fff;font-family:sans-serif}
   <a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a>
 </div>
 <div id="toast"></div>
+
 <div id="editModal"><div id="editBox">
 <h3 style="margin-bottom:10px">Edit Profil Bos - Bebas Ganti Foto Bos</h3>
 <img id="editPrev" style="width:90px;height:90px;border-radius:50%;border:2px solid #00ff88;display:block;margin:0 auto 10px;object-fit:cover">
@@ -85,6 +89,7 @@ body{background:#000;color:#fff;font-family:sans-serif}
 <div style="font-size:11px;color:#00ff88;margin-top:8px">* Foto bebas Bos, gak dikunci Bos, otomatis dikecilin biar kesimpen Bos</div>
 <div style="display:flex;gap:8px;margin-top:12px"><button class="btn-edit" onclick="closeEdit()" style="flex:1">Batal</button><button class="btn-neon-follow" onclick="saveEdit()" style="flex:1">Simpan Bos</button></div>
 </div></div>
+
 <div id="photoModal">
   <div class="modalTopBar">
     <b style="color:#00ff88">POSTINGAN</b>
@@ -92,12 +97,29 @@ body{background:#000;color:#fff;font-family:sans-serif}
   </div>
   <div id="modalFeedContainer"></div>
 </div>
+
+<!-- Modal Layer Komentar Melayang -->
+<div id="commentModal">
+  <div id="commentBoxSheet">
+    <div class="commentSheetHeader">
+      <span id="commentSheetTitle" style="color:#00ff88">Komentar</span>
+      <button onclick="closeCommentModal()" style="background:#222;color:#fff;border:0;padding:6px 12px;border-radius:10px;font-weight:900;cursor:pointer">✕</button>
+    </div>
+    <div class="commentSheetBody" id="commentSheetList"></div>
+    <div class="commentSheetInput">
+      <input id="sheetCommentInput" placeholder="Bagikan pemikiran Anda..." style="flex:1;background:#1a1a1a;border:1px solid #333;color:#fff;padding:10px 14px;border-radius:12px;font-size:13px">
+      <button onclick="submitSheetComment()" style="background:#00ff88;color:#000;border:0;padding:10px 16px;border-radius:12px;font-weight:900;cursor:pointer">➤</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const LOGO_INNER="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
 const LOGO_LOGIN="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
 const LOGO_VIDEO = "https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@9fa479e6634ebcb2f1dfcde85fb106ac77d2b122/akun/RumahGadangV2.mp4";
 
 let activeMainTab="teman"; 
+let currentActivePhotoKey = null;
 const urlParams = new URLSearchParams(window.location.search);
 let viewingUserEmail = urlParams.get('profil') ? decodeURIComponent(urlParams.get('profil')).toLowerCase().trim() : null;
 
@@ -259,20 +281,18 @@ async function openPhotoModal(startIndex){
     
     try {
       let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
-      let json = await res.json();
+      let text = await res.text();
+      let json = text.startsWith('<') ? [] : JSON.parse(text);
       comments = Array.isArray(json) ? json : (json.results || []);
     } catch(e){ comments = []; }
 
     try {
-      let rLike = await fetch('/api/photo/like', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ photo_key: key, user_email: me || 'guest@guest.com' })
-      });
-      let jLike = await rLike.json();
+      let rLike = await fetch('/api/photo/like?photo_key=' + encodeURIComponent(key) + '&user_email=' + encodeURIComponent(me || ''));
+      let text = await rLike.text();
+      let jLike = text.startsWith('<') ? {} : JSON.parse(text);
       if(jLike && jLike.ok){
         likesCount = jLike.likes || 0;
-        likedByMe = me ? !!jLike.likedByMe : false;
+        likedByMe = jLike.likedByMe || false;
       }
     } catch(e){}
     
@@ -285,14 +305,7 @@ async function openPhotoModal(startIndex){
         <div class="postImgWrap"><img src="\${pUrl}"></div>
         <div class="postActions">
           <span id="likeBtn-\${index}" onclick="toggleLikeIndex(\${index})" style="cursor:pointer;color:\${likedByMe?'#ff4444':'#fff'}">❤️ <span id="likeCount-\${index}" style="font-size:14px">\${likesCount}</span></span>
-          <span style="font-size:14px">💬 <span id="commentCount-\${index}">\${comments.length}</span> Komentar</span>
-        </div>
-        <div class="postComments" id="commentsList-\${index}">
-          \${!comments.length ? '<div style="color:#666;text-align:center;padding:10px">Belum ada komentar</div>' : comments.map(c=>'<div class="commentItem"><b>'+(c.user||'Dunsanak')+':</b> '+(c.text||c.comment||'')+'</div>').join('')}
-        </div>
-        <div class="commentInputWrap">
-          <input id="commentInput-\${index}" placeholder="Tulis komentar Bos...">
-          <button onclick="postCommentIndex(\${index})">Kirim</button>
+          <span onclick="openCommentSheet('\${key}', \${index})" style="cursor:pointer;font-size:14px">💬 <span id="commentCount-\${index}">\${comments.length}</span> Komentar</span>
         </div>
       </div>\`;
   }
@@ -308,6 +321,75 @@ async function openPhotoModal(startIndex){
 
 function closePhotoModal(){ document.getElementById('photoModal').style.display = 'none'; }
 
+async function openCommentSheet(key, index){
+  currentActivePhotoKey = { key, index };
+  document.getElementById('commentModal').style.display = 'flex';
+  loadSheetComments(key);
+}
+
+function closeCommentModal(){
+  document.getElementById('commentModal').style.display = 'none';
+}
+
+async function loadSheetComments(key){
+  let listEl = document.getElementById('commentSheetList');
+  listEl.innerHTML = '<div style="text-align:center;color:#666;padding:20px">Memuat komentar...</div>';
+  try {
+    let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
+    let text = await res.text();
+    let json = text.startsWith('<') ? [] : JSON.parse(text);
+    let comments = Array.isArray(json) ? json : (json.results || []);
+    
+    document.getElementById('commentSheetTitle'.replace('Title','Title')).innerText = \`Komentar (\${comments.length})\`;
+    
+    if(!comments.length){
+      listEl.innerHTML = '<div style="text-align:center;color:#666;padding:30px">Belum ada komentar. Jadilah yang pertama!</div>';
+      return;
+    }
+    
+    listEl.innerHTML = comments.map(c=> \`
+      <div style="padding:10px 0;border-bottom:1px solid #222;display:flex;gap:10px;align-items:flex-start">
+        <div style="flex:1">
+          <div style="font-weight:900;color:#00ff88;font-size:13px">\${c.user || 'Dunsanak'}</div>
+          <div style="font-size:13px;color:#ddd;margin-top:4px">\${c.text || c.comment || ''}</div>
+        </div>
+      </div>
+    \`).join('');
+  } catch(e){
+    listEl.innerHTML = '<div style="text-align:center;color:#f66;padding:20px">Gagal memuat komentar</div>';
+  }
+}
+
+async function submitSheetComment(){
+  if(!currentActivePhotoKey) return;
+  let inp = document.getElementById('sheetCommentInput');
+  let text = inp.value.trim();
+  if(!text) return toast('Tulis komentar dulu Bos!');
+  let me = getMyEmail();
+  if(!me) return toast('Login dulu Bos!');
+  
+  let { key, index } = currentActivePhotoKey;
+  let myName = getMyName();
+  
+  try {
+    await fetch('/api/photo/comment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ photo_key: key, user_name: myName, comment: text })
+    });
+    inp.value = '';
+    loadSheetComments(key);
+    
+    let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
+    let json = await res.json();
+    let count = Array.isArray(json) ? json.length : (json.results?.length || 0);
+    let counterEl = document.getElementById('commentCount-' + index);
+    if(counterEl) counterEl.innerText = count;
+    
+    toast('Komentar terkirim Bos!');
+  } catch(e){ toast('Gagal kirim komentar'); }
+}
+
 async function toggleLikeIndex(index){
   let me = getMyEmail();
   if(!me) return toast('Login dulu Bos untuk Like!');
@@ -319,40 +401,15 @@ async function toggleLikeIndex(index){
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ photo_key: key, user_email: me })
     });
-    let j = await r.json();
+    let text = await r.text();
+    let j = text.startsWith('<') ? {ok:false} : JSON.parse(text);
     if(j.ok){
       document.getElementById('likeCount-' + index).innerText = j.likes;
       document.getElementById('likeBtn-' + index).style.color = j.likedByMe ? '#ff4444' : '#fff';
+    } else {
+      toast('Gagal Like Bos');
     }
-  } catch(e){ toast('Gagal Like'); }
-}
-
-async function postCommentIndex(index){
-  let inp = document.getElementById('commentInput-' + index);
-  let text = inp.value.trim();
-  if(!text) return toast('Tulis komentar dulu Bos!');
-  let me = getMyEmail();
-  if(!me) return toast('Login dulu Bos!');
-  
-  let key = (window._currentProfileEmail || 'unknown') + '_' + index;
-  let myName = getMyName();
-  
-  try {
-    await fetch('/api/photo/comment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ photo_key: key, user_name: myName, comment: text })
-    });
-    let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
-    let json = await res.json();
-    let comments = Array.isArray(json) ? json : (json.results || []);
-    
-    document.getElementById('commentCount-' + index).innerText = comments.length;
-    let cList = document.getElementById('commentsList-' + index);
-    cList.innerHTML = comments.map(c=>'<div class="commentItem"><b>'+(c.user||'Dunsanak')+':</b> '+(c.text||c.comment||'')+'</div>').join('');
-    inp.value = '';
-    toast('Komentar terkirim Bos!');
-  } catch(e){ toast('Gagal kirim komentar'); }
+  } catch(e){ toast('Error Like: ' + e.message); }
 }
 
 async function deletePhotoIndex(index){

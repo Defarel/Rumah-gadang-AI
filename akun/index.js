@@ -351,7 +351,6 @@ async function loadSheetComments(key){
       return;
     }
     
-    // Ambil daftar user untuk mencocokkan foto profil komentar
     let rUsers = await fetch('/api/akun/list?t=' + Date.now()).catch(()=>({json:()=>[]}));
     let allUsers = await rUsers.json().catch(()=>[]);
     let userAvatarMap = {};
@@ -374,8 +373,8 @@ async function loadSheetComments(key){
             <div style="font-weight:900;color:#00ff88;font-size:13px">\${c.user || 'Dunsanak'}</div>
             <div style="font-size:13px;color:#ddd;margin-top:4px;word-break:break-word">\${c.text || c.comment || ''}</div>
             <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:#aaa;align-items:center">
-              <span style="cursor:pointer;color:\${likedColor};font-weight:bold" onclick="loveKomen(\${c.id}, '\\${key}')">❤️ Love (\${c.likes || 0})</span>
-              <span style="cursor:pointer" onclick="replyComment('\\${c.user}')">Balas</span>
+              <span style="cursor:pointer;color:\${likedColor};font-weight:bold" onclick="loveKomen(\${c.id}, '\${key}')">❤️ Love (\${c.likes || 0})</span>
+              <span style="cursor:pointer" onclick="replyComment('\${c.user}')">Balas</span>
             </div>
           </div>
           \${canDelete ? '<button onclick="deleteComment(' + c.id + ', \\'' + key + '\\', ' + currentActivePhotoKey.index + ')" style="background:transparent;color:#ff4444;border:0;font-size:12px;font-weight:bold;cursor:pointer;padding:4px 8px;flex-shrink:0">🗑️ Hapus</button>' : ''}

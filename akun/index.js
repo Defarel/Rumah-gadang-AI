@@ -98,7 +98,7 @@ body{background:#000;color:#fff;font-family:sans-serif}
   <div id="modalFeedContainer"></div>
 </div>
 
-<!-- Modal Layer Komentar dengan Tombol Love, Balas, dan Hapus (Khusus Milik Sendiri) -->
+<!-- Modal Layer Komentar dengan Tombol Love, Balas, dan Hapus (Khusus Milik Sendiri / Pemilik Profil) -->
 <div id="commentModal">
   <div id="commentBoxSheet">
     <div class="commentSheetHeader">
@@ -307,7 +307,7 @@ async function openPhotoModal(startIndex){
           <span id="likeBtn-\${index}" onclick="toggleLikeIndex(\${index})" style="cursor:pointer;color:\${likedByMe?'#ff4444':'#fff'}">❤️ <span id="likeCount-\${index}" style="font-size:14px">\${likesCount}</span></span>
           <span onclick="openCommentSheet('\${key}', \${index})" style="cursor:pointer;font-size:14px">💬 <span id="commentCount-\${index}">\${comments.length}</span> Komentar</span>
         </div>
-      </div>\`;
+      \`;
   }
 
   document.getElementById('modalFeedContainer').innerHTML = feedHTML;
@@ -334,7 +334,9 @@ function closeCommentModal(){
 async function loadSheetComments(key){
   let listEl = document.getElementById('commentSheetList');
   listEl.innerHTML = '<div style="text-align:center;color:#666;padding:20px">Memuat komentar...</div>';
-  let me = getMyEmail();
+  let myName = getMyName().toLowerCase().trim();
+  let isMyProfile = window._isMyProfile;
+
   try {
     let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
     let text = await res.text();
@@ -348,19 +350,24 @@ async function loadSheetComments(key){
       return;
     }
     
-    listEl.innerHTML = comments.map(c=> \`
-      <div style="padding:12px 0;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:flex-start">
-        <div style="flex:1">
-          <div style="font-weight:900;color:#00ff88;font-size:13px">\${c.user || 'Dunsanak'}</div>
-          <div style="font-size:13px;color:#ddd;margin-top:4px">\${c.text || c.comment || ''}</div>
-          <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:#aaa">
-            <span style="cursor:pointer" onclick="toast('Suka Komentar!')">❤️ Love</span>
-            <span style="cursor:pointer" onclick="replyComment('\${c.user}')">Balas</span>
+    listEl.innerHTML = comments.map(c=> {
+      let commentUser = (c.user || 'Dunsanak').toLowerCase().trim();
+      let canDelete = (myName && commentUser === myName) || isMyProfile;
+
+      return \`
+        <div style="padding:12px 0;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:flex-start">
+          <div style="flex:1">
+            <div style="font-weight:900;color:#00ff88;font-size:13px">\${c.user || 'Dunsanak'}</div>
+            <div style="font-size:13px;color:#ddd;margin-top:4px">\${c.text || c.comment || ''}</div>
+            <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:#aaa">
+              <span style="cursor:pointer" onclick="toast('Suka Komentar!')">❤️ Love</span>
+              <span style="cursor:pointer" onclick="replyComment('\${c.user}')">Balas</span>
+            </div>
           </div>
+          \${canDelete ? '<button onclick="deleteComment(' + c.id + ', \\'' + key + '\\', ' + currentActivePhotoKey.index + ')" style="background:transparent;color:#ff4444;border:0;font-size:12px;font-weight:bold;cursor:pointer;padding:4px 8px;">🗑️ Hapus</button>' : ''}
         </div>
-        \${(me && c.user_email && me === c.user_email.toLowerCase().trim()) ? '<button onclick="deleteComment(' + c.id + ', \\'' + key + '\\', ' + currentActivePhotoKey.index + ')" style="background:transparent;color:#ff4444;border:0;font-size:12px;font-weight:bold;cursor:pointer;padding:4px 8px;">🗑️ Hapus</button>' : ''}
-      </div>
-    \`).join('');
+      \`;
+    }).join('');
   } catch(e){
     listEl.innerHTML = '<div style="text-align:center;color:#f66;padding:20px">Gagal memuat komentar</div>';
   }
@@ -374,12 +381,11 @@ function replyComment(username){
 
 async function deleteComment(commentId, key, index){
   if(!confirm('Hapus komentar ini Bos?')) return;
-  let me = getMyEmail();
   try {
     let r = await fetch('/api/photo/comment', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ comment_id: commentId, user_email: me })
+      body: JSON.stringify({ comment_id: commentId })
     });
     let j = await r.json();
     if(j.ok){
@@ -411,7 +417,7 @@ async function submitSheetComment(){
     await fetch('/api/photo/comment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ photo_key: key, user_email: me, user_name: myName, comment: text })
+      body: JSON.stringify({ photo_key: key, user_name: myName, comment: text })
     });
     inp.value = '';
     loadSheetComments(key);

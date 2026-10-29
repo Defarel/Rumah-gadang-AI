@@ -57,8 +57,6 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .postImgWrap{width:100%;background:#000;display:flex;justify-content:center;align-items:center}
 .postImgWrap img{width:100%;height:auto;max-height:80vh;object-fit:cover;display:block}
 .postActions{display:flex;gap:16px;padding:12px 16px;align-items:center;font-size:20px}
-
-/* Modal Layer Komentar Melayang Style Instagram */
 #commentModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; align-items:flex-end; justify-content:center; }
 #commentBoxSheet { background:#111; border-top:2px solid #00ff88; border-top-left-radius:20px; border-top-right-radius:20px; width:100%; max-width:600px; height:75vh; display:flex; flex-direction:column; box-shadow:0 -5px 25px rgba(0,255,136,0.3); animation: slideUp 0.3s ease-out; }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -98,7 +96,6 @@ body{background:#000;color:#fff;font-family:sans-serif}
   <div id="modalFeedContainer"></div>
 </div>
 
-<!-- Modal Layer Komentar dengan Foto Profil Bulat, Love, Balas, dan Hapus -->
 <div id="commentModal">
   <div id="commentBoxSheet">
     <div class="commentSheetHeader">
@@ -212,7 +209,29 @@ async function renderProfile(container,targetEmail,isMe){
   container.innerHTML='<div style="text-align:center;padding:40px;color:#666">Memuat...</div>';
   let data={name:isMe?getMyName():targetEmail.split('@')[0],picture:isMe?getMyAvatar():LOGO_INNER,posts:0,followers:0,following:0,isFollowing:false};
   try{ let r=await fetch('/api/akun/profile?email='+encodeURIComponent(targetEmail)+'&me='+encodeURIComponent(getMyEmail())); if(r.ok){ let d=await r.json(); data={...data,...d}; } }catch{}
-  let photos=[]; try{ let rp=await fetch('/api/akun/photos?email='+encodeURIComponent(targetEmail)); photos=await rp.json(); }catch{}
+  let photos=[]; 
+  try{ 
+    let rp=await fetch('/api/akun/photos?email='+encodeURIComponent(targetEmail)); 
+    photos=await rp.json(); 
+    if(!Array.isArray(photos)) photos = photos.results || photos.data || [];
+
+    // ===== AUTO REVERSE LOGIC - FIX BAJU BIRU DI BAWAH =====
+    // Kalau data lama masih urutan lama (push ke bawah), kita auto balik biar yang baru di atas
+    // Cek flag biar gak bolak-balik reverse terus
+    let migrateKey = 'rg_migrated_reverse_'+targetEmail;
+    let alreadyMigrated = localStorage.getItem(migrateKey);
+    if(photos.length > 1 && !alreadyMigrated){
+      // Kalau belum pernah di-migrate, reverse sekali dan save ulang
+      // Ini yang bikin foto biru naufa yang baru upload langsung naik ke atas
+      photos = photos.slice().reverse();
+      localStorage.setItem(migrateKey, '1');
+      // Auto save hasil reverse ke server biar permanen
+      if(isMe){
+        fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:targetEmail,photos:photos})}).catch(()=>{});
+      }
+    }
+    // ===============================================
+  }catch{}
   container.innerHTML = \`
     <div class="profile-sec">
       <div class="prof-top">
@@ -553,7 +572,7 @@ function addPhoto(){
         };
         let r=new FileReader(); r.onload=()=>{ img.src=r.result; }; r.readAsDataURL(f);
       });
-      list.push(b64); // Foto baru ditambahkan ke posisi paling bawah (down)
+      list.unshift(b64); // FIX: YANG BARU DI ATAS
     }
     let r=await fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),photos:list})});
     let j=await r.json();

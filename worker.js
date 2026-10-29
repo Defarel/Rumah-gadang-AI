@@ -187,6 +187,18 @@ Host: https://rumahgadang-ai.my.id`;
       return new Response(JSON.stringify({ok:false,error:"No handler "+path}),{headers:cors,status:404});
     }
 
+    // ✅ TANGKAP RUTE NAMA AKUN PROFIL DI ATAS (SEBELUM /akun)
+    const segments = path.split("/").filter(Boolean);
+    if(segments.length > 0){
+      let username = segments[0];
+      const reserved = ["home","foto","video","ai","kantor","luar","dalam","akun","api","sitemap","robots","profil","profile","icon.png","favicon.ico"];
+      if(!reserved.includes(username) && !username.includes(".") && username.length >= 2){
+        let targetEmail = username.includes('@') ? username : username + '@rumahgadang-ai.my.id';
+        let modifiedAkunHtml = AKUN_HTML.replace('window.location.search', `"?profil=${encodeURIComponent(targetEmail)}"`);
+        return htmlResponse(modifiedAkunHtml, "https://rumahgadang-ai.my.id/" + username);
+      }
+    }
+
     if(path==="/"||path==="/home"||path.startsWith("/home/")) return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
     if(path.startsWith("/foto")) return htmlResponse(FOTO_HTML, "https://rumahgadang-ai.my.id/foto");
     if(path.startsWith("/video")) return htmlResponse(VIDEO_HTML, "https://rumahgadang-ai.my.id/video");
@@ -198,19 +210,6 @@ Host: https://rumahgadang-ai.my.id`;
     if(path.startsWith("/kantor")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor");
     if(path.startsWith("/akun") || path.startsWith("/profil") || path.startsWith("/profile") || path.startsWith("/u/")) {
       return htmlResponse(AKUN_HTML, "https://rumahgadang-ai.my.id/akun");
-    }
-
-    // ✅ ROUTER DINAMIS UNTUK NAMA AKUN PROFIL (contoh: /nicke atau /nicke/foto/123.jpg)
-    const segments = path.split("/").filter(Boolean);
-    if(segments.length > 0){
-      let username = segments[0];
-      const reserved = ["home","foto","video","ai","kantor","luar","dalam","akun","api","sitemap","robots","profil","profile","icon.png","favicon.ico"];
-      if(!reserved.includes(username) && !username.includes(".") && username.length >= 2){
-        let targetEmail = username.includes('@') ? username : username + '@rumahgadang-ai.my.id';
-        // Inject parameter profil langsung ke halaman akun
-        let modifiedAkunHtml = AKUN_HTML.replace('window.location.search', `"?profil=${encodeURIComponent(targetEmail)}"`);
-        return htmlResponse(modifiedAkunHtml, "https://rumahgadang-ai.my.id/" + username);
-      }
     }
 
     return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");

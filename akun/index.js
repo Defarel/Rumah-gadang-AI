@@ -259,8 +259,9 @@ async function openPhotoModal(startIndex){
     
     try {
       let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
-      comments = await res.json();
-    } catch(e){}
+      let json = await res.json();
+      comments = Array.isArray(json) ? json : (json.results || []);
+    } catch(e){ comments = []; }
 
     try {
       let rLike = await fetch('/api/photo/like', {
@@ -269,10 +270,9 @@ async function openPhotoModal(startIndex){
         body: JSON.stringify({ photo_key: key, user_email: me || 'guest@guest.com' })
       });
       let jLike = await rLike.json();
-      if(jLike.ok){
-        likesCount = jLike.likes;
-        // Jika belum login, pastikan likedByMe false
-        likedByMe = me ? jLike.likedByMe : false;
+      if(jLike && jLike.ok){
+        likesCount = jLike.likes || 0;
+        likedByMe = me ? !!jLike.likedByMe : false;
       }
     } catch(e){}
     
@@ -288,7 +288,7 @@ async function openPhotoModal(startIndex){
           <span style="font-size:14px">💬 <span id="commentCount-\${index}">\${comments.length}</span> Komentar</span>
         </div>
         <div class="postComments" id="commentsList-\${index}">
-          \${!comments.length ? '<div style="color:#666;text-align:center;padding:10px">Belum ada komentar</div>' : comments.map(c=>'<div class="commentItem"><b>'+c.user+':</b> '+c.text+'</div>').join('')}
+          \${!comments.length ? '<div style="color:#666;text-align:center;padding:10px">Belum ada komentar</div>' : comments.map(c=>'<div class="commentItem"><b>'+(c.user||'Dunsanak')+':</b> '+(c.text||c.comment||'')+'</div>').join('')}
         </div>
         <div class="commentInputWrap">
           <input id="commentInput-\${index}" placeholder="Tulis komentar Bos...">
@@ -344,11 +344,12 @@ async function postCommentIndex(index){
       body: JSON.stringify({ photo_key: key, user_name: myName, comment: text })
     });
     let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
-    let comments = await res.json();
+    let json = await res.json();
+    let comments = Array.isArray(json) ? json : (json.results || []);
     
     document.getElementById('commentCount-' + index).innerText = comments.length;
     let cList = document.getElementById('commentsList-' + index);
-    cList.innerHTML = comments.map(c=>'<div class="commentItem"><b>'+c.user+':</b> '+c.text+'</div>').join('');
+    cList.innerHTML = comments.map(c=>'<div class="commentItem"><b>'+(c.user||'Dunsanak')+':</b> '+(c.text||c.comment||'')+'</div>').join('');
     inp.value = '';
     toast('Komentar terkirim Bos!');
   } catch(e){ toast('Gagal kirim komentar'); }

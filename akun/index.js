@@ -38,7 +38,7 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .stat-num{font-size:20px;font-weight:900}.stat-label{font-size:11px;color:#777}
 .main-tabs{display:flex;gap:8px;margin:16px 0;border-bottom:1px solid #222;padding-bottom:14px;overflow:auto}
 .photo-grid-2x2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.photo-card{position:relative;border-radius:16px;overflow:hidden;background:#111;border:1.5px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,.2);aspect-ratio:1/1}
+.photo-card{position:relative;border-radius:16px;overflow:hidden;background:#111;border:1.5px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,.2);aspect-ratio:1/1;cursor:pointer}
 .photo-card img{width:100%;height:100%;object-fit:cover}
 .btn-add-private{width:100%;background:#000;border:1.5px dashed #00ff88;color:#00ff88;padding:14px;border-radius:14px;font-weight:800;margin-bottom:12px;box-shadow:0 0 10px rgba(0,255,136,.2);cursor:pointer}
 .cardLogoFull{margin:14px 12px;border-radius:22px;overflow:hidden;border:3px solid #00ff88;box-shadow:0 0 0 1px #00ff88,0 0 25px rgba(0,255,136,.4);background:#000}
@@ -50,10 +50,25 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .private-card{background:#111;border:1.5px solid #00ff88;border-radius:14px;padding:10px;margin-bottom:12px}
 #editModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;place-items:center;padding:16px}
 #editBox{background:#111;border:2px solid #00ff88;border-radius:18px;padding:16px;width:100%;max-width:360px;box-shadow:0 0 25px #00ff88}
+
+/* MODAL / TAMPILAN BESAR FOTO ALA INSTAGRAM */
+#photoModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;overflow-y:auto;padding:16px}
+.modalContent{max-width:480px;margin:20px auto;background:#111;border:2px solid #00ff88;border-radius:18px;overflow:hidden;box-shadow:0 0 25px rgba(0,255,136,.4)}
+.modalHeader{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #222}
+.modalImgWrap{width:100%;background:#000;position:relative}
+.modalImgWrap img{width:100%;max-height:450px;object-fit:contain;display:block}
+.modalActions{display:flex;gap:16px;padding:12px 14px;align-items:center;font-size:20px}
+.modalComments{padding:0 14px 14px;max-height:150px;overflow-y:auto;font-size:13px;border-top:1px solid #222;margin-top:8px}
+.commentItem{padding:6px 0;border-bottom:1px dashed #222}
+.commentInputWrap{display:flex;gap:8px;padding:10px 14px;background:#080808;border-top:1px solid #222}
+.commentInputWrap input{flex:1;background:#1a1a1a;border:1px solid #333;color:#fff;padding:8px 12px;border-radius:10px;font-size:13px}
+.commentInputWrap button{background:#00ff88;color:#000;border:0;padding:8px 14px;border-radius:10px;font-weight:900;cursor:pointer}
 </style></head><body>
 <div id="app"><div class="top"><div style="display:flex;gap:10px;align-items:center"><img src="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg" class="logo"><b>RUMAH GADANG AI</b></div><button class="btn-home" onclick="location.href='/'">HOME</button></div><div id="viewContainer"></div></div>
 <div class="bot"><a href="/">🏠<br><span style="font-size:10px">Home</span></a><a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a><a href="/video">🎬<br><span style="font-size:10px">Video</span></a><a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a><a href="/ai">🤖<br><span style="font-size:10px">AI</span></a><a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a></div>
 <div id=toast></div>
+
+<!-- MODAL EDIT PROFIL -->
 <div id=editModal><div id=editBox>
 <h3 style="margin-bottom:10px">Edit Profil Bos - Bebas Ganti Foto Bos</h3>
 <img id=editPrev style="width:90px;height:90px;border-radius:50%;border:2px solid #00ff88;display:block;margin:0 auto 10px;object-fit:cover">
@@ -63,6 +78,30 @@ body{background:#000;color:#fff;font-family:sans-serif}
 <div style="font-size:11px;color:#00ff88;margin-top:8px">* Foto bebas Bos, gak dikunci Bos, otomatis dikecilin biar kesimpen Bos</div>
 <div style="display:flex;gap:8px;margin-top:12px"><button class=btn-edit onclick="closeEdit()" style="flex:1">Batal</button><button class=btn-neon-follow onclick="saveEdit()" style="flex:1">Simpan Bos</button></div>
 </div></div>
+
+<!-- MODAL FOTO BESAR (ALA IG) -->
+<div id="photoModal">
+  <div class="modalContent">
+    <div class="modalHeader">
+      <span id="modalAuthor" style="font-weight:900;color:#00ff88">@akun</span>
+      <div style="display:flex;gap:8px">
+        <button id="modalDelBtn" onclick="deleteCurrentPhoto()" style="background:#ff4444;color:#fff;border:0;padding:5px 10px;border-radius:10px;font-weight:900;display:none;cursor:pointer">🗑️ Hapus</button>
+        <button onclick="closePhotoModal()" style="background:#222;color:#fff;border:0;padding:5px 10px;border-radius:10px;font-weight:900;cursor:pointer">✕ Tutup</button>
+      </div>
+    </div>
+    <div class="modalImgWrap"><img id="modalImg" src=""></div>
+    <div class="modalActions">
+      <span id="likeBtn" onclick="toggleLike()" style="cursor:pointer">❤️ <span id="likeCount" style="font-size:14px">0</span></span>
+      <span style="font-size:14px">💬 <span id="commentCount">0</span> Komentar</span>
+    </div>
+    <div class="modalComments" id="modalCommentsList"></div>
+    <div class="commentInputWrap">
+      <input id="commentInput" placeholder="Tulis komentar Bos...">
+      <button onclick="postComment()">Kirim</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const LOGO_INNER="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
 const LOGO_LOGIN="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
@@ -72,6 +111,8 @@ let activeMainTab="teman";
 const urlParams = new URLSearchParams(window.location.search);
 let viewingUserEmail = urlParams.get('profil') ? decodeURIComponent(urlParams.get('profil')).toLowerCase().trim() : null;
 let _editB64=null; window.loginMode='masuk';
+let currentPhotoIndex = null;
+let photoInteractions = JSON.parse(localStorage.getItem('rg_photo_interactions') || '{}');
 
 window.addEventListener('popstate', () => {
   const p = new URLSearchParams(window.location.search).get('profil');
@@ -167,6 +208,8 @@ async function renderProfile(container,targetEmail,isMe){
       <div id="tabContent"></div>
     </div>\`;
   window._photosCache=photos;
+  window._currentProfileEmail=targetEmail;
+  window._isMyProfile=isMe;
   loadContent(targetEmail,isMe);
 }
 async function loadContent(targetEmail,isMe){
@@ -194,11 +237,104 @@ async function loadContent(targetEmail,isMe){
     let photos=window._photosCache||[];
     let addBtn=isMe?'<button class="btn-add-private" onclick="addPhoto()">+ Tambah Foto Private Bos</button>':'';
     if(!photos.length){ box.innerHTML=addBtn+'<div style="text-align:center;padding:30px;color:#555">Belum ada foto</div>'; return; }
-    box.innerHTML=addBtn+'<div class="photo-grid-2x2">'+photos.map(p=>'<div class="photo-card"><img src="'+p+'"></div>').join('')+'</div>';
+    box.innerHTML=addBtn+'<div class="photo-grid-2x2">'+photos.map((p,i)=>'<div class="photo-card" onclick="openPhotoModal('+i+')"><img src="'+p+'"></div>').join('')+'</div>';
   } else if(activeMainTab==='tulis'){
     try{ let r=await fetch('/api/tulis?t='+Date.now()); let list=await r.json(); let arr=Array.isArray(list)?list:(list.results||list.data||[]); let mine=arr.filter(p=>(p.user_email||p.email||'').toLowerCase()===targetEmail.toLowerCase()); if(!mine.length){box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada tulisan</div>';return;} box.innerHTML=mine.map(p=>'<div class="private-card">'+(p.text||p.isi||'')+'</div>').join(''); }catch{ box.innerHTML='<div style="text-align:center;color:#555">Gagal memuat tulisan</div>'; }
   } else { box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Segera Bos</div>'; }
 }
+
+/* FUNGSI BUKA FOTO BESAR & INTERAKSI LIKE/KOMEN/HAPUS */
+function openPhotoModal(index){
+  currentPhotoIndex = index;
+  let photos = window._photosCache || [];
+  let pUrl = photos[index];
+  if(!pUrl) return;
+  
+  document.getElementById('modalImg').src = pUrl;
+  document.getElementById('modalAuthor').innerText = '@' + (window._currentProfileEmail ? window._currentProfileEmail.split('@')[0] : 'user');
+  document.getElementById('modalDelBtn').style.display = window._isMyProfile ? 'block' : 'none';
+  
+  updateModalInteractions();
+  document.getElementById('photoModal').style.display = 'block';
+}
+
+function closePhotoModal(){
+  document.getElementById('photoModal').style.display = 'none';
+}
+
+function getPhotoKey(){
+  return (window._currentProfileEmail || 'unknown') + '_' + currentPhotoIndex;
+}
+
+function updateModalInteractions(){
+  let key = getPhotoKey();
+  let data = photoInteractions[key] || { likes: 0, likedByMe: false, comments: [] };
+  
+  document.getElementById('likeCount').innerText = data.likes;
+  document.getElementById('likeBtn').style.color = data.likedByMe ? '#ff4444' : '#fff';
+  document.getElementById('commentCount').innerText = data.comments.length;
+  
+  let cList = document.getElementById('modalCommentsList');
+  if(!data.comments.length){
+    cList.innerHTML = '<div style="color:#666;text-align:center;padding:10px">Belum ada komentar</div>';
+  } else {
+    cList.innerHTML = data.comments.map(c=>'<div class="commentItem"><b>'+c.user+':</b> '+c.text+'</div>').join('');
+  }
+}
+
+function toggleLike(){
+  let key = getPhotoKey();
+  if(!photoInteractions[key]) photoInteractions[key] = { likes: 0, likedByMe: false, comments: [] };
+  
+  if(photoInteractions[key].likedByMe){
+    photoInteractions[key].likes = Math.max(0, photoInteractions[key].likes - 1);
+    photoInteractions[key].likedByMe = false;
+  } else {
+    photoInteractions[key].likes += 1;
+    photoInteractions[key].likedByMe = true;
+  }
+  localStorage.setItem('rg_photo_interactions', JSON.stringify(photoInteractions));
+  updateModalInteractions();
+}
+
+function postComment(){
+  let inp = document.getElementById('commentInput');
+  let text = inp.value.trim();
+  if(!text) return toast('Tulis komentar dulu Bos!');
+  
+  let key = getPhotoKey();
+  if(!photoInteractions[key]) photoInteractions[key] = { likes: 0, likedByMe: false, comments: [] };
+  
+  let myName = getMyName();
+  photoInteractions[key].comments.push({ user: myName, text: text });
+  localStorage.setItem('rg_photo_interactions', JSON.stringify(photoInteractions));
+  
+  inp.value = '';
+  updateModalInteractions();
+  toast('Komentar terkirim Bos!');
+}
+
+async function deleteCurrentPhoto(){
+  if(!confirm('Hapus foto ini Bos?')) return;
+  let photos = window._photosCache || [];
+  photos.splice(currentPhotoIndex, 1);
+  
+  try{
+    let r = await fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),photos:photos})});
+    let j = await r.json();
+    if(j.ok){
+      window._photosCache = photos;
+      closePhotoModal();
+      loadContent(getMyEmail(), true);
+      toast('Foto berhasil dihapus Bos!');
+    } else {
+      toast('Gagal hapus Bos');
+    }
+  }catch(e){
+    toast('Error: '+e.message);
+  }
+}
+
 function showEdit(){
   document.getElementById('editModal').style.display='grid';
   document.getElementById('editName').value=getMyName();

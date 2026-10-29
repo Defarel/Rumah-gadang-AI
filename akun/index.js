@@ -113,7 +113,6 @@ if (!viewingUserEmail) {
 }
 
 let _editB64=null; window.loginMode='masuk';
-let photoInteractions = JSON.parse(localStorage.getItem('rg_photo_interactions') || '{}');
 
 window.addEventListener('popstate', () => {
   const p = new URLSearchParams(window.location.search).get('profil');
@@ -199,7 +198,7 @@ async function renderProfile(container,targetEmail,isMe){
         <div class="stats-wrap"><div><div class="stat-num">\${data.posts||0}</div><div class="stat-label">tulisan</div></div><div><div class="stat-num">\${data.followers||0}</div><div class="stat-label">pengikut</div></div><div><div class="stat-num">\${data.following||0}</div><div class="stat-label">mengikuti</div></div></div>
       </div>
       <div style="font-size:18px;font-weight:900">\${data.name}</div><div style="font-size:12px;color:#00ff88;margin-bottom:14px">\${targetEmail}</div>
-      <div style="margin-bottom:16px">\${isMe ? '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>' : '<button class="'+(data.isFollowing?'btn-following-real':'btn-follow-real')+'" onclick="toggleFollow(\\''+targetEmail+'\\')">'+(data.isFollowing?'✓ Mengikuti':'Follow')+'</button>'}</div>
+      <div style="margin-bottom:16px">\${isMe ? '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>' : '<button class="'+(data.isFollowing?'btn-following-real':'btn-follow-real')+'" onclick="toggleFollow(\\''+targetEmail+'\\")">'+(data.isFollowing?'✓ Mengikuti':'Follow')+'</button>'}</div>
       <div class="main-tabs">
         <button class="m-tab \${activeMainTab==='tulis'?'active':''}" onclick="switchTab('tulis')">TULIS</button>
         <button class="m-tab \${activeMainTab==='foto'?'active':''}" onclick="switchTab('foto')">FOTO</button>
@@ -243,13 +242,40 @@ async function loadContent(targetEmail,isMe){
     try{ let r=await fetch('/api/tulis?t='+Date.now()); let list=await r.json(); let arr=Array.isArray(list)?list:(list.results||list.data||[]); let mine=arr.filter(p=>(p.user_email||p.email||'').toLowerCase()===targetEmail.toLowerCase()); if(!mine.length){box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada tulisan</div>';return;} box.innerHTML=mine.map(p=>'<div class="private-card">'+(p.text||p.isi||'')+'</div>').join(''); }catch{ box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Gagal memuat tulisan</div>'; }
   } else { box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Segera Bos</div>'; }
 }
-function openPhotoModal(startIndex){
+
+async function openPhotoModal(startIndex){
   let photos = window._photosCache || [];
   let authorName = '@' + (window._currentProfileEmail ? window._currentProfileEmail.split('@')[0] : 'user');
   let feedHTML = '';
-  photos.forEach((pUrl, index) => {
+  let me = getMyEmail();
+
+  for (let index = 0; index < photos.length; index++) {
+    let pUrl = photos[index];
     let key = (window._currentProfileEmail || 'unknown') + '_' + index;
-    let data = photoInteractions[key] || { likes: 0, likedByMe: false, comments: [] };
+    
+    let comments = [];
+    let likesCount = 0;
+    let likedByMe = false;
+    
+    try {
+      let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
+      comments = await res.json();
+    } catch(e){}
+
+    try {
+      let rLike = await fetch('/api/photo/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photo_key: key, user_email: me || 'guest@guest.com' })
+      });
+      let jLike = await rLike.json();
+      if(jLike.ok){
+        likesCount = jLike.likes;
+        // Jika belum login, pastikan likedByMe false
+        likedByMe = me ? jLike.likedByMe : false;
+      }
+    } catch(e){}
+    
     feedHTML += \`
       <div class="postCard" id="postCard-\${index}">
         <div class="postHeader">
@@ -258,57 +284,76 @@ function openPhotoModal(startIndex){
         </div>
         <div class="postImgWrap"><img src="\${pUrl}"></div>
         <div class="postActions">
-          <span id="likeBtn-\${index}" onclick="toggleLikeIndex(\${index})" style="cursor:pointer;color:\${data.likedByMe?'#ff4444':'#fff'}">❤️ <span id="likeCount-\${index}" style="font-size:14px">\${data.likes}</span></span>
-          <span style="font-size:14px">💬 <span id="commentCount-\${index}">\${data.comments.length}</span> Komentar</span>
+          <span id="likeBtn-\${index}" onclick="toggleLikeIndex(\${index})" style="cursor:pointer;color:\${likedByMe?'#ff4444':'#fff'}">❤️ <span id="likeCount-\${index}" style="font-size:14px">\${likesCount}</span></span>
+          <span style="font-size:14px">💬 <span id="commentCount-\${index}">\${comments.length}</span> Komentar</span>
         </div>
         <div class="postComments" id="commentsList-\${index}">
-          \${!data.comments.length ? '<div style="color:#666;text-align:center;padding:10px">Belum ada komentar</div>' : data.comments.map(c=>'<div class="commentItem"><b>'+c.user+':</b> '+c.text+'</div>').join('')}
+          \${!comments.length ? '<div style="color:#666;text-align:center;padding:10px">Belum ada komentar</div>' : comments.map(c=>'<div class="commentItem"><b>'+c.user+':</b> '+c.text+'</div>').join('')}
         </div>
         <div class="commentInputWrap">
           <input id="commentInput-\${index}" placeholder="Tulis komentar Bos...">
           <button onclick="postCommentIndex(\${index})">Kirim</button>
         </div>
       </div>\`;
-  });
+  }
+
   document.getElementById('modalFeedContainer').innerHTML = feedHTML;
   document.getElementById('photoModal').style.display = 'block';
+
   setTimeout(() => {
     let targetCard = document.getElementById('postCard-' + startIndex);
     if(targetCard){ targetCard.scrollIntoView({ behavior: 'smooth' }); }
   }, 100);
 }
+
 function closePhotoModal(){ document.getElementById('photoModal').style.display = 'none'; }
-function getPhotoKeyIndex(index){ return (window._currentProfileEmail || 'unknown') + '_' + index; }
-function toggleLikeIndex(index){
-  let key = getPhotoKeyIndex(index);
-  if(!photoInteractions[key]) photoInteractions[key] = { likes: 0, likedByMe: false, comments: [] };
-  if(photoInteractions[key].likedByMe){
-    photoInteractions[key].likes = Math.max(0, photoInteractions[key].likes - 1);
-    photoInteractions[key].likedByMe = false;
-  } else {
-    photoInteractions[key].likes += 1;
-    photoInteractions[key].likedByMe = true;
-  }
-  localStorage.setItem('rg_photo_interactions', JSON.stringify(photoInteractions));
-  document.getElementById('likeCount-' + index).innerText = photoInteractions[key].likes;
-  document.getElementById('likeBtn-' + index).style.color = photoInteractions[key].likedByMe ? '#ff4444' : '#fff';
+
+async function toggleLikeIndex(index){
+  let me = getMyEmail();
+  if(!me) return toast('Login dulu Bos untuk Like!');
+  let key = (window._currentProfileEmail || 'unknown') + '_' + index;
+  
+  try {
+    let r = await fetch('/api/photo/like', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ photo_key: key, user_email: me })
+    });
+    let j = await r.json();
+    if(j.ok){
+      document.getElementById('likeCount-' + index).innerText = j.likes;
+      document.getElementById('likeBtn-' + index).style.color = j.likedByMe ? '#ff4444' : '#fff';
+    }
+  } catch(e){ toast('Gagal Like'); }
 }
-function postCommentIndex(index){
+
+async function postCommentIndex(index){
   let inp = document.getElementById('commentInput-' + index);
   let text = inp.value.trim();
   if(!text) return toast('Tulis komentar dulu Bos!');
-  let key = getPhotoKeyIndex(index);
-  if(!photoInteractions[key]) photoInteractions[key] = { likes: 0, likedByMe: false, comments: [] };
+  let me = getMyEmail();
+  if(!me) return toast('Login dulu Bos!');
+  
+  let key = (window._currentProfileEmail || 'unknown') + '_' + index;
   let myName = getMyName();
-  photoInteractions[key].comments.push({ user: myName, text: text });
-  localStorage.setItem('rg_photo_interactions', JSON.stringify(photoInteractions));
-  inp.value = '';
-  let data = photoInteractions[key];
-  document.getElementById('commentCount-' + index).innerText = data.comments.length;
-  let cList = document.getElementById('commentsList-' + index);
-  cList.innerHTML = data.comments.map(c=>'<div class="commentItem"><b>'+c.user+':</b> '+c.text+'</div>').join('');
-  toast('Komentar terkirim Bos!');
+  
+  try {
+    await fetch('/api/photo/comment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ photo_key: key, user_name: myName, comment: text })
+    });
+    let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
+    let comments = await res.json();
+    
+    document.getElementById('commentCount-' + index).innerText = comments.length;
+    let cList = document.getElementById('commentsList-' + index);
+    cList.innerHTML = comments.map(c=>'<div class="commentItem"><b>'+c.user+':</b> '+c.text+'</div>').join('');
+    inp.value = '';
+    toast('Komentar terkirim Bos!');
+  } catch(e){ toast('Gagal kirim komentar'); }
 }
+
 async function deletePhotoIndex(index){
   if(!confirm('Hapus foto ini Bos?')) return;
   let photos = window._photosCache || [];
@@ -324,6 +369,7 @@ async function deletePhotoIndex(index){
     } else { toast('Gagal hapus Bos'); }
   }catch(e){ toast('Error: '+e.message); }
 }
+
 function showEdit(){
   document.getElementById('editModal').style.display='grid';
   document.getElementById('editName').value=getMyName();

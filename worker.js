@@ -1,7 +1,6 @@
 import * as HOME_M from './home/index.js';
 import * as FOTO_M from './foto/index.js';
 import * as VIDEO_M from './video/index.js';
-// === FIX KANTOR BOS - PISAH LUAR DALAM BOS! ===
 import * as LUAR_M from './kantor/Luar/index.js';
 import * as DALAM_M from './kantor/Dalam/index.js';
 import * as AI_M from './ai/index.js';
@@ -21,10 +20,9 @@ function getApi(mod){ return mod.FOTO_API || mod.VIDEO_API || mod.AKUN_API || mo
 const HOME_HTML = getHtml(HOME_M);
 const FOTO_HTML = getHtml(FOTO_M);
 const VIDEO_HTML = getHtml(VIDEO_M);
-// FIX KANTOR BOS 2 FOLDER BOS!
 const LUAR_HTML = getHtml(LUAR_M);
 const DALAM_HTML = getHtml(DALAM_M);
-const KANTOR_HTML = LUAR_HTML; // default kantor ke luar Bos biar gak error Bos
+const KANTOR_HTML = LUAR_HTML;
 const AI_HTML = getHtml(AI_M);
 const AKUN_HTML = getHtml(AKUN_M);
 
@@ -193,7 +191,6 @@ Host: https://rumahgadang-ai.my.id`;
     if(path.startsWith("/foto")) return htmlResponse(FOTO_HTML, "https://rumahgadang-ai.my.id/foto");
     if(path.startsWith("/video")) return htmlResponse(VIDEO_HTML, "https://rumahgadang-ai.my.id/video");
     if(path.startsWith("/ai")) return htmlResponse(AI_HTML, "https://rumahgadang-ai.my.id/ai");
-    // === FIX KANTOR LUAR DALAM BOS ===
     if(path.startsWith("/luar")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/luar");
     if(path.startsWith("/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/dalam");
     if(path.startsWith("/kantor/luar")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor/luar");
@@ -202,10 +199,20 @@ Host: https://rumahgadang-ai.my.id`;
     if(path.startsWith("/akun") || path.startsWith("/profil") || path.startsWith("/profile") || path.startsWith("/u/")) {
       return htmlResponse(AKUN_HTML, "https://rumahgadang-ai.my.id/akun");
     }
-    let seg=path.replace(/^\/+/,"").split("/")[0];
-    if(seg && !["home","foto","video","ai","kantor","luar","dalam","akun","api","sitemap","robots","profil","profile","icon.png","favicon.ico"].includes(seg) && !seg.includes(".") && seg.length>=2){
-      return htmlResponse(AKUN_HTML, "https://rumahgadang-ai.my.id/akun");
+
+    // ✅ ROUTER DINAMIS UNTUK NAMA AKUN PROFIL (contoh: /nicke atau /nicke/foto/123.jpg)
+    const segments = path.split("/").filter(Boolean);
+    if(segments.length > 0){
+      let username = segments[0];
+      const reserved = ["home","foto","video","ai","kantor","luar","dalam","akun","api","sitemap","robots","profil","profile","icon.png","favicon.ico"];
+      if(!reserved.includes(username) && !username.includes(".") && username.length >= 2){
+        let targetEmail = username.includes('@') ? username : username + '@rumahgadang-ai.my.id';
+        // Inject parameter profil langsung ke halaman akun
+        let modifiedAkunHtml = AKUN_HTML.replace('window.location.search', `"?profil=${encodeURIComponent(targetEmail)}"`);
+        return htmlResponse(modifiedAkunHtml, "https://rumahgadang-ai.my.id/" + username);
+      }
     }
+
     return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
   }
 }

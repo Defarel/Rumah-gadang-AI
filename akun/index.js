@@ -160,7 +160,7 @@ function setLoginMode(m){
 async function render(){
   const my=getMyEmail(); const cont=document.getElementById('viewContainer');
   if(!my && !viewingUserEmail){
-    cont.innerHTML = \`
+    cont.innerHTML = `
       <div class="cardOuter">
         <h2 style="margin-bottom:12px;font-size:22px;font-weight:900">Rumah Gadang AI</h2>
         <div class="loginTabs">
@@ -176,10 +176,10 @@ async function render(){
         <button class="btnMasuk" onclick="doLogin()">Masuk</button>
       </div>
       <div class="cardLogoFull">
-        <video autoplay loop muted playsinline controls poster="\${LOGO_LOGIN}">
-          <source src="\${LOGO_VIDEO}" type="video/mp4">
+        <video autoplay loop muted playsinline controls poster="${LOGO_LOGIN}">
+          <source src="${LOGO_VIDEO}" type="video/mp4">
         </video>
-      </div>\`;
+      </div>`;
     return;
   }
   const target=viewingUserEmail||my; renderProfile(cont,target,target===my);
@@ -213,22 +213,22 @@ async function renderProfile(container,targetEmail,isMe){
   let data={name:isMe?getMyName():targetEmail.split('@')[0],picture:isMe?getMyAvatar():LOGO_INNER,posts:0,followers:0,following:0,isFollowing:false};
   try{ let r=await fetch('/api/akun/profile?email='+encodeURIComponent(targetEmail)+'&me='+encodeURIComponent(getMyEmail())); if(r.ok){ let d=await r.json(); data={...data,...d}; } }catch{}
   let photos=[]; try{ let rp=await fetch('/api/akun/photos?email='+encodeURIComponent(targetEmail)); photos=await rp.json(); }catch{}
-  container.innerHTML = \`
+  container.innerHTML = `
     <div class="profile-sec">
       <div class="prof-top">
-        <div class="avatar-wrap" onclick="\${isMe?'showEdit()':''}"><img src="\${data.picture}" class="avatar-img"><div class="avatar-edit-badge">\${isMe?'✎ Ganti':''}</div></div>
-        <div class="stats-wrap"><div><div class="stat-num">\${data.posts||0}</div><div class="stat-label">tulisan</div></div><div><div class="stat-num">\${data.followers||0}</div><div class="stat-label">pengikut</div></div><div><div class="stat-num">\${data.following||0}</div><div class="stat-label">mengikuti</div></div></div>
+        <div class="avatar-wrap" onclick="${isMe?'showEdit()':''}"><img src="${data.picture}" class="avatar-img"><div class="avatar-edit-badge">${isMe?'✎ Ganti':''}</div></div>
+        <div class="stats-wrap"><div><div class="stat-num">${data.posts||0}</div><div class="stat-label">tulisan</div></div><div><div class="stat-num">${data.followers||0}</div><div class="stat-label">pengikut</div></div><div><div class="stat-num">${data.following||0}</div><div class="stat-label">mengikuti</div></div></div>
       </div>
-      <div style="font-size:18px;font-weight:900">\${data.name}</div><div style="font-size:12px;color:#00ff88;margin-bottom:14px">\${targetEmail}</div>
-      <div style="margin-bottom:16px">\${isMe ? '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>' : '<button class="'+(data.isFollowing?'btn-following-real':'btn-follow-real')+'" onclick="toggleFollow(\\''+targetEmail+'\\")">'+(data.isFollowing?'✓ Mengikuti':'Follow')+'</button>'}</div>
+      <div style="font-size:18px;font-weight:900">${data.name}</div><div style="font-size:12px;color:#00ff88;margin-bottom:14px">${targetEmail}</div>
+      <div style="margin-bottom:16px">${isMe ? '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>' : '<button class="'+(data.isFollowing?'btn-following-real':'btn-follow-real')+'" onclick="toggleFollow(\x27'+targetEmail+'\x27)">'+(data.isFollowing?'✓ Mengikuti':'Follow')+'</button>'}</div>
       <div class="main-tabs">
-        <button class="m-tab \${activeMainTab==='tulis'?'active':''}" onclick="switchTab('tulis')">TULIS</button>
-        <button class="m-tab \${activeMainTab==='foto'?'active':''}" onclick="switchTab('foto')">FOTO</button>
-        <button class="m-tab \${activeMainTab==='video'?'active':''}" onclick="switchTab('video')">VIDEO</button>
-        <button class="m-tab \${activeMainTab==='teman'?'active':''}" onclick="switchTab('teman')">TEMAN</button>
+        <button class="m-tab ${activeMainTab==='tulis'?'active':''}" onclick="switchTab('tulis')">TULIS</button>
+        <button class="m-tab ${activeMainTab==='foto'?'active':''}" onclick="switchTab('foto')">FOTO</button>
+        <button class="m-tab ${activeMainTab==='video'?'active':''}" onclick="switchTab('video')">VIDEO</button>
+        <button class="m-tab ${activeMainTab==='teman'?'active':''}" onclick="switchTab('teman')">TEMAN</button>
       </div>
       <div id="tabContent"></div>
-    </div>\`;
+    </div>`;
   window._photosCache=photos;
   window._currentProfileEmail=targetEmail;
   window._isMyProfile=isMe;
@@ -242,24 +242,24 @@ async function loadContent(targetEmail,isMe){
       let r=await fetch('/api/akun/list?t='+Date.now()); let u=await r.json();
       let list=u.filter(x=>x.email.toLowerCase()!==getMyEmail().toLowerCase());
       if(!list.length){ box.innerHTML='<div style="text-align:center;color:#555">Belum ada teman</div>'; return; }
-      box.innerHTML=list.map(x=> \`
+      box.innerHTML=list.map(x=> `
         <div class="user-fb">
-          <img src="\${x.picture||LOGO_INNER}" class="user-fb-av" onerror="this.src=LOGO_INNER">
+          <img src="${x.picture||LOGO_INNER}" class="user-fb-av" onerror="this.src=LOGO_INNER">
           <div style="flex:1;min-width:0">
-            <div style="font-weight:900;font-size:15px">\${x.name||x.email.split('@')[0]}</div>
-            <div style="font-size:11px;color:#888;overflow:hidden;text-overflow:ellipsis">\${x.email}</div>
+            <div style="font-weight:900;font-size:15px">${x.name||x.email.split('@')[0]}</div>
+            <div style="font-size:11px;color:#888;overflow:hidden;text-overflow:ellipsis">${x.email}</div>
             <div style="display:flex;gap:8px;margin-top:10px">
-              <button class="btn-neon-follow" onclick="toggleFollow('\${x.email}')">Follow</button>
-              <button class="btn-neon-lihat" onclick="viewUser('\${x.email}')">Lihat</button>
+              <button class="btn-neon-follow" onclick="toggleFollow('${x.email}')">Follow</button>
+              <button class="btn-neon-lihat" onclick="viewUser('${x.email}')">Lihat</button>
             </div>
           </div>
-        </div>\`).join('');
+        </div>`).join('');
     }catch(e){ box.innerHTML='<div style="text-align:center;color:#f66">Gagal load</div>'; }
   } else if(activeMainTab==='foto'){
     let photos=window._photosCache||[];
     let addBtn=isMe?'<button class="btn-add-private" onclick="addPhoto()">+ Tambah Foto Private Bos</button>':'';
     if(!photos.length){ box.innerHTML=addBtn+'<div style="text-align:center;padding:30px;color:#555">Belum ada foto</div>'; return; }
-    box.innerHTML=addBtn+'<div class="photo-grid-2x2">'+photos.map((p,i)=>'<div class="photo-card" onclick="openPhotoModal('+i+')"><img src="'+p+'"></div>').join('')+'</div>';
+    box.innerHTML=addBtn+'<div class="photo-grid-2x2">'+photos.map((p,i)=>'\x3cdiv class="photo-card" onclick="openPhotoModal('+i+')"><img src="'+p+'"></div>').join('')+'</div>';
   } else if(activeMainTab==='tulis'){
     try{ let r=await fetch('/api/tulis?t='+Date.now()); let list=await r.json(); let arr=Array.isArray(list)?list:(list.results||list.data||[]); let mine=arr.filter(p=>(p.user_email||p.email||'').toLowerCase()===targetEmail.toLowerCase()); if(!mine.length){box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada tulisan</div>';return;} box.innerHTML=mine.map(p=>'<div class="private-card">'+(p.text||p.isi||'')+'</div>').join(''); }catch{ box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Gagal memuat tulisan</div>'; }
   } else { box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Segera Bos</div>'; }
@@ -296,18 +296,18 @@ async function openPhotoModal(startIndex){
       }
     } catch(e){}
     
-    feedHTML += \`
-      <div class="postCard" id="postCard-\${index}">
+    feedHTML += `
+      <div class="postCard" id="postCard-${index}">
         <div class="postHeader">
-          <span style="font-weight:900;color:#00ff88">\${authorName}</span>
-          \${window._isMyProfile ? '<button onclick="deletePhotoIndex('+index+')" style="background:#ff4444;color:#fff;border:0;padding:5px 10px;border-radius:10px;font-weight:900;cursor:pointer">🗑️ Hapus</button>' : ''}
+          <span style="font-weight:900;color:#00ff88">${authorName}</span>
+          ${window._isMyProfile ? '<button onclick="deletePhotoIndex('+index+')" style="background:#ff4444;color:#fff;border:0;padding:5px 10px;border-radius:10px;font-weight:900;cursor:pointer">🗑️ Hapus</button>' : ''}
         </div>
-        <div class="postImgWrap"><img src="\${pUrl}"></div>
+        <div class="postImgWrap"><img src="${pUrl}"></div>
         <div class="postActions">
-          <span id="likeBtn-\${index}" onclick="toggleLikeIndex(\${index})" style="cursor:pointer;color:\${likedByMe?'#ff4444':'#fff'}">❤️ <span id="likeCount-\${index}" style="font-size:14px">\${likesCount}</span></span>
-          <span onclick="openCommentSheet('\${key}', \${index})" style="cursor:pointer;font-size:14px">💬 <span id="commentCount-\${index}">\${comments.length}</span> Komentar</span>
+          <span id="likeBtn-${index}" onclick="toggleLikeIndex(${index})" style="cursor:pointer;color:${likedByMe?'#ff4444':'#fff'}">❤️ <span id="likeCount-${index}" style="font-size:14px">${likesCount}</span></span>
+          <span onclick="openCommentSheet('${key}', ${index})" style="cursor:pointer;font-size:14px">💬 <span id="commentCount-${index}">${comments.length}</span> Komentar</span>
         </div>
-      </div>\`;
+      </div>`;
   }
 
   document.getElementById('modalFeedContainer').innerHTML = feedHTML;
@@ -366,20 +366,20 @@ async function loadSheetComments(key){
       let likedColor = c.likedByMe ? '#ff4444' : '#aaa';
       let avatarUrl = userAvatarMap[commentUser] || LOGO_INNER;
 
-      return \`
+      return `
         <div style="padding:12px 0;border-bottom:1px solid #222;display:flex;gap:12px;align-items:flex-start">
-          <img src="\${avatarUrl}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1.5px solid #00ff88;flex-shrink:0" onerror="this.src=LOGO_INNER">
+          <img src="${avatarUrl}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1.5px solid #00ff88;flex-shrink:0" onerror="this.src=LOGO_INNER">
           <div style="flex:1;min-width:0">
-            <div style="font-weight:900;color:#00ff88;font-size:13px">\${c.user || 'Dunsanak'}</div>
-            <div style="font-size:13px;color:#ddd;margin-top:4px;word-break:break-word">\${c.text || c.comment || ''}</div>
+            <div style="font-weight:900;color:#00ff88;font-size:13px">${c.user || 'Dunsanak'}</div>
+            <div style="font-size:13px;color:#ddd;margin-top:4px;word-break:break-word">${c.text || c.comment || ''}</div>
             <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:#aaa;align-items:center">
-              <span style="cursor:pointer;color:\${likedColor};font-weight:bold" onclick="loveKomen(\${c.id}, '\${key}')">❤️ Love (\${c.likes || 0})</span>
-              <span style="cursor:pointer" onclick="replyComment('\${c.user}')">Balas</span>
+              <span style="cursor:pointer;color:${likedColor};font-weight:bold" onclick="loveKomen(${c.id}, '${key}')">❤️ Love (${c.likes || 0})</span>
+              <span style="cursor:pointer" onclick="replyComment('${c.user}')">Balas</span>
             </div>
           </div>
-          \${canDelete ? '<button onclick="deleteComment(' + c.id + ', \\'' + key + '\\', ' + currentActivePhotoKey.index + ')" style="background:transparent;color:#ff4444;border:0;font-size:12px;font-weight:bold;cursor:pointer;padding:4px 8px;flex-shrink:0">🗑️ Hapus</button>' : ''}
+          ${canDelete ? '<button onclick="deleteComment(' + c.id + ', \x27' + key + '\x27, ' + currentActivePhotoKey.index + ')" style="background:transparent;color:#ff4444;border:0;font-size:12px;font-weight:bold;cursor:pointer;padding:4px 8px;flex-shrink:0">🗑️ Hapus</button>' : ''}
         </div>
-      \`;
+      `;
     }).join('');
   } catch(e){
     listEl.innerHTML = '<div style="text-align:center;color:#f66;padding:20px">Gagal memuat komentar</div>';
@@ -541,7 +541,7 @@ function addPhoto(){
   let input=document.createElement('input'); input.type='file'; input.accept='image/*'; input.multiple=true;
   input.onchange=async()=>{
     if(input.files.length + (window._photosCache||[]).length > 12) return toast('Max 12 Bos!');
-    let list=[...(window._photosCache||[])];
+    let newPhotos=[];
     for(let f of input.files){
       let b64=await new Promise(res=>{
         let img=new Image();
@@ -553,8 +553,11 @@ function addPhoto(){
         };
         let r=new FileReader(); r.onload=()=>{ img.src=r.result; }; r.readAsDataURL(f);
       });
-      list.push(b64);
+      newPhotos.push(b64);
     }
+    // ✅ Menggunakan unshift agar foto baru otomatis berada di urutan teratas
+    let list=[...newPhotos, ...(window._photosCache||[])];
+    
     let r=await fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),photos:list})});
     let j=await r.json();
     if(j.ok){ toast('Foto kesimpan '+j.count); window._photosCache=list; loadContent(getMyEmail(),true); }

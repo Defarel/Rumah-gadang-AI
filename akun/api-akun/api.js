@@ -14,9 +14,10 @@ export const AKUN_API = {
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS d1consule_photos_v2 (email TEXT, idx INTEGER, photo TEXT, updated_at INTEGER, PRIMARY KEY(email, idx))`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, user_email TEXT, name TEXT, picture TEXT, time INTEGER)`).run();
       
-      // TABEL LIKE & TABEL KOMENTAR ORIGINAL SESUAI PERMINTAAN BOS
+      // TABEL LIKE & KOMENTAR & LIKE KOMENTAR
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_likes (photo_key TEXT, user_email TEXT, PRIMARY KEY(photo_key, user_email))`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, photo_key TEXT, user_name TEXT, comment TEXT, time INTEGER)`).run();
+      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS comment_likes (comment_id INTEGER, user_email TEXT, PRIMARY KEY(comment_id, user_email))`).run();
 
       // 1. REGISTER / LOGIN
       if (path === "/api/akun/register" && method === "POST") {
@@ -139,7 +140,7 @@ export const AKUN_API = {
         }
       }
 
-      // 8. API LIKE PERMANEN
+      // 8. API LIKE FOTO PERMANEN
       if (path === "/api/photo/like") {
         let photo_key = url.searchParams.get("photo_key");
         let user_email = (url.searchParams.get("user_email") || "").toLowerCase().trim();
@@ -170,7 +171,22 @@ export const AKUN_API = {
         return new Response(JSON.stringify({ ok: true, likes: countRes?.c || 0, likedByMe: !!likedRes }), { headers: h });
       }
 
-      // ✅ 9. API KOMENTAR ORIGINAL (photo_comments)
+      // 9. API LIKE KOMENTAR
+      if (path === "/api/akun/komen/like" && method === "POST") {
+        const { comment_id, email } = await req.json().catch(()=>({}));
+        const cleanEmail = (email || "").toLowerCase().trim();
+        if (!comment_id || !cleanEmail) return new Response(JSON.stringify({ ok: false }), { headers: h, status: 400 });
+        
+        const existing = await env.DB.prepare("SELECT 1 FROM comment_likes WHERE comment_id=? AND user_email=?").bind(comment_id, cleanEmail).first();
+        if (existing) {
+          await env.DB.prepare("DELETE FROM comment_likes WHERE comment_id=? AND user_email=?").bind(comment_id, cleanEmail).run();
+        } else {
+          await env.DB.prepare("INSERT OR IGNORE INTO comment_likes (comment_id, user_email) VALUES (?,?)").bind(comment_id, cleanEmail).run();
+        }
+        return new Response(JSON.stringify({ ok: true }), { headers: h });
+      }
+
+      // 10. API KOMENTAR & DELETE KOMENTAR
       if (path === "/api/photo/comment") {
         if (method === "POST") {
           const { photo_key, user_name, comment } = await req.json().catch(()=>({}));
@@ -183,12 +199,27 @@ export const AKUN_API = {
           const { comment_id } = await req.json().catch(()=>({}));
           if (!comment_id) return new Response(JSON.stringify({ ok: false }), { headers: h, status: 400 });
           await env.DB.prepare("DELETE FROM photo_comments WHERE id=?").bind(comment_id).run();
+          await env.DB.prepare("DELETE FROM comment_likes WHERE comment_id=?").bind(comment_id).run();
           return new Response(JSON.stringify({ ok: true }), { headers: h });
         }
         
         const photo_key = url.searchParams.get("photo_key");
+        const myEmail = (url.searchParams.get("me") || "").toLowerCase().trim();
+        
         const comments = await env.DB.prepare("SELECT id, user_name as user, comment as text, time FROM photo_comments WHERE photo_key=? ORDER BY id ASC").bind(photo_key).all().catch(()=>({results:[]}));
-        return new Response(JSON.stringify(comments.results || []), { headers: h });
+        
+        let results = [];
+        for(let c of (comments.results || [])){
+          let countRes = await env.DB.prepare("SELECT COUNT(*) as c FROM comment_likes WHERE comment_id=?").bind(c.id).first();
+          let likedRes = myEmail ? await env.DB.prepare("SELECT 1 FROM comment_likes WHERE comment_id=? AND user_email=?").bind(c.id, myEmail).first() : null;
+          results.push({
+            ...c,
+            likes: countRes?.c || 0,
+            likedByMe: !!likedRes
+          });
+        }
+        
+        return new Response(JSON.stringify(results), { headers: h });
       }
 
     } catch (err) {

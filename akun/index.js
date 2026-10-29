@@ -9,20 +9,7 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;color:#fff;font-family:sans-serif}
-
-/* ✅ LAYAR FULL 100% PENUH */
-#app{
-  width:100%;
-  max-width:100%;
-  margin:0;
-  background:#000;
-  min-height:100vh;
-  padding-bottom:120px;
-  border-left:none;
-  border-right:none;
-  box-shadow:none;
-}
-
+#app{width:100%;max-width:100%;margin:0;background:#000;min-height:100vh;padding-bottom:120px;border-left:none;border-right:none;box-shadow:none}
 .top{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #111;position:sticky;top:0;background:#000;z-index:10}
 .logo{width:36px;height:36px;border-radius:50%;border:2px solid #00ff88;object-fit:cover}
 .btn-home{background:#00ff88;color:#000;border:0;padding:8px 20px;border-radius:20px;font-weight:900;font-size:12px;box-shadow:0 0 12px #00ff88}
@@ -57,46 +44,15 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .cardLogoFull{margin:14px 12px;border-radius:22px;overflow:hidden;border:3px solid #00ff88;box-shadow:0 0 0 1px #00ff88,0 0 25px rgba(0,255,136,.4);background:#000}
 .cardLogoFull img{width:100%;height:auto;display:block;object-fit:cover}
 .cardLogoFull video{width:100%;height:auto;display:block;object-fit:cover}
-
-/* ✅ MENU BAWAH FULL 100% */
 .bot{position:fixed;bottom:0;left:0;width:100%;max-width:100%;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99}
 .bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#fff}
-
 #toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:#00ff88;color:#000;padding:12px 18px;border-radius:22px;font-weight:900;display:none;z-index:9999;box-shadow:0 0 20px #00ff88}
 .private-card{background:#111;border:1.5px solid #00ff88;border-radius:14px;padding:10px;margin-bottom:12px}
 #editModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;place-items:center;padding:16px}
 #editBox{background:#111;border:2px solid #00ff88;border-radius:18px;padding:16px;width:100%;max-width:360px;box-shadow:0 0 25px #00ff88}
-
-/* ✅ MODAL FEED SCROLL FULL 100% */
-#photoModal{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.96);
-  z-index:9999;
-  overflow-y:auto;
-  padding:15px 0 60px 0;
-}
-.modalTopBar{
-  width:100%;
-  max-width:100%;
-  margin:0 0 10px 0;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background:#111;
-  padding:12px 16px;
-  border-bottom:1px solid #222;
-}
-.postCard{
-  width:100%;
-  max-width:100%;
-  margin:0 0 20px 0;
-  background:#111;
-  border-bottom:2px solid #222;
-  border-top:1px solid #222;
-  overflow:hidden;
-}
+#photoModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9999;overflow-y:auto;padding:15px 0 60px 0}
+.modalTopBar{width:100%;max-width:100%;margin:0 0 10px 0;display:flex;justify-content:space-between;align-items:center;background:#111;padding:12px 16px;border-bottom:1px solid #222}
+.postCard{width:100%;max-width:100%;margin:0 0 20px 0;background:#111;border-bottom:2px solid #222;border-top:1px solid #222;overflow:hidden}
 .postHeader{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
 .postImgWrap{width:100%;background:#000;display:flex;justify-content:center;align-items:center}
 .postImgWrap img{width:100%;height:auto;max-height:80vh;object-fit:cover;display:block}
@@ -111,7 +67,6 @@ body{background:#000;color:#fff;font-family:sans-serif}
   <div class="top"><div style="display:flex;gap:10px;align-items:center"><img src="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg" class="logo"><b>RUMAH GADANG AI</b></div><button class="btn-home" onclick="location.href='/'">HOME</button></div>
   <div id="viewContainer"></div>
 </div>
-
 <div class="bot">
   <a href="/">🏠<br><span style="font-size:10px">Home</span></a>
   <a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a>
@@ -120,21 +75,16 @@ body{background:#000;color:#fff;font-family:sans-serif}
   <a href="/ai">🤖<br><span style="font-size:10px">AI</span></a>
   <a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a>
 </div>
-
-<div id=toast></div>
-
-<!-- MODAL EDIT PROFIL -->
-<div id=editModal><div id=editBox>
+<div id="toast"></div>
+<div id="editModal"><div id="editBox">
 <h3 style="margin-bottom:10px">Edit Profil Bos - Bebas Ganti Foto Bos</h3>
-<img id=editPrev style="width:90px;height:90px;border-radius:50%;border:2px solid #00ff88;display:block;margin:0 auto 10px;object-fit:cover">
-<input id=editName class=inp placeholder="Nama Bos">
-<input id=editPicUrl class=inp placeholder="Link foto bebas (atau upload di bawah)">
-<input type=file id=editPicFile accept="image/*" class=inp>
+<img id="editPrev" style="width:90px;height:90px;border-radius:50%;border:2px solid #00ff88;display:block;margin:0 auto 10px;object-fit:cover">
+<input id="editName" class="inp" placeholder="Nama Bos">
+<input id="editPicUrl" class="inp" placeholder="Link foto bebas (atau upload di bawah)">
+<input type="file" id="editPicFile" accept="image/*" class="inp">
 <div style="font-size:11px;color:#00ff88;margin-top:8px">* Foto bebas Bos, gak dikunci Bos, otomatis dikecilin biar kesimpen Bos</div>
-<div style="display:flex;gap:8px;margin-top:12px"><button class=btn-edit onclick="closeEdit()" style="flex:1">Batal</button><button class=btn-neon-follow onclick="saveEdit()" style="flex:1">Simpan Bos</button></div>
+<div style="display:flex;gap:8px;margin-top:12px"><button class="btn-edit" onclick="closeEdit()" style="flex:1">Batal</button><button class="btn-neon-follow" onclick="saveEdit()" style="flex:1">Simpan Bos</button></div>
 </div></div>
-
-<!-- MODAL FOTO FEED VERTICAL FULL LAYAR -->
 <div id="photoModal">
   <div class="modalTopBar">
     <b style="color:#00ff88">POSTINGAN</b>
@@ -142,15 +92,12 @@ body{background:#000;color:#fff;font-family:sans-serif}
   </div>
   <div id="modalFeedContainer"></div>
 </div>
-
 <script>
 const LOGO_INNER="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
 const LOGO_LOGIN="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
 const LOGO_VIDEO = "https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@9fa479e6634ebcb2f1dfcde85fb106ac77d2b122/akun/RumahGadangV2.mp4";
 
 let activeMainTab="teman"; 
-
-// ✅ Deteksi otomatis parameter profil atau path langsung (/nicke)
 const urlParams = new URLSearchParams(window.location.search);
 let viewingUserEmail = urlParams.get('profil') ? decodeURIComponent(urlParams.get('profil')).toLowerCase().trim() : null;
 
@@ -192,7 +139,7 @@ function setLoginMode(m){
 async function render(){
   const my=getMyEmail(); const cont=document.getElementById('viewContainer');
   if(!my && !viewingUserEmail){
-    cont.innerHTML=`
+    cont.innerHTML = \`
       <div class="cardOuter">
         <h2 style="margin-bottom:12px;font-size:22px;font-weight:900">Rumah Gadang AI</h2>
         <div class="loginTabs">
@@ -208,10 +155,10 @@ async function render(){
         <button class="btnMasuk" onclick="doLogin()">Masuk</button>
       </div>
       <div class="cardLogoFull">
-        <video autoplay loop muted playsinline controls poster="${LOGO_LOGIN}">
-          <source src="${LOGO_VIDEO}" type="video/mp4">
+        <video autoplay loop muted playsinline controls poster="\${LOGO_LOGIN}">
+          <source src="\${LOGO_VIDEO}" type="video/mp4">
         </video>
-      </div>`;
+      </div>\`;
     return;
   }
   const target=viewingUserEmail||my; renderProfile(cont,target,target===my);
@@ -245,22 +192,22 @@ async function renderProfile(container,targetEmail,isMe){
   let data={name:isMe?getMyName():targetEmail.split('@')[0],picture:isMe?getMyAvatar():LOGO_INNER,posts:0,followers:0,following:0,isFollowing:false};
   try{ let r=await fetch('/api/akun/profile?email='+encodeURIComponent(targetEmail)+'&me='+encodeURIComponent(getMyEmail())); if(r.ok){ let d=await r.json(); data={...data,...d}; } }catch{}
   let photos=[]; try{ let rp=await fetch('/api/akun/photos?email='+encodeURIComponent(targetEmail)); photos=await rp.json(); }catch{}
-  container.innerHTML=`
+  container.innerHTML = \`
     <div class="profile-sec">
       <div class="prof-top">
-        <div class="avatar-wrap" onclick="${isMe?'showEdit()':''}"><img src="${data.picture}" class="avatar-img"><div class="avatar-edit-badge">${isMe?'✎ Ganti':''}</div></div>
-        <div class="stats-wrap"><div><div class="stat-num">${data.posts||0}</div><div class="stat-label">tulisan</div></div><div><div class="stat-num">${data.followers||0}</div><div class="stat-label">pengikut</div></div><div><div class="stat-num">${data.following||0}</div><div class="stat-label">mengikuti</div></div></div>
+        <div class="avatar-wrap" onclick="\${isMe?'showEdit()':''}"><img src="\${data.picture}" class="avatar-img"><div class="avatar-edit-badge">\${isMe?'✎ Ganti':''}</div></div>
+        <div class="stats-wrap"><div><div class="stat-num">\${data.posts||0}</div><div class="stat-label">tulisan</div></div><div><div class="stat-num">\${data.followers||0}</div><div class="stat-label">pengikut</div></div><div><div class="stat-num">\${data.following||0}</div><div class="stat-label">mengikuti</div></div></div>
       </div>
-      <div style="font-size:18px;font-weight:900">${data.name}</div><div style="font-size:12px;color:#00ff88;margin-bottom:14px">${targetEmail}</div>
-      <div style="margin-bottom:16px">${isMe ? '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>' : '<button class="'+(data.isFollowing?'btn-following-real':'btn-follow-real')+'" onclick="toggleFollow(\''+targetEmail+'\')">'+(data.isFollowing?'✓ Mengikuti':'Follow')+'</button>'}</div>
+      <div style="font-size:18px;font-weight:900">\${data.name}</div><div style="font-size:12px;color:#00ff88;margin-bottom:14px">\${targetEmail}</div>
+      <div style="margin-bottom:16px">\${isMe ? '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>' : '<button class="'+(data.isFollowing?'btn-following-real':'btn-follow-real')+'" onclick="toggleFollow(\\''+targetEmail+'\\')">'+(data.isFollowing?'✓ Mengikuti':'Follow')+'</button>'}</div>
       <div class="main-tabs">
-        <button class="m-tab ${activeMainTab==='tulis'?'active':''}" onclick="switchTab('tulis')">TULIS</button>
-        <button class="m-tab ${activeMainTab==='foto'?'active':''}" onclick="switchTab('foto')">FOTO</button>
-        <button class="m-tab ${activeMainTab==='video'?'active':''}" onclick="switchTab('video')">VIDEO</button>
-        <button class="m-tab ${activeMainTab==='teman'?'active':''}" onclick="switchTab('teman')">TEMAN</button>
+        <button class="m-tab \${activeMainTab==='tulis'?'active':''}" onclick="switchTab('tulis')">TULIS</button>
+        <button class="m-tab \${activeMainTab==='foto'?'active':''}" onclick="switchTab('foto')">FOTO</button>
+        <button class="m-tab \${activeMainTab==='video'?'active':''}" onclick="switchTab('video')">VIDEO</button>
+        <button class="m-tab \${activeMainTab==='teman'?'active':''}" onclick="switchTab('teman')">TEMAN</button>
       </div>
       <div id="tabContent"></div>
-    </div>`;
+    </div>\`;
   window._photosCache=photos;
   window._currentProfileEmail=targetEmail;
   window._isMyProfile=isMe;
@@ -274,18 +221,18 @@ async function loadContent(targetEmail,isMe){
       let r=await fetch('/api/akun/list?t='+Date.now()); let u=await r.json();
       let list=u.filter(x=>x.email.toLowerCase()!==getMyEmail().toLowerCase());
       if(!list.length){ box.innerHTML='<div style="text-align:center;color:#555">Belum ada teman</div>'; return; }
-      box.innerHTML=list.map(x=>`
+      box.innerHTML=list.map(x=> \`
         <div class="user-fb">
-          <img src="${x.picture||LOGO_INNER}" class="user-fb-av" onerror="this.src=LOGO_INNER">
+          <img src="\${x.picture||LOGO_INNER}" class="user-fb-av" onerror="this.src=LOGO_INNER">
           <div style="flex:1;min-width:0">
-            <div style="font-weight:900;font-size:15px">${x.name||x.email.split('@')[0]}</div>
-            <div style="font-size:11px;color:#888;overflow:hidden;text-overflow:ellipsis">${x.email}</div>
+            <div style="font-weight:900;font-size:15px">\${x.name||x.email.split('@')[0]}</div>
+            <div style="font-size:11px;color:#888;overflow:hidden;text-overflow:ellipsis">\${x.email}</div>
             <div style="display:flex;gap:8px;margin-top:10px">
-              <button class="btn-neon-follow" onclick="toggleFollow('${x.email}')">Follow</button>
-              <button class="btn-neon-lihat" onclick="viewUser('${x.email}')">Lihat</button>
+              <button class="btn-neon-follow" onclick="toggleFollow('\${x.email}')">Follow</button>
+              <button class="btn-neon-lihat" onclick="viewUser('\${x.email}')">Lihat</button>
             </div>
           </div>
-        </div>`).join('');
+        </div>\`).join('');
     }catch(e){ box.innerHTML='<div style="text-align:center;color:#f66">Gagal load</div>'; }
   } else if(activeMainTab==='foto'){
     let photos=window._photosCache||[];
@@ -296,61 +243,45 @@ async function loadContent(targetEmail,isMe){
     try{ let r=await fetch('/api/tulis?t='+Date.now()); let list=await r.json(); let arr=Array.isArray(list)?list:(list.results||list.data||[]); let mine=arr.filter(p=>(p.user_email||p.email||'').toLowerCase()===targetEmail.toLowerCase()); if(!mine.length){box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada tulisan</div>';return;} box.innerHTML=mine.map(p=>'<div class="private-card">'+(p.text||p.isi||'')+'</div>').join(''); }catch{ box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Gagal memuat tulisan</div>'; }
   } else { box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Segera Bos</div>'; }
 }
-
 function openPhotoModal(startIndex){
   let photos = window._photosCache || [];
   let authorName = '@' + (window._currentProfileEmail ? window._currentProfileEmail.split('@')[0] : 'user');
   let feedHTML = '';
-
   photos.forEach((pUrl, index) => {
     let key = (window._currentProfileEmail || 'unknown') + '_' + index;
     let data = photoInteractions[key] || { likes: 0, likedByMe: false, comments: [] };
-    
-    feedHTML += `
-      <div class="postCard" id="postCard-${index}">
+    feedHTML += \`
+      <div class="postCard" id="postCard-\${index}">
         <div class="postHeader">
-          <span style="font-weight:900;color:#00ff88">${authorName}</span>
-          ${window._isMyProfile ? '<button onclick="deletePhotoIndex('+index+')" style="background:#ff4444;color:#fff;border:0;padding:5px 10px;border-radius:10px;font-weight:900;cursor:pointer">🗑️ Hapus</button>' : ''}
+          <span style="font-weight:900;color:#00ff88">\${authorName}</span>
+          \${window._isMyProfile ? '<button onclick="deletePhotoIndex('+index+')" style="background:#ff4444;color:#fff;border:0;padding:5px 10px;border-radius:10px;font-weight:900;cursor:pointer">🗑️ Hapus</button>' : ''}
         </div>
-        <div class="postImgWrap"><img src="${pUrl}"></div>
+        <div class="postImgWrap"><img src="\${pUrl}"></div>
         <div class="postActions">
-          <span id="likeBtn-${index}" onclick="toggleLikeIndex(${index})" style="cursor:pointer;color:${data.likedByMe?'#ff4444':'#fff'}">❤️ <span id="likeCount-${index}" style="font-size:14px">${data.likes}</span></span>
-          <span style="font-size:14px">💬 <span id="commentCount-${index}">${data.comments.length}</span> Komentar</span>
+          <span id="likeBtn-\${index}" onclick="toggleLikeIndex(\${index})" style="cursor:pointer;color:\${data.likedByMe?'#ff4444':'#fff'}">❤️ <span id="likeCount-\${index}" style="font-size:14px">\${data.likes}</span></span>
+          <span style="font-size:14px">💬 <span id="commentCount-\${index}">\${data.comments.length}</span> Komentar</span>
         </div>
-        <div class="postComments" id="commentsList-${index}">
-          ${!data.comments.length ? '<div style="color:#666;text-align:center;padding:10px">Belum ada komentar</div>' : data.comments.map(c=>'<div class="commentItem"><b>'+c.user+':</b> '+c.text+'</div>').join('')}
+        <div class="postComments" id="commentsList-\${index}">
+          \${!data.comments.length ? '<div style="color:#666;text-align:center;padding:10px">Belum ada komentar</div>' : data.comments.map(c=>'<div class="commentItem"><b>'+c.user+':</b> '+c.text+'</div>').join('')}
         </div>
         <div class="commentInputWrap">
-          <input id="commentInput-${index}" placeholder="Tulis komentar Bos...">
-          <button onclick="postCommentIndex(${index})">Kirim</button>
+          <input id="commentInput-\${index}" placeholder="Tulis komentar Bos...">
+          <button onclick="postCommentIndex(\${index})">Kirim</button>
         </div>
-      </div>
-    `;
+      </div>\`;
   });
-
   document.getElementById('modalFeedContainer').innerHTML = feedHTML;
   document.getElementById('photoModal').style.display = 'block';
-
   setTimeout(() => {
     let targetCard = document.getElementById('postCard-' + startIndex);
-    if(targetCard){
-      targetCard.scrollIntoView({ behavior: 'smooth' });
-    }
+    if(targetCard){ targetCard.scrollIntoView({ behavior: 'smooth' }); }
   }, 100);
 }
-
-function closePhotoModal(){
-  document.getElementById('photoModal').style.display = 'none';
-}
-
-function getPhotoKeyIndex(index){
-  return (window._currentProfileEmail || 'unknown') + '_' + index;
-}
-
+function closePhotoModal(){ document.getElementById('photoModal').style.display = 'none'; }
+function getPhotoKeyIndex(index){ return (window._currentProfileEmail || 'unknown') + '_' + index; }
 function toggleLikeIndex(index){
   let key = getPhotoKeyIndex(index);
   if(!photoInteractions[key]) photoInteractions[key] = { likes: 0, likedByMe: false, comments: [] };
-  
   if(photoInteractions[key].likedByMe){
     photoInteractions[key].likes = Math.max(0, photoInteractions[key].likes - 1);
     photoInteractions[key].likedByMe = false;
@@ -359,37 +290,29 @@ function toggleLikeIndex(index){
     photoInteractions[key].likedByMe = true;
   }
   localStorage.setItem('rg_photo_interactions', JSON.stringify(photoInteractions));
-  
   document.getElementById('likeCount-' + index).innerText = photoInteractions[key].likes;
   document.getElementById('likeBtn-' + index).style.color = photoInteractions[key].likedByMe ? '#ff4444' : '#fff';
 }
-
 function postCommentIndex(index){
   let inp = document.getElementById('commentInput-' + index);
   let text = inp.value.trim();
   if(!text) return toast('Tulis komentar dulu Bos!');
-  
   let key = getPhotoKeyIndex(index);
   if(!photoInteractions[key]) photoInteractions[key] = { likes: 0, likedByMe: false, comments: [] };
-  
   let myName = getMyName();
   photoInteractions[key].comments.push({ user: myName, text: text });
   localStorage.setItem('rg_photo_interactions', JSON.stringify(photoInteractions));
-  
   inp.value = '';
-  
   let data = photoInteractions[key];
   document.getElementById('commentCount-' + index).innerText = data.comments.length;
   let cList = document.getElementById('commentsList-' + index);
   cList.innerHTML = data.comments.map(c=>'<div class="commentItem"><b>'+c.user+':</b> '+c.text+'</div>').join('');
   toast('Komentar terkirim Bos!');
 }
-
 async function deletePhotoIndex(index){
   if(!confirm('Hapus foto ini Bos?')) return;
   let photos = window._photosCache || [];
   photos.splice(index, 1);
-  
   try{
     let r = await fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),photos:photos})});
     let j = await r.json();
@@ -398,14 +321,9 @@ async function deletePhotoIndex(index){
       closePhotoModal();
       loadContent(getMyEmail(), true);
       toast('Foto berhasil dihapus Bos!');
-    } else {
-      toast('Gagal hapus Bos');
-    }
-  }catch(e){
-    toast('Error: '+e.message);
-  }
+    } else { toast('Gagal hapus Bos'); }
+  }catch(e){ toast('Error: '+e.message); }
 }
-
 function showEdit(){
   document.getElementById('editModal').style.display='grid';
   document.getElementById('editName').value=getMyName();
@@ -439,14 +357,13 @@ async function saveEdit(){
     localStorage.setItem('rg_name',name); 
     localStorage.setItem('rg_avatar',pic); 
   }catch(e){ 
-    console.log('localStorage penuh Bos, pakai link Bos'); 
     if(pic.startsWith('data:')){ pic=LOGO_INNER; localStorage.setItem('rg_avatar',pic); toast('Foto kegedean Bos, pakai link aja Bos biar bebas'); }
   }
   toast('Ganti foto Bos...'); closeEdit(); render();
   try{
     await fetch('/api/akun/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),name,picture:pic})});
     toast('Profile update Bos!');
-  }catch(e){ console.log('api fail tapi lokal udah Bos',e); }
+  }catch(e){}
 }
 function addPhoto(){
   let input=document.createElement('input'); input.type='file'; input.accept='image/*'; input.multiple=true;

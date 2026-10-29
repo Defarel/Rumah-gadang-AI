@@ -51,12 +51,41 @@ body{background:#000;color:#fff;font-family:sans-serif}
 #editModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;place-items:center;padding:16px}
 #editBox{background:#111;border:2px solid #00ff88;border-radius:18px;padding:16px;width:100%;max-width:360px;box-shadow:0 0 25px #00ff88}
 
-/* MODAL / TAMPILAN BESAR FOTO ALA INSTAGRAM */
-#photoModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;overflow-y:auto;padding:16px}
-.modalContent{max-width:480px;margin:20px auto;background:#111;border:2px solid #00ff88;border-radius:18px;overflow:hidden;box-shadow:0 0 25px rgba(0,255,136,.4)}
+/* MODAL FOTO FULL LAYAR / LEBAR */
+#photoModal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.96);
+  z-index:9999;
+  overflow-y:auto;
+  padding:10px 0;
+}
+.modalContent{
+  width:100%;
+  max-width:90vw;
+  margin:0 auto;
+  background:#111;
+  border:2px solid #00ff88;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 0 25px rgba(0,255,136,.4);
+}
 .modalHeader{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #222}
-.modalImgWrap{width:100%;background:#000;position:relative}
-.modalImgWrap img{width:100%;max-height:450px;object-fit:contain;display:block}
+.modalImgWrap{
+  width:100%;
+  background:#000;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.modalImgWrap img{
+  width:100%;
+  height:auto;
+  max-height:70vh;
+  object-fit:cover;
+  display:block;
+}
 .modalActions{display:flex;gap:16px;padding:12px 14px;align-items:center;font-size:20px}
 .modalComments{padding:0 14px 14px;max-height:150px;overflow-y:auto;font-size:13px;border-top:1px solid #222;margin-top:8px}
 .commentItem{padding:6px 0;border-bottom:1px dashed #222}
@@ -79,7 +108,7 @@ body{background:#000;color:#fff;font-family:sans-serif}
 <div style="display:flex;gap:8px;margin-top:12px"><button class=btn-edit onclick="closeEdit()" style="flex:1">Batal</button><button class=btn-neon-follow onclick="saveEdit()" style="flex:1">Simpan Bos</button></div>
 </div></div>
 
-<!-- MODAL FOTO BESAR (ALA IG) -->
+<!-- MODAL FOTO FULL LAYAR -->
 <div id="photoModal">
   <div class="modalContent">
     <div class="modalHeader">
@@ -243,7 +272,6 @@ async function loadContent(targetEmail,isMe){
   } else { box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Segera Bos</div>'; }
 }
 
-/* FUNGSI BUKA FOTO BESAR & INTERAKSI LIKE/KOMEN/HAPUS */
 function openPhotoModal(index){
   currentPhotoIndex = index;
   let photos = window._photosCache || [];

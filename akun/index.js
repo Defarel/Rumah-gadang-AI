@@ -58,13 +58,13 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .postImgWrap img{width:100%;height:auto;max-height:80vh;object-fit:cover;display:block}
 .postActions{display:flex;gap:16px;padding:12px 16px;align-items:center;font-size:20px}
 
-/* Modal Layer Komentar Melayang (Slide-up) */
+/* Modal Layer Komentar Melayang Style Instagram */
 #commentModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; align-items:flex-end; justify-content:center; }
 #commentBoxSheet { background:#111; border-top:2px solid #00ff88; border-top-left-radius:20px; border-top-right-radius:20px; width:100%; max-width:600px; height:75vh; display:flex; flex-direction:column; box-shadow:0 -5px 25px rgba(0,255,136,0.3); animation: slideUp 0.3s ease-out; }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .commentSheetHeader { padding:14px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #222; font-weight:900; }
 .commentSheetBody { flex:1; overflow-y:auto; padding:16px; }
-.commentSheetInput { padding:12px 16px; background:#080808; border-top:1px solid #222; display:flex; gap:8px; }
+.commentSheetInput { padding:12px 16px; background:#080808; border-top:1px solid #222; display:flex; gap:8px; align-items:center; }
 </style></head><body>
 <div id="app">
   <div class="top"><div style="display:flex;gap:10px;align-items:center"><img src="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg" class="logo"><b>RUMAH GADANG AI</b></div><button class="btn-home" onclick="location.href='/'">HOME</button></div>
@@ -98,7 +98,7 @@ body{background:#000;color:#fff;font-family:sans-serif}
   <div id="modalFeedContainer"></div>
 </div>
 
-<!-- Modal Layer Komentar Melayang -->
+<!-- Modal Layer Komentar dengan Tombol Love, Balas, dan Hapus (Khusus Milik Sendiri) -->
 <div id="commentModal">
   <div id="commentBoxSheet">
     <div class="commentSheetHeader">
@@ -334,13 +334,14 @@ function closeCommentModal(){
 async function loadSheetComments(key){
   let listEl = document.getElementById('commentSheetList');
   listEl.innerHTML = '<div style="text-align:center;color:#666;padding:20px">Memuat komentar...</div>';
+  let me = getMyEmail();
   try {
     let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
     let text = await res.text();
     let json = text.startsWith('<') ? [] : JSON.parse(text);
     let comments = Array.isArray(json) ? json : (json.results || []);
     
-    document.getElementById('commentSheetTitle'.replace('Title','Title')).innerText = \`Komentar (\${comments.length})\`;
+    document.getElementById('commentSheetTitle').innerText = \`Komentar (\${comments.length})\`;
     
     if(!comments.length){
       listEl.innerHTML = '<div style="text-align:center;color:#666;padding:30px">Belum ada komentar. Jadilah yang pertama!</div>';
@@ -348,16 +349,51 @@ async function loadSheetComments(key){
     }
     
     listEl.innerHTML = comments.map(c=> \`
-      <div style="padding:10px 0;border-bottom:1px solid #222;display:flex;gap:10px;align-items:flex-start">
+      <div style="padding:12px 0;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:flex-start">
         <div style="flex:1">
           <div style="font-weight:900;color:#00ff88;font-size:13px">\${c.user || 'Dunsanak'}</div>
           <div style="font-size:13px;color:#ddd;margin-top:4px">\${c.text || c.comment || ''}</div>
+          <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:#aaa">
+            <span style="cursor:pointer" onclick="toast('Suka Komentar!')">❤️ Love</span>
+            <span style="cursor:pointer" onclick="replyComment('\${c.user}')">Balas</span>
+          </div>
         </div>
+        \${(me && c.user_email && me === c.user_email.toLowerCase().trim()) ? '<button onclick="deleteComment(' + c.id + ', \\'' + key + '\\', ' + currentActivePhotoKey.index + ')" style="background:transparent;color:#ff4444;border:0;font-size:12px;font-weight:bold;cursor:pointer;padding:4px 8px;">🗑️ Hapus</button>' : ''}
       </div>
     \`).join('');
   } catch(e){
     listEl.innerHTML = '<div style="text-align:center;color:#f66;padding:20px">Gagal memuat komentar</div>';
   }
+}
+
+function replyComment(username){
+  let inp = document.getElementById('sheetCommentInput');
+  inp.value = '@' + username + ' ';
+  inp.focus();
+}
+
+async function deleteComment(commentId, key, index){
+  if(!confirm('Hapus komentar ini Bos?')) return;
+  let me = getMyEmail();
+  try {
+    let r = await fetch('/api/photo/comment', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ comment_id: commentId, user_email: me })
+    });
+    let j = await r.json();
+    if(j.ok){
+      loadSheetComments(key);
+      let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
+      let json = await res.json();
+      let count = Array.isArray(json) ? json.length : (json.results?.length || 0);
+      let counterEl = document.getElementById('commentCount-' + index);
+      if(counterEl) counterEl.innerText = count;
+      toast('Komentar dihapus Bos!');
+    } else {
+      toast('Gagal hapus komentar');
+    }
+  } catch(e){ toast('Error: ' + e.message); }
 }
 
 async function submitSheetComment(){
@@ -375,7 +411,7 @@ async function submitSheetComment(){
     await fetch('/api/photo/comment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ photo_key: key, user_name: myName, comment: text })
+      body: JSON.stringify({ photo_key: key, user_email: me, user_name: myName, comment: text })
     });
     inp.value = '';
     loadSheetComments(key);

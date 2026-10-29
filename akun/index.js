@@ -553,7 +553,7 @@ function addPhoto(){
         };
         let r=new FileReader(); r.onload=()=>{ img.src=r.result; }; r.readAsDataURL(f);
       });
-      list.push(b64);
+      list.push(b64); // Foto baru ditambahkan ke posisi paling bawah (down)
     }
     let r=await fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),photos:list})});
     let j=await r.json();

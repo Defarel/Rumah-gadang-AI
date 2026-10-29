@@ -14,9 +14,11 @@ export const AKUN_API = {
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS d1consule_photos_v2 (email TEXT, idx INTEGER, photo TEXT, updated_at INTEGER, PRIMARY KEY(email, idx))`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, user_email TEXT, name TEXT, picture TEXT, time INTEGER)`).run();
       
-      // TABEL LIKE & KOMENTAR PERMANEN
+      // TABEL LIKE
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_likes (photo_key TEXT, user_email TEXT, PRIMARY KEY(photo_key, user_email))`).run();
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, photo_key TEXT, user_email TEXT, user_name TEXT, comment TEXT, time INTEGER)`).run();
+      
+      // ✅ TABEL KOMENTAR (MENGGUNAKAN _v3 AGAR STRUKTUR KOLOM user_email AMAN DAN TIDAK HILANG)
+      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_comments_v3 (id INTEGER PRIMARY KEY AUTOINCREMENT, photo_key TEXT, user_email TEXT, user_name TEXT, comment TEXT, time INTEGER)`).run();
 
       // 1. REGISTER / LOGIN
       if (path === "/api/akun/register" && method === "POST") {
@@ -170,24 +172,24 @@ export const AKUN_API = {
         return new Response(JSON.stringify({ ok: true, likes: countRes?.c || 0, likedByMe: !!likedRes }), { headers: h });
       }
 
-      // ✅ 9. API KOMENTAR PERMANEN & DELETE KOMENTAR
+      // ✅ 9. API KOMENTAR PERMANEN & DELETE (MENGGUNAKAN photo_comments_v3)
       if (path === "/api/photo/comment") {
         if (method === "POST") {
           const { photo_key, user_email, user_name, comment } = await req.json().catch(()=>({}));
           if (!photo_key || !comment) return new Response(JSON.stringify({ ok: false, error: "Missing data" }), { headers: h, status: 400 });
-          await env.DB.prepare("INSERT INTO photo_comments (photo_key, user_email, user_name, comment, time) VALUES (?,?,?,?,?)")
+          await env.DB.prepare("INSERT INTO photo_comments_v3 (photo_key, user_email, user_name, comment, time) VALUES (?,?,?,?,?)")
             .bind(photo_key, (user_email || "").toLowerCase().trim(), user_name || "Dunsanak", comment.trim(), Date.now()).run();
           return new Response(JSON.stringify({ ok: true }), { headers: h });
         }
         if (method === "DELETE") {
           const { comment_id, user_email } = await req.json().catch(()=>({}));
           if (!comment_id || !user_email) return new Response(JSON.stringify({ ok: false, error: "Missing data" }), { headers: h, status: 400 });
-          await env.DB.prepare("DELETE FROM photo_comments WHERE id=? AND LOWER(user_email)=?").bind(comment_id, user_email.toLowerCase().trim()).run();
+          await env.DB.prepare("DELETE FROM photo_comments_v3 WHERE id=? AND LOWER(user_email)=?").bind(comment_id, user_email.toLowerCase().trim()).run();
           return new Response(JSON.stringify({ ok: true }), { headers: h });
         }
         
         const photo_key = url.searchParams.get("photo_key");
-        const comments = await env.DB.prepare("SELECT id, user_email, user_name as user, comment as text, time FROM photo_comments WHERE photo_key=? ORDER BY id ASC").bind(photo_key).all().catch(()=>({results:[]}));
+        const comments = await env.DB.prepare("SELECT id, user_email, user_name as user, comment as text, time FROM photo_comments_v3 WHERE photo_key=? ORDER BY id ASC").bind(photo_key).all().catch(()=>({results:[]}));
         return new Response(JSON.stringify(comments.results || []), { headers: h });
       }
 

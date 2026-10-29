@@ -110,7 +110,7 @@ export const AKUN_API = {
         }
       }
 
-      // ✅ 6. FOLLOWERS & FOLLOWING (DIKEMBALIKAN KEMBALI)
+      // 6. FOLLOWERS & FOLLOWING
       if (path === "/api/followers" || path === "/api/following") {
         const email = (url.searchParams.get("email") || "").toLowerCase().trim();
         let sql = path.includes("followers") 
@@ -139,20 +139,33 @@ export const AKUN_API = {
         }
       }
 
-      // 8. API LIKE PERMANEN
-      if (path === "/api/photo/like" && method === "POST") {
-        const { photo_key, user_email } = await req.json();
-        if (!photo_key || !user_email) return new Response(JSON.stringify({ ok: false }), { headers: h, status: 400 });
-        
-        const existing = await env.DB.prepare("SELECT 1 FROM photo_likes WHERE photo_key=? AND user_email=?").bind(photo_key, user_email).first();
-        if (existing) {
-          await env.DB.prepare("DELETE FROM photo_likes WHERE photo_key=? AND user_email=?").bind(photo_key, user_email).run();
-        } else {
-          await env.DB.prepare("INSERT INTO photo_likes (photo_key, user_email) VALUES (?,?)").bind(photo_key, user_email).run();
+      // ✅ 8. API LIKE PERMANEN (Mendukung GET & POST)
+      if (path === "/api/photo/like") {
+        let photo_key = url.searchParams.get("photo_key");
+        let user_email = url.searchParams.get("user_email") || "";
+
+        if (method === "POST") {
+          const body = await req.json().catch(()=>({}));
+          photo_key = body.photo_key || photo_key;
+          user_email = body.user_email || user_email;
+          
+          if (!photo_key || !user_email) return new Response(JSON.stringify({ ok: false, error: "Missing data" }), { headers: h, status: 400 });
+          
+          const existing = await env.DB.prepare("SELECT 1 FROM photo_likes WHERE photo_key=? AND user_email=?").bind(photo_key, user_email).first();
+          if (existing) {
+            await env.DB.prepare("DELETE FROM photo_likes WHERE photo_key=? AND user_email=?").bind(photo_key, user_email).run();
+          } else {
+            await env.DB.prepare("INSERT INTO photo_likes (photo_key, user_email) VALUES (?,?)").bind(photo_key, user_email).run();
+          }
         }
         
+        if (!photo_key) return new Response(JSON.stringify({ ok: false, error: "Missing photo_key" }), { headers: h, status: 400 });
+
         const countRes = await env.DB.prepare("SELECT COUNT(*) as c FROM photo_likes WHERE photo_key=?").bind(photo_key).first();
-        const likedRes = await env.DB.prepare("SELECT 1 FROM photo_likes WHERE photo_key=? AND user_email=?").bind(photo_key, user_email).first();
+        let likedRes = null;
+        if (user_email) {
+          likedRes = await env.DB.prepare("SELECT 1 FROM photo_likes WHERE photo_key=? AND user_email=?").bind(photo_key, user_email).first();
+        }
         
         return new Response(JSON.stringify({ ok: true, likes: countRes?.c || 0, likedByMe: !!likedRes }), { headers: h });
       }

@@ -62,19 +62,37 @@ export const AKUN_API = {
         return new Response(JSON.stringify(Object.values(map)), { headers: h });
       }
 
-      // 3. PROFILE
+            // 3. PROFILE
       if (path === "/api/akun/profile" && method === "GET") {
         const targetEmail = (url.searchParams.get("email") || "").toLowerCase().trim();
         const myEmail = (url.searchParams.get("me") || "").toLowerCase().trim();
         let user = await env.DB.prepare("SELECT email, name, picture FROM users WHERE LOWER(email)=?").bind(targetEmail).first();
         if(!user) user = await env.DB.prepare("SELECT email, name, picture FROM rg_users WHERE LOWER(email)=?").bind(targetEmail).first();
+        
+        // Hitung jumlah tulisan
         let postCount = 0;
         try{ const p = await env.DB.prepare("SELECT COUNT(*) as c FROM tulis WHERE LOWER(email)=? OR LOWER(user_email)=?").bind(targetEmail,targetEmail).first(); postCount=p?.c||0; }catch{}
+        
+        // ✅ Hitung jumlah pengikut (followers) dari database
+        let followerCount = 0;
+        try{ const f = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE following_email=?").bind(targetEmail).first(); followerCount = f?.c || 0; }catch{}
+
+        // ✅ Hitung jumlah yang diikuti (following) dari database
+        let followingCount = 0;
+        try{ const fg = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE follower_email=?").bind(targetEmail).first(); followingCount = fg?.c || 0; }catch{}
+
+        // Cek status follow
         let isFollowing=false;
         try{ if(myEmail){ const c=await env.DB.prepare("SELECT 1 FROM follows WHERE follower_email=? AND following_email=?").bind(myEmail,targetEmail).first(); isFollowing=!!c; } }catch{}
+        
         return new Response(JSON.stringify({
-          email: targetEmail, name: user?.name || targetEmail.split('@')[0],
-          picture: user?.picture || LOGO_DEFAULT, posts: postCount, followers: 0, following: 0, isFollowing
+          email: targetEmail, 
+          name: user?.name || targetEmail.split('@')[0],
+          picture: user?.picture || LOGO_DEFAULT, 
+          posts: postCount, 
+          followers: followerCount, // ⬅️ Menggunakan hasil hitung database
+          following: followingCount, // ⬅️ Menggunakan hasil hitung database
+          isFollowing
         }), { headers: h });
       }
 

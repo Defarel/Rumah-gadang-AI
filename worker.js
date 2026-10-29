@@ -175,7 +175,7 @@ Host: https://rumahgadang-ai.my.id`;
         if(path.startsWith('/api/video')){
           let m=getApi(VIDEO_API_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
         }
-        // ✅ DITAMBAHKAN RUTE API PHOTO UNTUK LIKE & KOMENTAR PERMANEN
+        // ✅ RUTE API AKUN, FOLLOW, FOLLOWERS, FOLLOWING, PHOTO LIKES & COMMENTS
         if(path.startsWith('/api/akun') || path.startsWith('/api/follow') || path.startsWith('/api/followers') || path.startsWith('/api/following') || path.startsWith('/api/photo') || path.startsWith('/api/users') || path.startsWith('/api/search-users')){
           let m=getApi(AKUN_API_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
         }
@@ -215,4 +215,4 @@ Host: https://rumahgadang-ai.my.id`;
 
     return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
   }
-}
+};

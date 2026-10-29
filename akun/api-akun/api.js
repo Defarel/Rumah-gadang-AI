@@ -139,7 +139,7 @@ export const AKUN_API = {
         }
       }
 
-      // ✅ 8. API LIKE PERMANEN (Mendukung GET & POST)
+      // ✅ 8. API LIKE PERMANEN (FIX TOGGLE / LIKE & UNLIKE)
       if (path === "/api/photo/like") {
         let photo_key = url.searchParams.get("photo_key");
         let user_email = url.searchParams.get("user_email") || "";
@@ -155,7 +155,7 @@ export const AKUN_API = {
           if (existing) {
             await env.DB.prepare("DELETE FROM photo_likes WHERE photo_key=? AND user_email=?").bind(photo_key, user_email).run();
           } else {
-            await env.DB.prepare("INSERT INTO photo_likes (photo_key, user_email) VALUES (?,?)").bind(photo_key, user_email).run();
+            await env.DB.prepare("INSERT OR IGNORE INTO photo_likes (photo_key, user_email) VALUES (?,?)").bind(photo_key, user_email).run();
           }
         }
         

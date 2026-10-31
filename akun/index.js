@@ -451,9 +451,9 @@ async function submitSheetComment(){
   if(!currentActivePhotoKey) return;
   let inp = document.getElementById('sheetCommentInput');
   let text = inp.value.trim();
-  if(!text) return toast('Tulis komentar dulu Bos!');
+  if(!text) return toast('Tulis komentar dulu');
   let me = getMyEmail();
-  if(!me) return toast('Login dulu Bos!');
+  if(!me) return toast('Login dulu');
   
   let { key, index } = currentActivePhotoKey;
   let myName = getMyName();
@@ -479,7 +479,7 @@ async function submitSheetComment(){
 
 async function toggleLikeIndex(index){
   let me = getMyEmail();
-  if(!me) return toast('Login dulu Bos untuk Like!');
+  if(!me) return toast('Login dulu untuk Like!');
   let key = (window._currentProfileEmail || 'unknown') + '_' + index;
   
   try {
@@ -494,13 +494,13 @@ async function toggleLikeIndex(index){
       document.getElementById('likeCount-' + index).innerText = j.likes;
       document.getElementById('likeBtn-' + index).style.color = j.likedByMe ? '#ff4444' : '#fff';
     } else {
-      toast('Gagal Like Bos');
+      toast('Gagal Like');
     }
   } catch(e){ toast('Error Like: ' + e.message); }
 }
 
 async function deletePhotoIndex(index){
-  if(!confirm('Hapus foto ini Bos?')) return;
+  if(!confirm('Hapus foto ini')) return;
   let photos = window._photosCache || [];
   photos.splice(index, 1);
   try{
@@ -510,8 +510,8 @@ async function deletePhotoIndex(index){
       window._photosCache = photos;
       closePhotoModal();
       loadContent(getMyEmail(), true);
-      toast('Foto berhasil dihapus Bos!');
-    } else { toast('Gagal hapus Bos'); }
+      toast('Foto berhasil dihapus');
+    } else { toast('Gagal hapus'); }
   }catch(e){ toast('Error: '+e.message); }
 }
 
@@ -548,18 +548,18 @@ async function saveEdit(){
     localStorage.setItem('rg_name',name); 
     localStorage.setItem('rg_avatar',pic); 
   }catch(e){ 
-    if(pic.startsWith('data:')){ pic=LOGO_INNER; localStorage.setItem('rg_avatar',pic); toast('Foto kegedean Bos, pakai link aja Bos biar bebas'); }
+    if(pic.startsWith('data:')){ pic=LOGO_INNER; localStorage.setItem('rg_avatar',pic); toast('Foto kebesaran, pakai link aja biar bebas'); }
   }
-  toast('Ganti foto Bos...'); closeEdit(); render();
+  toast('Ganti foto'); closeEdit(); render();
   try{
     await fetch('/api/akun/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),name,picture:pic})});
-    toast('Profile update Bos!');
+    toast('Profile update');
   }catch(e){}
 }
 function addPhoto(){
   let input=document.createElement('input'); input.type='file'; input.accept='image/*'; input.multiple=true;
   input.onchange=async()=>{
-    if(input.files.length + (window._photosCache||[]).length > 12) return toast('Max 12 Bos!');
+    if(input.files.length + (window._photosCache||[]).length > 12) return toast('Max 12 foto');
     let list=[...(window._photosCache||[])];
     for(let f of input.files){
       let b64=await new Promise(res=>{
@@ -572,7 +572,7 @@ function addPhoto(){
         };
         let r=new FileReader(); r.onload=()=>{ img.src=r.result; }; r.readAsDataURL(f);
       });
-      list.unshift(b64); // FIX: YANG BARU DI ATAS
+      list.unshift(b64);
     }
     let r=await fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),photos:list})});
     let j=await r.json();

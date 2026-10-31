@@ -14,7 +14,6 @@ export const AI_API = {
           return new Response(JSON.stringify({reply:"Bos GROQ_API_KEY belum di set di Cloudflare Dashboard Bos! Buka Workers & Pages > Settings > Variables Bos isi GROQ_API_KEY Bos!"}),{headers:cors});
         }
 
-        // MODEL YANG BENER BOS ADA DI GROQ BOS
         const MODELS = ["openai/gpt-oss-120b","openai/gpt-oss-20b","qwen/qwen3-32b"];
 
         for(let model of MODELS){

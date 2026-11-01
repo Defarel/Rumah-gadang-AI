@@ -61,7 +61,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 
   <!-- Input Pesan -->
   <div class="bottom-chat-bar">
-    <input type="text" id="userInput" class="chat-input" placeholder="Tanya / Gambarkan sesuatu..." onkeypress="handleKeyPress(event)">
+    <input type="text" id="userInput" class="chat-input" placeholder="Tanya atau gambarkan sesuatu..." onkeypress="handleKeyPress(event)">
     <button class="btn-kirim" id="sendBtn" onclick="handleSend()">KIRIM &rarr;</button>
   </div>
 </div>
@@ -118,7 +118,7 @@ async function handleSend(){
 
   const loadingDiv = appendMessage('Saratonyo mandengarkan...', 'ai');
 
-  // Deteksi otomatis apakah pengguna ingin membuat gambar (mengandung kata "gambarkan" / "buat gambar" / "lukis")
+  // Deteksi otomatis perintah gambar
   const isImageRequest = /^(gambarkan|buatkan gambar|lukis|foto|image|generate)/i.test(prompt);
   const endpoint = isImageRequest ? '/api/t2i' : '/api/ai';
 
@@ -128,21 +128,11 @@ async function handleSend(){
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: prompt })
     });
-
-    // Jika endpoint /api/t2i langsung mengembalikan binary gambar (image/*)
-    const contentType = res.headers.get("content-type") || "";
-    if (isImageRequest && contentType.startsWith("image/")) {
-      const blob = await res.blob();
-      const imageUrl = URL.createObjectURL(blob);
-      loadingDiv.innerHTML = '<div>' + prompt + '</div><img src="' + imageUrl + '" style="max-width:100%; border-radius:12px; margin-top:8px; display:block;">';
-      return;
-    }
-
     const data = await res.json();
 
     if (isImageRequest) {
       if (data.ok && data.image) {
-        loadingDiv.innerHTML = '<div>' + prompt + '</div><img src="' + data.image + '" style="max-width:100%; border-radius:12px; margin-top:8px; display:block;">';
+        loadingDiv.innerHTML = '<div>Gambar: ' + prompt + '</div><img src="' + data.image + '" style="max-width:100%; border-radius:12px; margin-top:8px; display:block;">';
       } else {
         loadingDiv.textContent = "Gagal buat gambar Bos: " + (data.error || JSON.stringify(data.raw || "Unknown error"));
       }
@@ -154,7 +144,7 @@ async function handleSend(){
       }
     }
   } catch(e) {
-    loadingDiv.textContent = "Gagal terhubung ke server Bos: " + e.message;
+    loadingDiv.textContent = "Gagal terhubung ke AI Bos: " + e.message;
   } finally {
     sendBtn.disabled = false;
     chatBox.scrollTop = chatBox.scrollHeight;

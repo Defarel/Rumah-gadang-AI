@@ -1,4 +1,4 @@
-import { withPayment } from 'https://esm.sh/mppx';
+import { withPayment } from 'mppx';
 import * as HOME_M from './home/index.js';
 import * as FOTO_M from './foto/index.js';
 import * as VIDEO_M from './video/index.js';

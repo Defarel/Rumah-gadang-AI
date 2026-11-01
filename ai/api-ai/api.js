@@ -37,7 +37,6 @@ export const AI_API = {
       // Jika Glia langsung kasih gambar binary, teruskan langsung sebagai gambar
       let ct = r.headers.get("content-type")||"";
       if(ct.startsWith("image/")){
-        // Return gambar langsung, bukan JSON
         return new Response(r.body, {
           status: 200,
           headers: {
@@ -55,13 +54,11 @@ export const AI_API = {
       
       if(img){
         if(img.startsWith("http")){
-          // Jika URL, fetch lagi dan return sebagai gambar
           let imgRes = await fetch(img);
           return new Response(imgRes.body, {
             headers: {"Content-Type": imgRes.headers.get("content-type")||"image/png","Access-Control-Allow-Origin":"*"}
           });
         }
-        // Jika data URL, return JSON yang berisi data URL
         return new Response(JSON.stringify({ok:true,image:img}),{headers:{"Content-Type":"application/json","Access-Control-Allow-Origin":"*"}});
       }
 

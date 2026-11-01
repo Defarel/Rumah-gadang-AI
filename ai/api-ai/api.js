@@ -1,13 +1,55 @@
+// pakai mppx buat bayar 402 Glia
+import { withPayment } from 'mppx';
+
 export const AI_API = {
   async handle(req, env, url, corsHeaders) {
     const cors = corsHeaders || {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Content-Type": "application/json"
     };
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
 
     const path = url.pathname.toLowerCase();
+
+    if (path === "/api/t2i" && req.method === "POST") {
+      try {
+        let { prompt, model } = await req.json().catch(()=>({}));
+        model = model || "krea/krea-2-medium-turbo";
+        prompt = (prompt||"").trim();
+
+        // Wallet key yang ada saldo $0.96
+        let walletKey = (env.API_T2I || "").trim();
+        if(!walletKey) return new Response(JSON.stringify({error:"API_T2I wallet belum set"}),{status:500,headers:cors});
+
+        // Bungkus fetch pakai mppx biar bisa bayar 402 otomatis
+        const fetchWithPayment = withPayment(fetch, {
+          privateKey: walletKey, // ini private key wallet kamu yang saldo $0.96
+        });
+
+        let r = await fetchWithPayment("https://api.glianalabs.com/v1/infer",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({model,prompt})
+        });
+
+        // Sekarang r harusnya 200 + gambar, bukan 402 lagi
+        let ct = r.headers.get("content-type")||"";
+        if(ct.startsWith("image/")){
+          return new Response(r.body, {
+            status: 200,
+            headers: {"Content-Type": ct, "Access-Control-Allow-Origin":"*", "Cache-Control":"public, max-age=86400"}
+          });
+        }
+
+        let text = await r.text();
+        return new Response(text, {status:r.status,headers:{"Content-Type":"application/json","Access-Control-Allow-Origin":"*"}});
+
+      } catch(e){
+        return new Response(JSON.stringify({error:e.message}),{status:500,headers:cors});
+      }
+    }
 
     if (path === "/api/ai" && req.method === "POST") {
       let { prompt } = await req.json().catch(()=>({}));
@@ -15,54 +57,10 @@ export const AI_API = {
       for(let m of ["openai/gpt-oss-120b","llama-3.3-70b-versatile"]){
         try{
           let r=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+GROQ_KEY},body:JSON.stringify({model:m,messages:[{role:"system",content:"KAMU: Rumah Gadang AI"},{role:"user",content:prompt}],max_tokens:400})});
-          let d=await r.json(); if(d.choices?.[0]?.message?.content) return new Response(JSON.stringify({reply:d.choices[0].message.content,model:m}),{headers:{"Content-Type":"application/json","Access-Control-Allow-Origin":"*"}});
+          let d=await r.json(); if(d.choices?.[0]?.message?.content) return new Response(JSON.stringify({reply:d.choices[0].message.content}),{headers:{"Content-Type":"application/json","Access-Control-Allow-Origin":"*"}});
         }catch{}
       }
       return new Response(JSON.stringify({reply:"Groq error"}),{headers:{"Content-Type":"application/json","Access-Control-Allow-Origin":"*"}});
-    }
-
-    if (path === "/api/t2i" && req.method === "POST") {
-      let { prompt, model } = await req.json().catch(()=>({}));
-      model = model || "krea/krea-2-medium-turbo";
-      prompt = (prompt||"").trim();
-      let T2I_KEY = (env.API_T2I||"").trim();
-      if(!T2I_KEY) return new Response(JSON.stringify({ok:false,error:"API_T2I belum set"}),{status:500,headers:cors});
-      
-      let r = await fetch("https://api.glianalabs.com/v1/infer",{
-        method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer "+T2I_KEY},
-        body:JSON.stringify({model,prompt})
-      });
-
-      // Jika Glia langsung kasih gambar binary, teruskan langsung sebagai gambar
-      let ct = r.headers.get("content-type")||"";
-      if(ct.startsWith("image/")){
-        return new Response(r.body, {
-          status: 200,
-          headers: {
-            "Content-Type": ct,
-            "Access-Control-Allow-Origin": "*",
-            "Cache-Control": "public, max-age=86400"
-          }
-        });
-      }
-
-      // Jika JSON, ambil URL/Base64 nya dan redirect
-      let d = await r.json().catch(async()=>({raw:await r.text()}));
-      let img = d.image_url || d.url || d.image || d.output || d.images?.[0] || null;
-      if(d.b64_json) img = `data:image/png;base64,${d.b64_json}`;
-      
-      if(img){
-        if(img.startsWith("http")){
-          let imgRes = await fetch(img);
-          return new Response(imgRes.body, {
-            headers: {"Content-Type": imgRes.headers.get("content-type")||"image/png","Access-Control-Allow-Origin":"*"}
-          });
-        }
-        return new Response(JSON.stringify({ok:true,image:img}),{headers:{"Content-Type":"application/json","Access-Control-Allow-Origin":"*"}});
-      }
-
-      return new Response(JSON.stringify({ok:false,raw:d}),{status:500,headers:{"Content-Type":"application/json","Access-Control-Allow-Origin":"*"}});
     }
     return null;
   }

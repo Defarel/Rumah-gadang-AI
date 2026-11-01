@@ -1,4 +1,3 @@
-import { withPayment } from 'https://esm.sh/mppx';
 export const AI_API = {
   async handle(req, env, url, corsHeaders) {
     const cors = corsHeaders || {

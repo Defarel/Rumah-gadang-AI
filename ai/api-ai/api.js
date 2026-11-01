@@ -1,5 +1,5 @@
-// pakai mppx buat bayar 402 Glia
-import { withPayment } from 'mppx';
+// FIX: pakai esm.sh biar gak perlu npm install di HP
+import { withPayment } from 'https://esm.sh/mppx';
 
 export const AI_API = {
   async handle(req, env, url, corsHeaders) {
@@ -18,14 +18,14 @@ export const AI_API = {
         let { prompt, model } = await req.json().catch(()=>({}));
         model = model || "krea/krea-2-medium-turbo";
         prompt = (prompt||"").trim();
+        if(!prompt) return new Response(JSON.stringify({error:"prompt kosong"}),{status:400,headers:cors});
 
-        // Wallet key yang ada saldo $0.96
-        let walletKey = (env.API_T2I || "").trim();
-        if(!walletKey) return new Response(JSON.stringify({error:"API_T2I wallet belum set"}),{status:500,headers:cors});
+        let walletKey = (env.API_T2I || "").trim(); // ini gk_iU2v... kamu
+        if(!walletKey) return new Response(JSON.stringify({error:"API_T2I belum set"}),{status:500,headers:cors});
 
-        // Bungkus fetch pakai mppx biar bisa bayar 402 otomatis
+        // Ini yang bayar 402 otomatis
         const fetchWithPayment = withPayment(fetch, {
-          privateKey: walletKey, // ini private key wallet kamu yang saldo $0.96
+          privateKey: walletKey,
         });
 
         let r = await fetchWithPayment("https://api.glianalabs.com/v1/infer",{
@@ -34,7 +34,7 @@ export const AI_API = {
           body:JSON.stringify({model,prompt})
         });
 
-        // Sekarang r harusnya 200 + gambar, bukan 402 lagi
+        // Sekarang harusnya 200 + gambar, bukan 402 lagi
         let ct = r.headers.get("content-type")||"";
         if(ct.startsWith("image/")){
           return new Response(r.body, {

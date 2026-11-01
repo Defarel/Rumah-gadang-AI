@@ -11,7 +11,7 @@ import * as VIDEO_API_M from './video/api-video/api.js';
 import * as AKUN_API_M from './akun/api-akun/api.js';
 import * as AI_API_M from './ai/api-ai/api.js';
 
-// AI_API kamu udah bener, cuma aku sinkronin biar GROQ + API_T2I kepisah
+// FINAL - TANPA POLLINATIONS - MURNI GROQ + GLIA $0.96
 export const AI_API = {
   async handle(req, env, url, corsHeaders) {
     const cors = corsHeaders || {
@@ -24,13 +24,12 @@ export const AI_API = {
 
     const p = url.pathname.toLowerCase();
 
-    // TEST HP
     if (req.method === "GET" && (p === "/api/ai" || p === "/api/t2i")) {
       return new Response(JSON.stringify({
         ok: true,
-        TEXT: "GROQ_API_KEY: " + !!env.GROQ_API_KEY + " | API_T2I juga bisa: " + !!env.API_T2I,
-        IMAGE: "API_T2I: " + !!env.API_T2I,
-        has_GROQ: !!(env.GROQ_API_KEY || env.API_T2I),
+        TEXT: "GROQ_API_KEY: " + !!env.GROQ_API_KEY,
+        IMAGE: "API_T2I: " + !!env.API_T2I + " Saldo $0.96",
+        has_GROQ: !!env.GROQ_API_KEY,
         has_T2I: !!env.API_T2I
       }), { headers: cors });
     }
@@ -39,10 +38,8 @@ export const AI_API = {
       let { prompt } = await req.json().catch(()=>({}));
       prompt = (prompt||"").trim();
       if(!prompt) return new Response(JSON.stringify({reply:"Prompt kosong"}),{headers:cors});
-      
-      let GROQ_KEY = (env.GROQ_API_KEY || env.GROQ_KEY || env.API_T2I || "").trim();
-      if(!GROQ_KEY) return new Response(JSON.stringify({reply:"GROQ_API_KEY / API_T2I belum set"}),{headers:cors});
-
+      let GROQ_KEY = (env.GROQ_API_KEY || "").trim();
+      if(!GROQ_KEY) return new Response(JSON.stringify({reply:"GROQ_API_KEY belum set"}),{headers:cors});
       for (let model of ["openai/gpt-oss-120b","openai/gpt-oss-20b","llama-3.3-70b-versatile"]) {
         try {
           let r = await fetch("https://api.groq.com/openai/v1/chat/completions",{
@@ -59,23 +56,56 @@ export const AI_API = {
       return new Response(JSON.stringify({reply:"Groq gagal"}),{headers:cors});
     }
 
-    if ((p === "/api/t2i" || p === "/api/image") && req.method === "POST") {
-      let { prompt, model } = await req.json().catch(()=>({}));
-      model = model || "krea/krea-2-medium-turbo";
-      let T2I_KEY = (env.API_T2I || "").trim();
-      if(!T2I_KEY) return new Response(JSON.stringify({error:"API_T2I belum set"}),{headers:cors});
-      if(!prompt) return new Response(JSON.stringify({error:"Prompt kosong"}),{headers:cors});
+    if ((p === "/api/t2i") && req.method === "POST") {
+      try {
+        let { prompt, model } = await req.json().catch(()=>({}));
+        model = model || "krea/krea-2-medium-turbo";
+        prompt = (prompt||"").trim();
+        let T2I_KEY = (env.API_T2I || "").trim();
+        if(!T2I_KEY) return new Response(JSON.stringify({ok:false,error:"API_T2I belum set"}),{headers:cors,status:500});
+        if(!prompt) return new Response(JSON.stringify({ok:false,error:"Prompt kosong"}),{headers:cors,status:400});
 
-      let r = await fetch("https://api.glianalabs.com/v1/infer",{
-        method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer "+T2I_KEY},
-        body:JSON.stringify({model,prompt})
-      });
-      let d = await r.json().catch(()=>({raw: "bukan json"}));
-      if(r.status===402){
-        return new Response(JSON.stringify({ok:false,need_payment:true,detail:d}),{headers:cors,status:402});
+        let r = await fetch("https://api.glianalabs.com/v1/infer",{
+          method:"POST",
+          headers:{"Content-Type":"application/json","Authorization":"Bearer "+T2I_KEY},
+          body:JSON.stringify({model,prompt})
+        });
+
+        let ct = r.headers.get("content-type")||"";
+        
+        // FIX UTAMA: Jika Glia kasih langsung gambar binary
+        if(ct.startsWith("image/")){
+          let buf = await r.arrayBuffer();
+          let bytes = new Uint8Array(buf);
+          let binary = "";
+          for(let i=0;i<bytes.length;i++) binary += String.fromCharCode(bytes[i]);
+          let b64 = btoa(binary);
+          let dataUrl = `data:${ct};base64,${b64}`;
+          return new Response(JSON.stringify({ok:true,prompt,model,image:dataUrl}),{headers:cors});
+        }
+
+        let text = await r.text();
+        let d; try{ d = JSON.parse(text); } catch{ d = {raw_text:text}; }
+
+        if(r.status===402){
+          return new Response(JSON.stringify({ok:false,error:"Saldo habis, topup di dashboard.glianalabs.com",raw:d}),{headers:cors,status:402});
+        }
+
+        let img = d.image_url || d.url || d.image || d.output || d.images?.[0] || null;
+        if(d.b64_json) img = `data:image/png;base64,${d.b64_json}`;
+        if(typeof img === "string" && img.length > 500 && !img.startsWith("http") && !img.startsWith("data:")){
+          img = `data:image/png;base64,${img}`;
+        }
+
+        if(img){
+          return new Response(JSON.stringify({ok:true,prompt,model,image:img}),{headers:cors});
+        }
+
+        return new Response(JSON.stringify({ok:false,error:"Glia tidak kasih gambar",raw:d}),{headers:cors,status:500});
+
+      } catch(e){
+        return new Response(JSON.stringify({ok:false,error:e.message}),{headers:cors,status:500});
       }
-      return new Response(JSON.stringify({ok:true,prompt,model,image:d.image_url||d.url||d.output,raw:d}),{headers:cors});
     }
     return null;
   }
@@ -106,7 +136,6 @@ export default {
     const cors = {'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET,POST,OPTIONS,DELETE','Access-Control-Allow-Headers':'Content-Type','Cache-Control':'no-store'};
     if(req.method==="OPTIONS") return new Response("",{headers:cors});
 
-    // HTTPS & WWW redirect
     const proto = req.headers.get('x-forwarded-proto') || url.protocol.replace(':','');
     const host = (req.headers.get('host') || "").toLowerCase();
     if(proto==='http') return Response.redirect("https://rumahgadang-ai.my.id"+url.pathname+url.search,301);
@@ -118,8 +147,7 @@ export default {
         if(path.startsWith('/api/foto')||path.startsWith('/api/images')||path.startsWith('/api/ig-curated')){ let m=getApi(FOTO_API_M); let r=await m?.handle?.(req,env,url,cors); if(r) return r; }
         if(path.startsWith('/api/video')){ let m=getApi(VIDEO_API_M); let r=await m?.handle?.(req,env,url,cors); if(r) return r; }
         if(path.startsWith('/api/akun')||path.startsWith('/api/users')){ let m=getApi(AKUN_API_M); let r=await m?.handle?.(req,env,url,cors); if(r) return r; }
-        // INI KUNCINYA - udah include /api/t2i
-        if(path.startsWith('/api/ai')||path.startsWith('/api/t2i')||path.startsWith('/api/image')){
+        if(path.startsWith('/api/ai')||path.startsWith('/api/t2i')){
           let r=await AI_API.handle(req,env,url,cors);
           if(r) return r;
           let m=getApi(AI_API_M); let r2=await m?.handle?.(req,env,url,cors); if(r2) return r2;

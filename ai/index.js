@@ -134,13 +134,13 @@ async function handleSend(){
       if (data.ok && data.image) {
         loadingDiv.innerHTML = '<div>Gambar: ' + prompt + '</div><img src="' + data.image + '" style="max-width:100%; border-radius:12px; margin-top:8px; display:block;">';
       } else {
-        loadingDiv.textContent = "Gagal buat gambar Bos: " + (data.error || JSON.stringify(data.raw || "Unknown error"));
+        loadingDiv.textContent = "Gagal buat gambar Bos: " + (data.error || JSON.stringify(data.raw || data));
       }
     } else {
       if (data.reply) {
         loadingDiv.textContent = data.reply;
       } else {
-        loadingDiv.textContent = "Respon tidak diketahui Bos.";
+        loadingDiv.textContent = "Respon tidak diketahui Bos: " + JSON.stringify(data);
       }
     }
   } catch(e) {

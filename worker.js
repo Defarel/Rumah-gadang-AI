@@ -12,6 +12,78 @@ import * as AKUN_API_M from './akun/api-akun/api.js';
 import * as AI_API_M from './ai/api-ai/api.js';
 import * as SITEMAP_M from './api-sitemap/index.js';
 
+// ==========================================
+// MODUL AI_API (Rumah Gadang AI Handler)
+// ==========================================
+export const AI_API = {
+  async handle(req, env, url, corsHeaders) {
+    const cors = corsHeaders || {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization"
+    };
+    
+    if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+    
+    if (url.pathname === "/api/ai" && req.method === "POST") {
+      try {
+        let body = await req.json();
+        let prompt = (body.prompt || "").trim();
+        if (!prompt) return new Response(JSON.stringify({ error: "Prompt kosong Bos" }), { headers: cors });
+        
+        // Membaca variabel rahasia API_T2I, GROQ_API_KEY, atau GROQ_KEY dari Cloudflare
+        let API_KEY = env.API_T2I || env.GROQ_API_KEY || env.GROQ_KEY || "";
+        if (!API_KEY) {
+          return new Response(JSON.stringify({ 
+            reply: "Bos API_T2I / GROQ_API_KEY belum di-set di Cloudflare Dashboard Bos! Buka Workers & Pages > Settings > Variables lalu tambahkan variabel rahasia tersebut Bos!" 
+          }), { headers: cors });
+        }
+
+        const MODELS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3-32b"];
+
+        for (let model of MODELS) {
+          try {
+            let r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + API_KEY
+              },
+              body: JSON.stringify({
+                model: model,
+                messages: [
+                  { role: "system", content: "KAMU: Rumah Gadang AI, dibuat Tim Rumah Gadang AI Padang. Gaya: Santai, ramah Minang, singkat padat max 50 kata, jawab langsung inti, jangan tabel, jawab dengan sopan, jangan basa-basi panjang." },
+                  { role: "user", content: prompt }
+                ],
+                temperature: 0.7,
+                max_tokens: 200
+              })
+            });
+            let d = await r.json();
+            if (d.error) {
+              console.log("Groq error model " + model + ":", d.error.message);
+              continue;
+            }
+            let content = d.choices?.[0]?.message?.content;
+            if (content) {
+              return new Response(JSON.stringify({ reply: content }), { 
+                headers: { ...cors, "Content-Type": "application/json" } 
+              });
+            }
+          } catch (e) { 
+            console.log("fetch fail " + model, e); 
+            continue; 
+          }
+        }
+        return new Response(JSON.stringify({ reply: "Error AI Bos semua model Groq gagal Bos, cek kunci API Anda valid gak Bos!" }), { headers: cors });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: "Server error Bos: " + e.message }), { headers: cors });
+      }
+    }
+    return null;
+  }
+};
+
 function getHtml(mod){ 
   return mod.default || mod.HOME_HTML || mod.HOME || mod.FOTO_HTML || mod.FOTO || mod.VIDEO_HTML || mod.VIDEO || mod.AI_HTML || mod.AI || mod.KANTOR_HTML || mod.KANTOR || mod.LUAR_HTML || mod.LUAR || mod.DALAM_HTML || mod.DALAM || mod.AKUN_HTML || mod.AKUN || Object.values(mod)[0]; 
 }
@@ -175,12 +247,15 @@ Host: https://rumahgadang-ai.my.id`;
         if(path.startsWith('/api/video')){
           let m=getApi(VIDEO_API_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
         }
-        // ✅ RUTE API AKUN, FOLLOW, FOLLOWERS, FOLLOWING, PHOTO LIKES & COMMENTS
         if(path.startsWith('/api/akun') || path.startsWith('/api/follow') || path.startsWith('/api/followers') || path.startsWith('/api/following') || path.startsWith('/api/photo') || path.startsWith('/api/users') || path.startsWith('/api/search-users')){
           let m=getApi(AKUN_API_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
         }
+        // Mengarahkan rute /api/ai ke modul AI_API lokal yang kita definisikan
         if(path.startsWith('/api/ai')){
-          let m=getApi(AI_API_M); if(m?.handle){ let r=await m.handle(req,env,url,cors); if(r) return r; }
+          let r = await AI_API.handle(req, env, url, cors);
+          if(r) return r;
+          let m = getApi(AI_API_M); 
+          if(m?.handle){ let r2 = await m.handle(req,env,url,cors); if(r2) return r2; }
         }
       }catch(e){
         return new Response(JSON.stringify({ok:false,error:e.message}),{headers:cors,status:500});
@@ -188,7 +263,6 @@ Host: https://rumahgadang-ai.my.id`;
       return new Response(JSON.stringify({ok:false,error:"No handler "+path}),{headers:cors,status:404});
     }
 
-    // ✅ TANGKAP RUTE NAMA AKUN PROFIL DI ATAS (SEBELUM /akun)
     const segments = path.split("/").filter(Boolean);
     if(segments.length > 0){
       let username = segments[0];

@@ -19,11 +19,12 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .chat-bubble.user{align-self:flex-end;background:rgba(0,255,136,0.85);color:#000;font-weight:600;border-bottom-right-radius:4px;box-shadow:0 0 10px rgba(0,255,136,0.4)}
 .chat-bubble.ai{align-self:flex-start;background:rgba(20,20,20,0.85);color:#fff;border:1px solid #00ff88;border-bottom-left-radius:4px;box-shadow:0 0 10px rgba(0,0,0,0.6)}
 .chat-bubble.err{align-self:flex-start;background:rgba(255,50,50,0.9);color:#fff;border:1px solid #ff8888}
-.bottom-chat-bar{position:absolute;bottom:85px;left:0;width:100%;padding:12px 16px;display:flex;gap:10px;z-index:10;background:linear-gradient(to top, rgba(0,0,0,0.95), transparent)}
+.bottom-chat-bar{position:absolute;bottom:125px;left:0;width:100%;padding:12px 16px;display:flex;gap:10px;z-index:10;background:linear-gradient(to top, rgba(0,0,0,0.95), transparent)}
 .chat-input{flex:1;background:rgba(20,20,20,0.85);border:1px solid #333;border-radius:16px;padding:14px 16px;color:#fff;font-size:14px;outline:none;backdrop-filter:blur(6px)}
 .chat-input:focus{border-color:#00ff88}
-.btn-kirim{background:#00ff88;color:#000;border:none;padding:0 20px;border-radius:16px;font-weight:900;font-size:14px;cursor:pointer;box-shadow:0 0 10px rgba(0,255,136,0.6)}
-.btn-kirim:disabled{background:#555;color:#888}
+.chat-input::placeholder{color:#aaa}
+.btn-kirim{background:#00ff88;color:#000;border:none;padding:0 20px;border-radius:16px;font-weight:900;font-size:14px;cursor:pointer;box-shadow:0 0 10px rgba(0,255,136,0.6);display:grid;place-items:center;transition:0.2s}
+.btn-kirim:disabled{background:#555;color:#888;cursor:not-allowed;box-shadow:none}
 .bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99}
 .bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}
 .bot a.on{color:#fff}
@@ -31,9 +32,9 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 </head>
 <body>
 <div id="app">
-  <audio id="bgMusic" src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/19966ec207201871dcc41fb70cbe82365d42d07d/ai/RumahGadangV1.m4a" loop></audio>
+  <audio id="bgMusic" src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/19966ec207201871dcc41fb70cbe82365d42d07d/ai/RumahGadangV1.m4a" autoplay loop></audio>
   <div class="bg-container">
-    <img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg" alt="BG">
+    <img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg" alt="Rumah Gadang AI Background">
     <div class="overlay-dark"></div>
   </div>
   <div class="top-bar">
@@ -41,11 +42,11 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
     <button class="floating-btn" id="musicBtn" onclick="toggleMusic()">🔊 RG Musik</button>
   </div>
   <div class="chat-container" id="chatBox">
-    <div class="chat-bubble ai">Halo sanak! 👋 Ambo Rumah Gadang AI. Tanyo se, ambo siap bantu. Cobo klik KIRIM.</div>
+    <div class="chat-bubble ai">Halo sanak! 👋 Ambo Rumah Gadang AI. Tanyo teks atau ketik <b>Gambarkan rumah gadang</b> untuk buat gambar.</div>
   </div>
   <div class="bottom-chat-bar">
-    <input type="text" id="userInput" class="chat-input" placeholder="Tanya Rumah Gadang AI..." onkeypress="if(event.key==='Enter')handleSend()">
-    <button class="btn-kirim" id="sendBtn" onclick="handleSend()">KIRIM →</button>
+    <input type="text" id="userInput" class="chat-input" placeholder="Tanya atau Gambarkan..." onkeypress="handleKeyPress(event)">
+    <button class="btn-kirim" id="sendBtn" onclick="handleSend()">KIRIM &rarr;</button>
   </div>
 </div>
 <div class="bot">
@@ -59,9 +60,26 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 <script>
 const audio = document.getElementById('bgMusic');
 const musicBtn = document.getElementById('musicBtn');
+document.addEventListener('DOMContentLoaded', () => {
+  audio.play().catch(() => {
+    const playOnInteraction = () => {
+      audio.play();
+      document.removeEventListener('click', playOnInteraction);
+    };
+    document.addEventListener('click', playOnInteraction);
+  });
+});
 function toggleMusic(){
-  if(audio.paused){ audio.play().catch(()=>{}); musicBtn.innerHTML = "🔊 RG Musik"; }
-  else { audio.pause(); musicBtn.innerHTML = "🔇 RG Musik"; }
+  if(audio.paused){
+    audio.play();
+    musicBtn.innerHTML = "🔊 RG Musik";
+  } else {
+    audio.pause();
+    musicBtn.innerHTML = "📁 RG Musik";
+  }
+}
+function handleKeyPress(e){
+  if(e.key === 'Enter') handleSend();
 }
 async function handleSend(){
   const inputEl = document.getElementById('userInput');
@@ -69,36 +87,59 @@ async function handleSend(){
   const chatBox = document.getElementById('chatBox');
   const prompt = inputEl.value.trim();
   if(!prompt) return;
+
+  // DETEKSI: teks atau gambar?
+  const isImageRequest = /gambark|buat.*gambar|bikin.*gambar|lukis|desain|buatkan.*foto|buat.*foto|image|picture|photo/i.test(prompt);
+
   appendMessage(prompt, 'user');
   inputEl.value = '';
   sendBtn.disabled = true;
-  sendBtn.innerText = "...";
-  const loadingDiv = appendMessage('Saratonyo mandengarkan...', 'ai');
+  sendBtn.innerHTML = "...";
+
+  const loadingDiv = appendMessage(isImageRequest ? 'Ambo gambar dulu sanak... 🎨 (pakai API_T2I)' : 'Saratonyo mandengarkan...', 'ai');
+
   try {
-    const res = await fetch('/api/ai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: prompt })
-    });
-    const text = await res.text();
-    let data;
-    try { data = JSON.parse(text); } catch { throw new Error(text.slice(0,200)); }
-    if(data.reply){
-      renderAiMessage(loadingDiv, data.reply + (data.model ? " ["+data.model+"]" : ""));
-    } else if(data.error){
-      loadingDiv.className = 'chat-bubble err';
-      loadingDiv.textContent = "Maaf Bos: " + (data.error || JSON.stringify(data));
+    if(isImageRequest){
+      // TEXT TO IMAGE - pakai API_T2I
+      const res = await fetch('/api/t2i', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: prompt, model: "krea/krea-2-medium-turbo" })
+      });
+      const data = await res.json();
+      if(data.image){
+        loadingDiv.innerHTML = '<div><b>Gambar:</b> '+prompt+'</div><img src="'+data.image+'" style="max-width:100%;border-radius:12px;margin-top:10px;border:1px solid #00ff88;display:block" onload="document.getElementById(\\'chatBox\\').scrollTop=999999"><div style="margin-top:8px;font-size:11px;opacity:0.7">Model: '+data.model+'</div>';
+      } else if(data.need_payment){
+        loadingDiv.className = 'chat-bubble err';
+        loadingDiv.textContent = "API_T2I butuh bayar mppx Bos: " + JSON.stringify(data).slice(0,300);
+      } else {
+        loadingDiv.className = 'chat-bubble err';
+        loadingDiv.textContent = "Gagal gambar: " + JSON.stringify(data).slice(0,500);
+      }
     } else {
-      loadingDiv.textContent = JSON.stringify(data);
+      // TEXT TO TEXT - pakai GROQ_API_KEY
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: prompt })
+      });
+      const data = await res.json();
+      if(data.reply){
+        loadingDiv.textContent = data.reply + (data.model ? " ["+data.model+"]" : "");
+      } else if(data.error){
+        loadingDiv.className = 'chat-bubble err';
+        loadingDiv.textContent = "Maaf Bos: " + data.error;
+      } else {
+        loadingDiv.textContent = JSON.stringify(data).slice(0,500);
+      }
     }
   } catch(e) {
     loadingDiv.className = 'chat-bubble err';
-    loadingDiv.textContent = "Gagal Bos: " + e.message + " | Cek /api/ai di browser, harusnya hasKey:true";
+    loadingDiv.textContent = "Gagal terhubung Bos: " + e.message;
   } finally {
     sendBtn.disabled = false;
-    sendBtn.innerText = "KIRIM →";
+    sendBtn.innerHTML = "KIRIM &rarr;";
     chatBox.scrollTop = chatBox.scrollHeight;
-    inputEl.focus();
   }
 }
 function appendMessage(text, sender){
@@ -109,17 +150,6 @@ function appendMessage(text, sender){
   chatBox.appendChild(msg);
   chatBox.scrollTop = chatBox.scrollHeight;
   return msg;
-}
-function renderAiMessage(element, text) {
-  const imgRegex = /!\\[([^\\]]*)\\]\\(([^)]+)\\)/;
-  const match = text.match(imgRegex);
-  if (match) {
-    const altText = match[1];
-    const imgUrl = match[2];
-    element.innerHTML = '<div>' + altText + '</div><img src="' + imgUrl + '" style="max-width:100%; border-radius:12px; margin-top:8px;">';
-  } else {
-    element.textContent = text;
-  }
 }
 </script>
 </body>

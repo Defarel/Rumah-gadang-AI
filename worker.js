@@ -1,3 +1,4 @@
+import { withPayment } from 'https://esm.sh/mppx';
 import * as HOME_M from './home/index.js';
 import * as FOTO_M from './foto/index.js';
 import * as VIDEO_M from './video/index.js';
@@ -11,7 +12,7 @@ import * as VIDEO_API_M from './video/api-video/api.js';
 import * as AKUN_API_M from './akun/api-akun/api.js';
 import * as AI_API_M from './ai/api-ai/api.js';
 
-// FINAL - TANPA POLLINATIONS - MURNI GROQ + GLIA $0.96
+// FINAL - TANPA BEARER - PAKAI MPPX BAYAR 402 OTOMATIS
 export const AI_API = {
   async handle(req, env, url, corsHeaders) {
     const cors = corsHeaders || {
@@ -24,7 +25,7 @@ export const AI_API = {
 
     const p = url.pathname.toLowerCase();
 
-    if (req.method === "GET" && (p === "/api/ai" || p === "/api/t2i")) {
+    if (req.method === "GET" && (p === "/api/ai" || p === "/api/t2i" || p === "/api/t")) {
       return new Response(JSON.stringify({
         ok: true,
         TEXT: "GROQ_API_KEY: " + !!env.GROQ_API_KEY,
@@ -65,15 +66,17 @@ export const AI_API = {
         if(!T2I_KEY) return new Response(JSON.stringify({ok:false,error:"API_T2I belum set"}),{headers:cors,status:500});
         if(!prompt) return new Response(JSON.stringify({ok:false,error:"Prompt kosong"}),{headers:cors,status:400});
 
-        let r = await fetch("https://api.glianalabs.com/v1/infer",{
+        // INI FIX 402 - BAYAR OTOMATIS PAKAI SALDO $0.96
+        const fetchWithPayment = withPayment(fetch, { privateKey: T2I_KEY });
+
+        let r = await fetchWithPayment("https://api.glianalabs.com/v1/infer",{
           method:"POST",
-          headers:{"Content-Type":"application/json","Authorization":"Bearer "+T2I_KEY},
+          headers:{"Content-Type":"application/json"},
           body:JSON.stringify({model,prompt})
         });
 
         let ct = r.headers.get("content-type")||"";
         
-        // FIX UTAMA: Jika Glia kasih langsung gambar binary
         if(ct.startsWith("image/")){
           let buf = await r.arrayBuffer();
           let bytes = new Uint8Array(buf);

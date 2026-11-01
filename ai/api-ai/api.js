@@ -14,70 +14,51 @@ export const AI_API = {
         let prompt = (body.prompt || "").trim();
         if (!prompt) return new Response(JSON.stringify({ error: "Prompt kosong Bos" }), { headers: cors });
         
-        // Mengambil kunci dari variabel rahasia API_T2I yang baru Anda buat di Cloudflare
-        let API_KEY = env.API_T2I || env.GROQ_API_KEY || env.GROQ_KEY || "";
+        // Mengambil kunci dari variabel rahasia API_T2I di Cloudflare Dashboard Anda
+        let API_KEY = env.API_T2I || "";
         if (!API_KEY) {
           return new Response(JSON.stringify({ 
-            reply: "Bos API_T2I belum di-set di Cloudflare Dashboard Bos! Buka Workers & Pages > Settings > Variables lalu tambahkan API_T2I Bos!" 
+            reply: "Bos API_T2I belum di-set di Cloudflare Dashboard Bos! Buka Workers & Pages > Settings > Variables lalu isi API_T2I Bos!" 
           }), { headers: cors });
         }
 
-        // Contoh integrasi ke endpoint AI eksternal (seperti Glia Labs / T2I) atau tetap menggunakan Groq
-        // Jika Anda ingin mengarahkannya langsung ke layanan eksternal menggunakan API_T2I:
-        /*
+        // Melakukan request ke API Text-to-Image (Contoh: Glia Labs / Krea)
         let r = await fetch("https://api.glianalabs.com/v1/infer", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + API_KEY // atau header autentikasi yang sesuai
+            "Authorization": "Bearer " + API_KEY // Sesuaikan header auth jika menggunakan format token/bearer lain
           },
           body: JSON.stringify({
             model: body.model || "krea/krea-2-medium-turbo",
             prompt: prompt
           })
         });
+
         let d = await r.json();
-        return new Response(JSON.stringify(d), { headers: { ...cors, "Content-Type": "application/json" } });
-        */
-
-        // Atau tetap menggunakan model Groq dengan API_KEY tersebut:
-        const MODELS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3-32b"];
-
-        for (let model of MODELS) {
-          try {
-            let r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + API_KEY
-              },
-              body: JSON.stringify({
-                model: model,
-                messages: [
-                  { role: "system", content: "KAMU: Rumah Gadang AI, dibuat Tim Rumah Gadang AI Padang. Gaya: Santai, ramah Minang, singkat padat max 50 kata, jawab langsung inti, jangan tabel, jawab dengan sopan, jangan basa-basi panjang." },
-                  { role: "user", content: prompt }
-                ],
-                temperature: 0.7,
-                max_tokens: 200
-              })
-            });
-            let d = await r.json();
-            if (d.error) {
-              console.log("Groq error model " + model + ":", d.error.message);
-              continue;
-            }
-            let content = d.choices?.[0]?.message?.content;
-            if (content) {
-              return new Response(JSON.stringify({ reply: content }), { 
-                headers: { ...cors, "Content-Type": "application/json" } 
-              });
-            }
-          } catch (e) { 
-            console.log("fetch fail " + model, e); 
-            continue; 
-          }
+        
+        // Tangani jika ada tantangan pembayaran 402 atau error dari API T2I
+        if (r.status === 402) {
+          return new Response(JSON.stringify({ reply: "Tantangan pembayaran (402) terdeteksi. Harap lakukan pembayaran atau isi saldo API T2I Bos." }), { headers: cors });
         }
-        return new Response(JSON.stringify({ reply: "Error AI Bos semua model Groq gagal Bos, cek API_T2I Bos valid gak Bos!" }), { headers: cors });
+
+        if (d.error) {
+          return new Response(JSON.stringify({ reply: "Error T2I Bos: " + (d.error.message || JSON.stringify(d.error)) }), { headers: cors });
+        }
+
+        // Sesuaikan struktur respons gambar tergantung dari JSON yang dikembalikan oleh API T2I
+        // Biasanya berupa URL gambar atau base64
+        let imageUrl = d.image_url || d.output || d.url || d.choices?.[0]?.url;
+        
+        if (imageUrl) {
+          // Kirim kembali dalam format Markdown atau HTML gambar agar langsung tampil di UI
+          return new Response(JSON.stringify({ reply: `![${prompt}](${imageUrl})` }), { 
+            headers: { ...cors, "Content-Type": "application/json" } 
+          });
+        }
+
+        return new Response(JSON.stringify({ reply: "Gagal membuat gambar, respons API tidak valid Bos." }), { headers: cors });
+
       } catch (e) {
         return new Response(JSON.stringify({ error: "Server error Bos: " + e.message }), { headers: cors });
       }

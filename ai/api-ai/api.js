@@ -10,61 +10,76 @@ export const AI_API = {
 
     const path = url.pathname.toLowerCase();
 
-    // TEST HP
-    if (req.method === "GET" && (path === "/api/ai" || path === "/api/t2i")) {
-      return new Response(JSON.stringify({
-        ok: true,
-        TEXT: "pakai GROQ_API_KEY",
-        IMAGE: "pakai API_T2I",
-        has_GROQ: !!env.GROQ_API_KEY,
-        has_T2I: !!env.API_T2I
-      }), { headers: cors });
-    }
-
-    // TEXT TO TEXT - /api/ai
     if (path === "/api/ai" && req.method === "POST") {
       let { prompt } = await req.json().catch(()=>({}));
       prompt = (prompt||"").trim();
       let GROQ_KEY = (env.GROQ_API_KEY || "").trim();
-      if(!GROQ_KEY) return new Response(JSON.stringify({reply:"GROQ_API_KEY belum set"}),{headers:cors});
-      for (let model of ["openai/gpt-oss-120b","openai/gpt-oss-20b","llama-3.3-70b-versatile"]) {
+      for (let model of ["openai/gpt-oss-120b","llama-3.3-70b-versatile"]) {
         try {
           let r = await fetch("https://api.groq.com/openai/v1/chat/completions",{
             method:"POST",
             headers:{"Content-Type":"application/json","Authorization":"Bearer "+GROQ_KEY},
-            body:JSON.stringify({model,messages:[{role:"system",content:"KAMU: Rumah Gadang AI Padang, ramah Minang, singkat."},{role:"user",content:prompt}],temperature:0.7,max_tokens:400})
+            body:JSON.stringify({model,messages:[{role:"system",content:"KAMU: Rumah Gadang AI Padang"},{role:"user",content:prompt}],temperature:0.7,max_tokens:400})
           });
           let d = await r.json();
-          if(d.choices?.[0]?.message?.content){
-            return new Response(JSON.stringify({reply:d.choices[0].message.content,model}),{headers:cors});
-          }
+          if(d.choices?.[0]?.message?.content) return new Response(JSON.stringify({reply:d.choices[0].message.content,model}),{headers:cors});
         } catch {}
       }
       return new Response(JSON.stringify({reply:"Groq error"}),{headers:cors});
     }
 
-    // TEXT TO IMAGE - /api/t2i - PAKAI API_T2I
     if ((path === "/api/t2i" || path === "/api/gambar") && req.method === "POST") {
-      let { prompt, model } = await req.json().catch(()=>({}));
-      model = model || "krea/krea-2-medium-turbo";
-      prompt = (prompt||"").trim();
-      let T2I_KEY = (env.API_T2I || "").trim();
-      if(!T2I_KEY) return new Response(JSON.stringify({error:"API_T2I belum set"}),{headers:cors,status:500});
-      if(!prompt) return new Response(JSON.stringify({error:"Prompt kosong"}),{headers:cors,status:400});
+      try {
+        let { prompt, model } = await req.json().catch(()=>({}));
+        model = model || "krea/krea-2-medium-turbo";
+        let T2I_KEY = (env.API_T2I || "").trim();
+        if(!T2I_KEY) return new Response(JSON.stringify({error:"API_T2I belum set"}),{headers:cors});
 
-      let r = await fetch("https://api.glianalabs.com/v1/infer",{
-        method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer "+T2I_KEY},
-        body:JSON.stringify({model,prompt})
-      });
-      let d = await r.json().catch(async()=>({text:await r.text()}));
+        let r = await fetch("https://api.glianalabs.com/v1/infer",{
+          method:"POST",
+          headers:{"Content-Type":"application/json","Authorization":"Bearer "+T2I_KEY},
+          body:JSON.stringify({model,prompt})
+        });
 
-      if(r.status===402){
-        return new Response(JSON.stringify({ok:false,need_payment:true,raw:d}),{headers:cors,status:402});
+        let contentType = r.headers.get("content-type") || "";
+
+        // KASUS 1: Balik langsung gambar (binary)
+        if(contentType.startsWith("image/")){
+          let buf = await r.arrayBuffer();
+          let base64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+          let dataUrl = `data:${contentType};base64,${base64}`;
+          return new Response(JSON.stringify({ok:true,prompt,model,image:dataUrl}),{headers:cors});
+        }
+
+        // KASUS 2: Balik JSON
+        let d = await r.json().catch(async()=>({text:await r.text()}));
+        
+        // Cari semua kemungkinan field gambar dari Glia
+        let imageUrl = d.image_url || d.url || d.output || d.image || d.data?.[0]?.url || d.result?.image_url || null;
+        
+        // Kalau ada b64_json (format OpenAI)
+        if(d.b64_json){
+          imageUrl = `data:image/png;base64,${d.b64_json}`;
+        }
+        if(d.output && typeof d.output === "string" && d.output.startsWith("data:image")){
+          imageUrl = d.output;
+        }
+        // Kalau output base64 tanpa prefix
+        if(d.output && typeof d.output === "string" && d.output.length > 500 && !d.output.startsWith("http")){
+          imageUrl = `data:image/png;base64,${d.output}`;
+        }
+
+        return new Response(JSON.stringify({
+          ok:true,
+          prompt,
+          model,
+          image: imageUrl,
+          raw: JSON.stringify(d).slice(0,1000) // buat debug
+        }),{headers:cors});
+
+      } catch (e) {
+        return new Response(JSON.stringify({error:e.message}),{headers:cors,status:500});
       }
-
-      let imageUrl = d.image_url || d.url || d.output || d.image || d.data?.[0]?.url || null;
-      return new Response(JSON.stringify({ok:true,prompt,model,image:imageUrl,raw:d}),{headers:cors});
     }
     return null;
   }

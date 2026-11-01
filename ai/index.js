@@ -127,7 +127,7 @@ async function handleSend(){
     const data = await res.json();
 
     if(data.reply){
-      loadingDiv.textContent = data.reply;
+      renderAiMessage(loadingDiv, data.reply);
     } else if(data.error){
       loadingDiv.textContent = "Maaf Bos: " + data.error;
     } else {
@@ -149,6 +149,22 @@ function appendMessage(text, sender){
   chatBox.appendChild(msg);
   chatBox.scrollTop = chatBox.scrollHeight;
   return msg;
+}
+
+function renderAiMessage(element, text) {
+  const imgRegex = /!\[([^\]]*)\]\(([^)]+)\)/;
+  const match = text.match(imgRegex);
+
+  if (match) {
+    const altText = match[1];
+    const imgUrl = match[2];
+    element.innerHTML = '<div>' + altText + '</div><img src="' + imgUrl + '" alt="' + altText + '" style="max-width:100%; border-radius:12px; margin-top:8px; display:block;">';
+  } else {
+    element.textContent = text;
+  }
+  
+  const chatBox = document.getElementById('chatBox');
+  chatBox.scrollTop = chatBox.scrollHeight;
 }
 </script>
 </body>

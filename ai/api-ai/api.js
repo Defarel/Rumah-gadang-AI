@@ -80,7 +80,7 @@ export const AI_API = {
         if (!HF_TOKEN) return new Response(JSON.stringify({ ok: false, error: "API_T2I (HF Token hf_...) belum set" }), { headers: cors, status: 500 });
         if (!prompt) return new Response(JSON.stringify({ ok: false, error: "Prompt kosong" }), { headers: cors, status: 400 });
 
-const HF_URL = `https://router.huggingface.co/fal-ai/${model}`;
+const HF_URL = `https://router.huggingface.co/fal-ai/fal-ai/krea-2/turbo?_subdomain=queue`;
         
         let r = await fetch(HF_URL, {
           method: "POST",

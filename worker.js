@@ -64,7 +64,7 @@ export const AI_API = {
         if(!HF_TOKEN) return new Response(JSON.stringify({ok:false,error:"API_T2I (HF Token) belum set"}),{headers:cors,status:500});
         if(!prompt) return new Response(JSON.stringify({ok:false,error:"Prompt kosong"}),{headers:cors,status:400});
 
-        const HF_URL = `https://router.huggingface.co/hf-inference/models/${model}`;
+        const HF_URL = `https://router.huggingface.co/fal-ai/${model}`;
         let r = await fetch(HF_URL,{
           method:"POST",
           headers:{ "Authorization":"Bearer "+HF_TOKEN, "Content-Type":"application/json" },

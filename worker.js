@@ -11,7 +11,7 @@ import * as VIDEO_API_M from './video/api-video/api.js';
 import * as AKUN_API_M from './akun/api-akun/api.js';
 import * as AI_API_M from './ai/api-ai/api.js';
 
-// ===== AI API FINAL - GROQ + HF KREA 2 =====
+// ===== AI API FINAL - GROQ + HF KREA 2 (FAL-AI QUEUE) =====
 export const AI_API = {
   async handle(req, env, url, corsHeaders) {
     const cors = corsHeaders || {
@@ -26,10 +26,8 @@ export const AI_API = {
     if (req.method === "GET" && (p === "/api/ai" || p === "/api/t2i")) {
       return new Response(JSON.stringify({
         ok: true,
-        TEXT: "GROQ_API_KEY: " + !!env.GROQ_API_KEY,
-        IMAGE: "HF KREA 2: " + !!env.API_T2I,
-        has_GROQ: !!env.GROQ_API_KEY,
-        has_T2I: !!env.API_T2I
+        TEXT: "GROQ: " + !!env.GROQ_API_KEY,
+        IMAGE: "HF KREA 2 (fal-ai queue): " + !!env.API_T2I
       }), { headers: cors });
     }
 
@@ -38,7 +36,6 @@ export const AI_API = {
       prompt = (prompt||"").trim();
       if(!prompt) return new Response(JSON.stringify({reply:"Prompt kosong"}),{headers:cors});
       let GROQ_KEY = (env.GROQ_API_KEY || "").trim();
-      if(!GROQ_KEY) return new Response(JSON.stringify({reply:"GROQ_API_KEY belum set"}),{headers:cors});
       for (let model of ["openai/gpt-oss-120b","openai/gpt-oss-20b","llama-3.3-70b-versatile"]) {
         try {
           let r = await fetch("https://api.groq.com/openai/v1/chat/completions",{
@@ -47,9 +44,7 @@ export const AI_API = {
             body:JSON.stringify({model,messages:[{role:"system",content:"KAMU: Rumah Gadang AI Padang, ramah Minang, singkat max 60 kata."},{role:"user",content:prompt}],temperature:0.7,max_tokens:400})
           });
           let d = await r.json();
-          if(d.choices?.[0]?.message?.content){
-            return new Response(JSON.stringify({reply:d.choices[0].message.content,model}),{headers:cors});
-          }
+          if(d.choices?.[0]?.message?.content) return new Response(JSON.stringify({reply:d.choices[0].message.content,model}),{headers:cors});
         } catch {}
       }
       return new Response(JSON.stringify({reply:"Groq gagal"}),{headers:cors});
@@ -57,49 +52,47 @@ export const AI_API = {
 
     if ((p === "/api/t2i") && req.method === "POST") {
       try {
-        let { prompt, model } = await req.json().catch(()=>({}));
-        model = model || "krea/Krea-2-Turbo";
-        prompt = (prompt||"").trim();
+        let { prompt } = await req.json().catch(()=>({}));
+        prompt = (prompt||"Gambarkan jalan lurus").trim();
         let HF_TOKEN = (env.API_T2I || "").trim();
-        if(!HF_TOKEN) return new Response(JSON.stringify({ok:false,error:"API_T2I (HF Token) belum set"}),{headers:cors,status:500});
-        if(!prompt) return new Response(JSON.stringify({ok:false,error:"Prompt kosong"}),{headers:cors,status:400});
+        if(!HF_TOKEN) return new Response(JSON.stringify({ok:false,error:"API_T2I belum set"}),{headers:cors,status:500});
 
-        const HF_URL = `https://router.huggingface.co/fal-ai/${model}`;
-        let r = await fetch(HF_URL,{
-          method:"POST",
-          headers:{ "Authorization":"Bearer "+HF_TOKEN, "Content-Type":"application/json" },
-          body:JSON.stringify({ inputs: prompt })
-        });
-
-        let ct = r.headers.get("content-type")||"";
-        if(ct.startsWith("image/") || ct === "application/octet-stream"){
-          let buf = await r.arrayBuffer();
-          let bytes = new Uint8Array(buf);
-          let binary = "";
-          for(let i=0;i<bytes.length;i++) binary += String.fromCharCode(bytes[i]);
-          let b64 = btoa(binary);
-          let dataUrl = `data:${ct || "image/png"};base64,${b64}`;
-          return new Response(JSON.stringify({ok:true,prompt,model,image:dataUrl}),{headers:cors});
+        // INI CODE KAMU YANG BENER - PAKAI ?_subdomain=queue
+        async function query(data) {
+          const response = await fetch(
+            "https://router.huggingface.co/fal-ai/fal-ai/krea-2/turbo?_subdomain=queue",
+            {
+              headers: {
+                Authorization: `Bearer ${HF_TOKEN}`,
+                "Content-Type": "application/json",
+              },
+              method: "POST",
+              body: JSON.stringify(data),
+            }
+          );
+          const result = await response.blob();
+          const ct = response.headers.get("content-type")||"";
+          // kalau error, blob nya isinya JSON error
+          if(ct.includes("application/json")){
+            let txt = await result.text();
+            throw new Error(txt);
+          }
+          return result;
         }
 
-        let text = await r.text();
-        let d; try{ d = JSON.parse(text); } catch{ d = {raw_text:text}; }
-        if(d.error){
-          return new Response(JSON.stringify({ok:false,error:d.error, hint:"Accept license di huggingface.co/krea/Krea-2-Turbo dulu", raw:d}),{headers:cors,status:500});
-        }
-        let img = d.image || d.output || d.images?.[0] || null;
-        if(img){
-          if(!img.startsWith("data:") && !img.startsWith("http")) img = `data:image/png;base64,${img}`;
-          return new Response(JSON.stringify({ok:true,prompt,model,image:img}),{headers:cors});
-        }
-        return new Response(JSON.stringify({ok:false,error:"HF tidak kasih gambar",raw:d}),{headers:cors,status:500});
+        let blob = await query({ prompt: prompt });
+        let buf = await blob.arrayBuffer();
+        let b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+        let dataUrl = `data:image/png;base64,${b64}`;
+        
+        return new Response(JSON.stringify({ok:true,prompt,model:"krea/Krea-2-Turbo",image:dataUrl}),{headers:cors});
+
       } catch(e){
         return new Response(JSON.stringify({ok:false,error:e.message}),{headers:cors,status:500});
       }
     }
     return null;
   }
-};
 
 // ===== HELPERS =====
 function getHtml(mod){ return mod.default || mod.HOME_HTML || mod.HOME || mod.FOTO_HTML || mod.FOTO || mod.VIDEO_HTML || mod.VIDEO || mod.AI_HTML || mod.AI || mod.LUAR_HTML || mod.DALAM_HTML || mod.AKUN_HTML || mod.AKUN || Object.values(mod)[0]; }

@@ -272,15 +272,14 @@ Host: https://rumahgadang-ai.my.id`;
     if (path === "/v" || path === "/v/") path = "/video";
     if (path === "/a" || path === "/a/") path = "/ai";
 
-    // API ROUTING
+    // API ROUTING - FIX BOS: TAMBAH /api/t2i BOS BIAR GAK NO HANDLER BOS!
     if (path.startsWith('/api/')) {
       const blockedForGet = ["/api/akun/update", "/api/akun/register", "/api/register", "/api/tulis/delete"];
       if (blockedForGet.some(p => path.startsWith(p)) && req.method === "GET") {
         return new Response(JSON.stringify({ ok: false, error: "API private - use POST" }), { headers: cors, status: 404 });
       }
-      if (path === "/api/ai" && req.method === "GET") {
-        return new Response(JSON.stringify({ ok: false, error: "Use POST" }), { headers: cors, status: 404 });
-      }
+      // INI BOS YANG SAYA UBAH BOS: HAPUS BOS CEK YANG LAMA BOS YANG BIKIN No handler BOS!
+      // if (path === "/api/ai" && req.method === "GET") -> SUDAH BOS DIHANDLE BOS DI DALAM AI_API BOS SENDIRI BOS!
 
       try {
         if (path.startsWith('/api/tulis')) {
@@ -295,8 +294,12 @@ Host: https://rumahgadang-ai.my.id`;
         if (path.startsWith('/api/akun') || path.startsWith('/api/follow') || path.startsWith('/api/followers') || path.startsWith('/api/following') || path.startsWith('/api/photo') || path.startsWith('/api/users') || path.startsWith('/api/search-users')) {
           let m = getApi(AKUN_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
         }
-        if (path.startsWith('/api/ai')) {
-          let m = getApi(AI_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
+        // INI BOS FIX UTAMA BOS: TAMBAH /api/t2i BOS + FALLBACK KE AI_API LOKAL BOS!
+        if (path.startsWith('/api/ai') || path.startsWith('/api/t2i')) {
+          let m = getApi(AI_API_M); 
+          if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
+          // Fallback Bos ke AI_API yang ada di file ini Bos sendiri Bos (yang di atas Bos)
+          if (AI_API?.handle) { let r = await AI_API.handle(req, env, url, cors); if (r) return r; }
         }
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });

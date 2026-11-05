@@ -1,289 +1,701 @@
-const LOGO_DEFAULT = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
+const LOGO_DEFAULT = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png"
 
-export const AKUN_API = {
-  async handle(req, env, url, corsHeaders) {
-    const h = { "Content-Type": "application/json", ...corsHeaders, "Cache-Control":"no-store" };
-    const path = url.pathname.toLowerCase();
-    const method = req.method;
+export const AKUN_HTML = `<!DOCTYPE html><html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="canonical" href="https://rumahgadang-ai.my.id/akun">
+<title>Akun - Rumah Gadang AI</title>
+<link rel="icon" href="${LOGO_DEFAULT}">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#fff;font-family:sans-serif}
+#app{width:100%;max-width:100%;margin:0;background:#000;min-height:100vh;padding-bottom:120px;border-left:none;border-right:none;box-shadow:none}
+.top{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #111;position:sticky;top:0;background:#000;z-index:10}
+.logo{width:36px;height:36px;border-radius:50%;border:2px solid #00ff88;object-fit:cover}
+.btn-home{background:#00ff88;color:#000;border:0;padding:8px 20px;border-radius:20px;font-weight:900;font-size:12px;box-shadow:0 0 12px #00ff88}
+.cardOuter{margin:12px;border-radius:22px;background:#fff;color:#000;padding:16px 14px;box-shadow:0 0 0 2px #00ff88,0 0 20px #00ff88}
+.inp{width:100%;background:#f3f3f3;border:1px solid #e0e0e0;padding:13px;border-radius:12px;margin-top:10px;font-size:14px;color:#000}
+.btnMasuk{width:100%;margin-top:12px;background:#000;color:#fff;border:0;padding:14px;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer}
+.loginTabs{display:flex;gap:8px;margin-bottom:12px}
+.tabLogin{flex:1;padding:10px;border-radius:20px;border:0;font-weight:900;font-size:13px;cursor:pointer;background:#eee;color:#555}
+.tabLogin.on{background:#000;color:#fff}
+.m-tab{min-width:78px;flex:1;padding:12px 10px;border-radius:12px;background:#111;color:#888;text-align:center;font-weight:900;font-size:12px;cursor:pointer;border:1.5px solid #00ff88;box-shadow:0 0 8px rgba(0,255,136,.35), inset 0 0 6px rgba(0,255,136,.15);transition:.2s}
+.m-tab.active{background:#00ff88;color:#000;border-color:#00ff88;box-shadow:0 0 18px #00ff88, 0 0 35px rgba(0,255,136,.6)}
+.user-fb{display:flex;gap:12px;background:#0a0a0a;padding:12px;border-radius:14px;margin-bottom:12px;border:1.5px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,.25);position:relative}
+.user-fb-av{width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid #00ff88;box-shadow:0 0 10px #00ff88}
+.btn-neon-follow{flex:1;background:#00ff88;color:#000;border:1.5px solid #00ff88;padding:10px;border-radius:10px;font-weight:900;font-size:12px;cursor:pointer;box-shadow:0 0 12px #00ff88}
+.btn-neon-lihat{flex:1;background:#000;color:#00ff88;border:1.5px solid #00ff88;padding:10px;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer;box-shadow:0 0 8px rgba(0,255,136,.3);position:relative}
+.badge-notif{position:absolute;top:-8px;right:-6px;background:#00ff88;color:#000;font-size:11px;font-weight:900;padding:2px 7px;border-radius:10px;border:1.5px solid #000;box-shadow:0 0 8px #00ff88}
+.badge-notif-profile{position:absolute;top:-10px;right:-6px;background:#00ff88;color:#000;font-size:11px;font-weight:900;padding:2px 7px;border-radius:10px;border:1.5px solid #000;box-shadow:0 0 10px #00ff88;z-index:10}
+.online-indicator{display:inline-flex;align-items:center;gap:5px;background:#111;border:1px solid #00ff88;padding:1px 6px;border-radius:8px;font-size:9px;color:#00ff88;font-weight:900;box-shadow:0 0 6px rgba(0,255,136,0.3);margin-left:6px}
+.online-dot{width:6px;height:6px;background:#00ff88;border-radius:50%;box-shadow:0 0 5px #00ff88}
+.btn-edit{flex:1;padding:13px;background:#111;color:#fff;border:1.5px solid #00ff88;border-radius:12px;font-weight:700;box-shadow:0 0 8px rgba(0,255,136,.3);cursor:pointer}
+.btn-keluar{flex:1;padding:13px;background:#111;color:#ff6b6b;border:1.5px solid #ff4444;border-radius:12px;font-weight:800;box-shadow:0 0 8px rgba(255,68,68,.3);cursor:pointer}
+.btn-follow-real{width:100%;padding:14px;background:#00ff88;color:#000;border:1.5px solid #00ff88;border-radius:14px;font-weight:900;box-shadow:0 0 15px #00ff88;cursor:pointer}
+.btn-following-real{width:100%;padding:14px;background:#111;color:#fff;border:1.5px solid #00ff88;border-radius:14px;font-weight:800;box-shadow:0 0 10px rgba(0,255,136,.3);cursor:pointer}
+.btn-chat-real{flex:1;padding:14px;background:#222;color:#fff;border:1.5px solid #00ff88;border-radius:14px;font-weight:800;box-shadow:0 0 10px rgba(0,255,136,.3);cursor:pointer;text-align:center;z-index:5;position:relative}
+.profile-sec{padding:18px 16px 10px}
+.prof-top{display:flex;align-items:center;gap:18px;margin-bottom:14px}
+.avatar-wrap{position:relative;width:76px;height:76px;cursor:pointer}
+.avatar-img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2.5px solid #00ff88;box-shadow:0 0 15px #00ff88}
+.avatar-edit-badge{position:absolute;bottom:-2px;right:-2px;background:#00ff88;color:#000;font-size:10px;font-weight:900;padding:3px 6px;border-radius:10px;border:1px solid #000}
+.stats-wrap{flex:1;display:flex;justify-content:space-between;text-align:center}
+.stat-num{font-size:20px;font-weight:900}.stat-label{font-size:11px;color:#777}
+.main-tabs{display:flex;gap:8px;margin:16px 0;border-bottom:1px solid #222;padding-bottom:14px;overflow:auto}
+.photo-grid-2x2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.photo-card{position:relative;border-radius:12px;overflow:hidden;background:#111;border:1.5px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,.2);aspect-ratio:3/4;cursor:pointer}
+.photo-card img{width:100%;height:100%;object-fit:cover}
+.btn-add-private{width:100%;background:#000;border:1.5px dashed #00ff88;color:#00ff88;padding:14px;border-radius:14px;font-weight:800;margin-bottom:12px;box-shadow:0 0 10px rgba(0,255,136,.2);cursor:pointer}
+.cardLogoFull{margin:14px 12px;border-radius:22px;overflow:hidden;border:3px solid #00ff88;box-shadow:0 0 0 1px #00ff88,0 0 25px rgba(0,255,136,.4);background:#000}
+.cardLogoFull img{width:100%;height:auto;display:block;object-fit:cover}
+.cardLogoFull video{width:100%;height:auto;display:block;object-fit:cover}
+.bot{position:fixed;bottom:0;left:0;width:100%;max-width:100%;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99}
+.bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#fff}
+#toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:#00ff88;color:#000;padding:12px 18px;border-radius:22px;font-weight:900;display:none;z-index:9999;box-shadow:0 0 20px #00ff88}
+.private-card{background:#111;border:1.5px solid #00ff88;border-radius:14px;padding:10px;margin-bottom:12px}
+#editModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;place-items:center;padding:16px}
+#editBox{background:#111;border:2px solid #00ff88;border-radius:18px;padding:16px;width:100%;max-width:360px;box-shadow:0 0 25px #00ff88}
+#photoModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9999;overflow-y:auto;padding:15px 0 60px 0}
+.modalTopBar{width:100%;max-width:100%;margin:0 0 10px 0;display:flex;justify-content:space-between;align-items:center;background:#111;padding:12px 16px;border-bottom:1px solid #222}
+.postCard{width:100%;max-width:100%;margin:0 0 20px 0;background:#111;border-bottom:2px solid #222;border-top:1px solid #222;overflow:hidden}
+.postHeader{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+.postImgWrap{width:100%;background:#000;display:flex;justify-content:center;align-items:center}
+.postImgWrap img{width:100%;height:auto;max-height:80vh;object-fit:cover;display:block}
+.postActions{display:flex;gap:16px;padding:12px 16px;align-items:center;font-size:20px}
+#commentModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; align-items:flex-end; justify-content:center; }
+#commentBoxSheet { background:#111; border-top:2px solid #00ff88; border-top-left-radius:20px; border-top-right-radius:20px; width:100%; max-width:600px; height:75vh; display:flex; flex-direction:column; box-shadow:0 -5px 25px rgba(0,255,136,0.3); animation: slideUp 0.3s ease-out; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.commentSheetHeader { padding:14px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #222; font-weight:900; }
+.commentSheetBody { flex:1; overflow-y:auto; padding:16px; }
+.commentSheetInput { padding:12px 16px; background:#080808; border-top:1px solid #222; display:flex; gap:8px; align-items:center; }
+</style></head><body>
+<div id="app">
+  <div class="top"><div style="display:flex;gap:10px;align-items:center"><img src="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg" class="logo"><b>RUMAH GADANG AI</b></div><button class="btn-home" onclick="location.href='/'">HOME</button></div>
+  <div id="viewContainer"></div>
+</div>
+<div class="bot">
+  <a href="/">🏠<br><span style="font-size:10px">Home</span></a>
+  <a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a>
+  <a href="/video">🎬<br><span style="font-size:10px">Video</span></a>
+  <a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a>
+  <a href="/ai">🤖<br><span style="font-size:10px">AI</span></a>
+  <a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a>
+</div>
+<div id="toast"></div>
+
+<div id="editModal"><div id="editBox">
+<h3 style="margin-bottom:10px">Edit Profil Bos - Bebas Ganti Foto Bos</h3>
+<img id="editPrev" style="width:90px;height:90px;border-radius:50%;border:2px solid #00ff88;display:block;margin:0 auto 10px;object-fit:cover">
+<input id="editName" class="inp" placeholder="Nama Bos">
+<input id="editPicUrl" class="inp" placeholder="Link foto bebas (atau upload di bawah)">
+<input type="file" id="editPicFile" accept="image/*" class="inp">
+<div style="font-size:11px;color:#00ff88;margin-top:8px">* Foto bebas Bos, gak dikunci Bos, otomatis dikecilin biar kesimpen Bos</div>
+<div style="display:flex;gap:8px;margin-top:12px"><button class="btn-edit" onclick="closeEdit()" style="flex:1">Batal</button><button class="btn-neon-follow" onclick="saveEdit()" style="flex:1">Simpan Bos</button></div>
+</div></div>
+
+<div id="photoModal">
+  <div class="modalTopBar">
+    <b style="color:#00ff88">POSTINGAN</b>
+    <button onclick="closePhotoModal()" style="background:#222;color:#fff;border:0;padding:6px 14px;border-radius:10px;font-weight:900;cursor:pointer">✕ Tutup</button>
+  </div>
+  <div id="modalFeedContainer"></div>
+</div>
+
+<div id="commentModal">
+  <div id="commentBoxSheet">
+    <div class="commentSheetHeader">
+      <span id="commentSheetTitle" style="color:#00ff88">Komentar</span>
+      <button onclick="closeCommentModal()" style="background:#222;color:#fff;border:0;padding:6px 12px;border-radius:10px;font-weight:900;cursor:pointer">✕</button>
+    </div>
+    <div class="commentSheetBody" id="commentSheetList"></div>
+    <div class="commentSheetInput">
+      <input id="sheetCommentInput" placeholder="Bagikan pemikiran Anda..." style="flex:1;background:#1a1a1a;border:1px solid #333;color:#fff;padding:10px 14px;border-radius:12px;font-size:13px">
+      <button onclick="submitSheetComment()" style="background:#00ff88;color:#000;border:0;padding:10px 16px;border-radius:12px;font-weight:900;cursor:pointer">➤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LOGO_INNER="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
+const LOGO_LOGIN="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
+const LOGO_VIDEO = "https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@9fa479e6634ebcb2f1dfcde85fb106ac77d2b122/akun/RumahGadangV2.mp4";
+
+let activeMainTab="teman"; 
+let currentActivePhotoKey = null;
+const urlParams = new URLSearchParams(window.location.search);
+let viewingUserEmail = urlParams.get('profil') ? decodeURIComponent(urlParams.get('profil')).toLowerCase().trim() : null;
+
+if (!viewingUserEmail) {
+  let pathSegments = window.location.pathname.split('/').filter(Boolean);
+  if (pathSegments.length > 0) {
+    let firstSeg = pathSegments[0].toLowerCase();
+    const reserved = ["foto","video","ai","kantor","luar","dalam","akun","api","sitemap","robots","profil","profile"];
+    if (!reserved.includes(firstSeg) && !firstSeg.includes(".")) {
+      viewingUserEmail = firstSeg.includes('@') ? firstSeg : firstSeg + '@rumahgadang-ai.my.id';
+    }
+  }
+}
+
+let _editB64=null; window.loginMode='masuk';
+
+window.addEventListener('popstate', () => {
+  const p = new URLSearchParams(window.location.search).get('profil');
+  viewingUserEmail = p ? decodeURIComponent(p).toLowerCase().trim() : null;
+  render();
+});
+
+function toast(m){let t=document.getElementById('toast');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
+function getMyEmail(){return (localStorage.getItem('rg_email')||"").toLowerCase().trim();}
+function getMyName(){return localStorage.getItem('rg_name')||"Dunsanak";}
+function getMyAvatar(){ let i=localStorage.getItem('rg_avatar'); return (i&&i.trim()!=="")?i:LOGO_INNER; }
+function saveAuth(e,n,a){localStorage.setItem('rg_email',e.toLowerCase().trim());localStorage.setItem('rg_name',n||"Dunsanak");localStorage.setItem('rg_avatar',(a&&a.trim()!=="")?a:LOGO_INNER);}
+function logout(){ if(confirm("Keluar?")){localStorage.clear();viewingUserEmail=null;history.pushState(null,'','/akun');render();}}
+function viewUser(e){ viewingUserEmail=e.toLowerCase().trim(); activeMainTab='tulis'; history.pushState(null,'','/akun?profil='+encodeURIComponent(e)); render(); }
+function switchTab(t){ activeMainTab=t; const me=viewingUserEmail||getMyEmail(); loadContent(me, me===getMyEmail()); document.querySelectorAll('.m-tab').forEach(b=>{ b.classList.toggle('active', b.innerText.toLowerCase()===t); }); }
+
+// Ping online otomatis setiap 5 detik agar status online selalu terdeteksi
+async function sendMyPresence(){
+  let my = getMyEmail();
+  if(!my) return;
+  try {
+    await fetch('/api/akun/ping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: my })
+    });
+  } catch(e){}
+}
+sendMyPresence();
+setInterval(sendMyPresence, 5000);
+
+function openChat(email){
+  if(!email){ toast('Email tujuan tidak ada'); return; }
+  let cleanEmail = email.toLowerCase().trim();
+  // Tandai pesan sudah dibaca (tersinkronisasi agar badge hilang)
+  localStorage.setItem('rg_read_' + getMyEmail() + '_' + cleanEmail, 'true');
+  window.location.href = '/akun/chat?email=' + encodeURIComponent(cleanEmail);
+}
+
+function setLoginMode(m){
+  window.loginMode=m;
+  document.getElementById('tMasuk').classList.toggle('on',m==='masuk');
+  document.getElementById('tBuat').classList.toggle('on',m==='buat');
+  document.getElementById('nameIn').style.display=m==='buat'?'block':'none';
+  document.querySelector('.btnMasuk').innerText=m==='buat'?'Buat Akun Bos':'Masuk Bos';
+}
+async function render(){
+  const my=getMyEmail(); const cont=document.getElementById('viewContainer');
+  if(!my && !viewingUserEmail){
+    cont.innerHTML = \`
+      <div class="cardOuter">
+        <h2 style="margin-bottom:12px;font-size:22px;font-weight:900">Rumah Gadang AI</h2>
+        <div class="loginTabs">
+          <button id="tMasuk" class="tabLogin on" onclick="setLoginMode('masuk')">Masuk</button>
+          <button id="tBuat" class="tabLogin" onclick="setLoginMode('buat')">Buat Akun</button>
+          <button class="tabLogin" onclick="toast('Google soon Bos!')">Google</button>
+        </div>
+        <div id="loginFields">
+          <input id="emailIn" class="inp" placeholder="@rumahgadang-ai.my.id" value="@rumahgadang-ai.my.id">
+          <input id="nameIn" class="inp" placeholder="Nama Dunsanak (buat akun baru)" style="display:none">
+          <input id="passIn" class="inp" type="password" placeholder="Password">
+        </div>
+        <button class="btnMasuk" onclick="doLogin()">Masuk</button>
+      </div>
+      <div class="cardLogoFull">
+        <video autoplay loop muted playsinline controls poster="\${LOGO_LOGIN}">
+          <source src="\${LOGO_VIDEO}" type="video/mp4">
+        </video>
+      </div>\`;
+    return;
+  }
+  const target=viewingUserEmail||my; renderProfile(cont,target,target===my);
+}
+async function doLogin(){
+  let email=document.getElementById('emailIn').value.trim().toLowerCase();
+  let pass=document.getElementById('passIn').value.trim();
+  let name=document.getElementById('nameIn').value.trim()||email.split('@')[0];
+  if(!email.includes('@')) email+='@rumahgadang-ai.my.id';
+  if(!email) return toast('Email Bos!');
+  if(!pass) return toast('Password Bos!');
+  let mode=window.loginMode||'masuk';
+  if(mode==='buat'){
+    try{
+      let r=await fetch('/api/akun/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,name,picture:LOGO_INNER,password:pass})});
+      let j=await r.json().catch(()=>({ok:true}));
+      if(r.ok||j.ok){ saveAuth(email,name,LOGO_INNER); toast('Akun dibuat'); render(); }
+      else toast(j.error||'Gagal buat Bos');
+    }catch(e){ toast('Error '+e.message); }
+  }else{
+    try{
+      let r=await fetch('/api/akun/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+      let j=await r.json().catch(()=>({ok:true}));
+      if(r.ok||j.ok){ saveAuth(email,j.name||name,j.picture||LOGO_INNER); toast('Masuk'); render(); }
+      else { saveAuth(email,name,LOGO_INNER); toast('Masuk'); render(); }
+    }catch{ saveAuth(email,name,LOGO_INNER); toast('Masuk'); render(); }
+  }
+}
+async function renderProfile(container,targetEmail,isMe){
+  container.innerHTML='<div style="text-align:center;padding:40px;color:#666">Memuat...</div>';
+  let data={name:isMe?getMyName():targetEmail.split('@')[0],picture:isMe?getMyAvatar():LOGO_INNER,posts:0,followers:0,following:0,isFollowing:false,last_seen:0};
+  try{ let r=await fetch('/api/akun/profile?email='+encodeURIComponent(targetEmail)+'&me='+encodeURIComponent(getMyEmail())); if(r.ok){ let d=await r.json(); data={...data,...d}; } }catch{}
+  
+  let isOnline = data.last_seen && (Date.now() - data.last_seen < 15000);
+  let onlineBadgeProfileHtml = isOnline ? '<div class="online-indicator"><div class="online-dot"></div>online</div>' : '';
+
+  let unreadCount = 0;
+  if(!isMe && getMyEmail()){
+    try {
+      let rMsg = await fetch('/api/chat/get?user1=' + encodeURIComponent(getMyEmail()) + '&user2=' + encodeURIComponent(targetEmail));
+      let jMsg = await rMsg.json();
+      if(jMsg.ok && Array.isArray(jMsg.messages)){
+        let lastMsg = jMsg.messages[jMsg.messages.length - 1];
+        let isRead = localStorage.getItem('rg_read_' + getMyEmail() + '_' + targetEmail) === 'true';
+        if(!isRead && lastMsg && lastMsg.sender.toLowerCase() === targetEmail.toLowerCase()){
+          unreadCount = 1;
+        }
+      }
+    } catch(e){}
+  }
+
+  let photos=[]; 
+  try{ 
+    let rp=await fetch('/api/akun/photos?email='+encodeURIComponent(targetEmail)); 
+    photos=await rp.json(); 
+    if(!Array.isArray(photos)) photos = photos.results || photos.data || [];
+
+    let migrateKey = 'rg_migrated_reverse_'+targetEmail;
+    let alreadyMigrated = localStorage.getItem(migrateKey);
+    if(photos.length > 1 && !alreadyMigrated){
+      photos = photos.slice().reverse();
+      localStorage.setItem(migrateKey, '1');
+      if(isMe){
+        fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:targetEmail,photos:photos})}).catch(()=>{});
+      }
+    }
+  }catch{}
+  
+  let actionButtonsHtml = '';
+  if(isMe) {
+    actionButtonsHtml = '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>';
+  } else {
+    let followBtnClass = data.isFollowing ? 'btn-following-real' : 'btn-follow-real';
+    let followBtnText = data.isFollowing ? '✓ Mengikuti' : 'Follow';
+    let chatBadgeHtml = unreadCount > 0 ? '<div class="badge-notif-profile">' + unreadCount + '</div>' : '';
+    
+    actionButtonsHtml = \`<div style="display:flex;gap:8px">
+      <button class="\${followBtnClass}" style="flex:1" onclick="toggleFollow('\${targetEmail}')">\${followBtnText}</button>
+      <div style="flex:1;position:relative;display:flex">
+        \${chatBadgeHtml}
+        <button class="btn-chat-real" style="width:100%" onclick="openChat('\${targetEmail}')">Chat</button>
+      </div>
+    </div>\`;
+  }
+
+  container.innerHTML = \`
+    <div class="profile-sec">
+      <div class="prof-top">
+        <div class="avatar-wrap" onclick="\${isMe?'showEdit()':''}"><img src="\${data.picture}" class="avatar-img"><div class="avatar-edit-badge">\${isMe?'✎ Ganti':''}</div></div>
+        <div class="stats-wrap"><div><div class="stat-num">\${data.posts||0}</div><div class="stat-label">tulisan</div></div><div><div class="stat-num">\${data.followers||0}</div><div class="stat-label">pengikut</div></div><div><div class="stat-num">\${data.following||0}</div><div class="stat-label">mengikuti</div></div></div>
+      </div>
+      <div style="font-size:18px;font-weight:900">\${data.name}</div>
+      <div style="font-size:12px;color:#00ff88;margin-bottom:4px">\${targetEmail}</div>
+      \${onlineBadgeProfileHtml}
+      <div style="margin:14px 0">\${actionButtonsHtml}</div>
+      <div class="main-tabs">
+        <button class="m-tab \${activeMainTab==='tulis'?'active':''}" onclick="switchTab('tulis')">TULIS</button>
+        <button class="m-tab \${activeMainTab==='foto'?'active':''}" onclick="switchTab('foto')">FOTO</button>
+        <button class="m-tab \${activeMainTab==='video'?'active':''}" onclick="switchTab('video')">VIDEO</button>
+        <button class="m-tab \${activeMainTab==='teman'?'active':''}" onclick="switchTab('teman')">TEMAN</button>
+      </div>
+      <div id="tabContent"></div>
+    </div>\`;
+  window._photosCache=photos;
+  window._currentProfileEmail=targetEmail;
+  window._isMyProfile=isMe;
+  loadContent(targetEmail,isMe);
+}
+async function loadContent(targetEmail,isMe){
+  const box=document.getElementById('tabContent'); if(!box) return;
+  if(activeMainTab==='teman'){
+    box.innerHTML='<div style="text-align:center;color:#555;padding:20px">Memuat teman...</div>';
+    try{
+      let r=await fetch('/api/akun/list?t='+Date.now()); let u=await r.json();
+      let list=Array.isArray(u) ? u.filter(x=>x.email.toLowerCase()!==getMyEmail().toLowerCase()) : [];
+      if(!list.length){ box.innerHTML='<div style="text-align:center;color:#555">Belum ada teman</div>'; return; }
+      
+      let myEmail = getMyEmail();
+      let friendsHtml = '';
+
+      for(let x of list){
+        let isFriendOnline = false;
+        try {
+          let rProf = await fetch('/api/akun/profile?email=' + encodeURIComponent(x.email) + '&me=' + encodeURIComponent(myEmail));
+          let dProf = await rProf.json();
+          if(dProf.last_seen && (Date.now() - dProf.last_seen < 15000)){
+            isFriendOnline = true;
+          }
+        } catch(e){}
+
+        let friendOnlineHtml = isFriendOnline ? '<span class="online-indicator"><span class="online-dot"></span>online</span>' : '';
+
+        let unread = 0;
+        if(myEmail){
+          try {
+            let rMsg = await fetch('/api/chat/get?user1=' + encodeURIComponent(myEmail) + '&user2=' + encodeURIComponent(x.email));
+            let jMsg = await rMsg.json();
+            if(jMsg.ok && Array.isArray(jMsg.messages)){
+              let lastMsg = jMsg.messages[jMsg.messages.length - 1];
+              let isRead = localStorage.getItem('rg_read_' + myEmail + '_' + x.email.toLowerCase()) === 'true';
+              if(!isRead && lastMsg && lastMsg.sender.toLowerCase() === x.email.toLowerCase()){
+                unread = 1;
+              }
+            }
+          } catch(e){}
+        }
+        let badgeHtml = unread > 0 ? '<div class="badge-notif">' + unread + '</div>' : '';
+
+        friendsHtml += \`
+          <div class="user-fb">
+            <img src="\${x.picture||LOGO_INNER}" class="user-fb-av" onerror="this.src=LOGO_INNER">
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:6px">
+                <div style="font-weight:900;font-size:15px">\${x.name||x.email.split('@')[0]}</div>
+                \${friendOnlineHtml}
+              </div>
+              <div style="font-size:11px;color:#888;overflow:hidden;text-overflow:ellipsis">\${x.email}</div>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button class="btn-neon-follow" onclick="toggleFollow('\${x.email}')">Follow</button>
+                <div style="flex:1;position:relative;display:flex">
+                  \${badgeHtml}
+                  <button class="btn-neon-lihat" style="width:100%" onclick="viewUser('\${x.email}')">Lihat</button>
+                </div>
+              </div>
+            </div>
+          </div>\`;
+      }
+      box.innerHTML = friendsHtml;
+    }catch(e){ box.innerHTML='<div style="text-align:center;color:#f66">Gagal load</div>'; }
+  } else if(activeMainTab==='foto'){
+    let photos=window._photosCache||[];
+    let addBtn=isMe?'<button class="btn-add-private" onclick="addPhoto()">+ Tambah Foto Private Bos</button>':'';
+    if(!photos.length){ box.innerHTML=addBtn+'<div style="text-align:center;padding:30px;color:#555">Belum ada foto</div>'; return; }
+    box.innerHTML=addBtn+'<div class="photo-grid-2x2">'+photos.map((p,i)=>'<div class="photo-card" onclick="openPhotoModal('+i+')"><img src="'+p+'"></div>').join('')+'</div>';
+  } else if(activeMainTab==='tulis'){
+    try{ let r=await fetch('/api/tulis?t='+Date.now()); let list=await r.json(); let arr=Array.isArray(list)?list:(list.results||list.data||[]); let mine=arr.filter(p=>(p.user_email||p.email||'').toLowerCase()===targetEmail.toLowerCase()); if(!mine.length){box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada tulisan</div>';return;} box.innerHTML=mine.map(p=>'<div class="private-card">'+(p.text||p.isi||'')+'</div>').join(''); }catch{ box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Gagal memuat tulisan</div>'; }
+  } else if(activeMainTab==='video'){
+    box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada video</div>';
+  } else { box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Segera Bos</div>'; }
+}
+
+async function openPhotoModal(startIndex){
+  let photos = window._photosCache || [];
+  let authorName = '@' + (window._currentProfileEmail ? window._currentProfileEmail.split('@')[0] : 'user');
+  let feedHTML = '';
+  let me = getMyEmail();
+
+  for (let index = 0; index < photos.length; index++) {
+    let pUrl = photos[index];
+    let key = (window._currentProfileEmail || 'unknown') + '_' + index;
+    
+    let comments = [];
+    let likesCount = 0;
+    let likedByMe = false;
+    
+    try {
+      let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key) + '&me=' + encodeURIComponent(me));
+      let text = await res.text();
+      let json = text.startsWith('<') ? [] : JSON.parse(text);
+      comments = Array.isArray(json) ? json : (json.results || []);
+    } catch(e){ comments = []; }
 
     try {
-      // INIT TABLES (Struktur asli Bos dipertahankan 100%)
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER)`).run();
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS rg_users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER)`).run();
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS follows (follower_email TEXT, following_email TEXT, created_at INTEGER, PRIMARY KEY(follower_email, following_email))`).run();
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS d1consule_photos_v2 (email TEXT, idx INTEGER, photo TEXT, updated_at INTEGER, PRIMARY KEY(email, idx))`).run();
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, user_email TEXT, name TEXT, picture TEXT, time INTEGER)`).run();
-      
-      // TABEL LIKE & KOMENTAR & LIKE KOMENTAR
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_likes (photo_key TEXT, user_email TEXT, PRIMARY KEY(photo_key, user_email))`).run();
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, photo_key TEXT, user_name TEXT, comment TEXT, time INTEGER)`).run();
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS comment_likes (comment_id INTEGER, user_email TEXT, PRIMARY KEY(comment_id, user_email))`).run();
-      
-      // TABEL CHATS
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS chats (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, receiver TEXT, message TEXT, time INTEGER)`).run();
-
-      // 1. REGISTER / LOGIN
-      if (path === "/api/akun/register" && method === "POST") {
-        const body = await req.json();
-        let email = (body.email || "").toLowerCase().trim();
-        let name = (body.name || email.split('@')[0]).trim();
-        let picture = body.picture || LOGO_DEFAULT;
-        if (picture.startsWith("data:") && picture.length > 150000) picture = LOGO_DEFAULT;
-        if (!email.includes('@')) email += "@rumahgadang-ai.my.id";
-        
-        await env.DB.prepare(
-          `INSERT INTO users (email, name, picture, time) VALUES (?,?,?,?)
-           ON CONFLICT(email) DO UPDATE SET name=excluded.name, picture=excluded.picture, time=excluded.time`
-        ).bind(email, name, picture, Date.now()).run();
-        
-        return new Response(JSON.stringify({ ok: true, email, name, picture }), { headers: h });
+      let rLike = await fetch('/api/photo/like?photo_key=' + encodeURIComponent(key) + '&user_email=' + encodeURIComponent(me || ''));
+      let text = await rLike.text();
+      let jLike = text.startsWith('<') ? {} : JSON.parse(text);
+      if(jLike && jLike.ok){
+        likesCount = jLike.likes || 0;
+        likedByMe = jLike.likedByMe || false;
       }
-
-      if (path === "/api/akun/login" && method === "POST") {
-        const body = await req.json();
-        let email = (body.email || "").toLowerCase().trim();
-        if (!email.includes('@')) email += "@rumahgadang-ai.my.id";
-        let u = await env.DB.prepare(`SELECT email,name,picture FROM users WHERE email=?`).bind(email).first();
-        if(!u){
-          let name = body.name || email.split('@')[0];
-          let pic = LOGO_DEFAULT;
-          await env.DB.prepare(`INSERT INTO users (email,name,picture,time) VALUES (?,?,?,?) ON CONFLICT(email) DO NOTHING`).bind(email,name,pic,Date.now()).run();
-          return new Response(JSON.stringify({ ok: true, email, name, picture: pic }), { headers: h });
-        }
-        return new Response(JSON.stringify({ ok: true, email: u.email, name: u.name, picture: u.picture }), { headers: h });
-      }
-
-      // API PING ONLINE (Opsional pendukung frontend)
-      if (path === "/api/akun/ping" && method === "POST") {
-        return new Response(JSON.stringify({ ok: true }), { headers: h });
-      }
-
-      // 2. LIST SEMUA AKUN
-      if (path === "/api/akun/list" && method === "GET") {
-        const r1 = await env.DB.prepare("SELECT email, name, picture FROM users ORDER BY time DESC LIMIT 100").all().catch(()=>({results:[]}));
-        return new Response(JSON.stringify(r1.results), { headers: h });
-      }
-
-      // 3. PROFILE
-      if (path === "/api/akun/profile" && method === "GET") {
-        const targetEmail = (url.searchParams.get("email") || "").toLowerCase().trim();
-        const myEmail = (url.searchParams.get("me") || "").toLowerCase().trim();
-        let user = await env.DB.prepare("SELECT email, name, picture FROM users WHERE LOWER(email)=?").bind(targetEmail).first();
-        
-        let postCount = 0;
-        try{ const p = await env.DB.prepare("SELECT COUNT(*) as c FROM tulis WHERE LOWER(email)=? OR LOWER(user_email)=?").bind(targetEmail,targetEmail).first(); postCount=p?.c||0; }catch{}
-        
-        let followerCount = 0;
-        try{ const f = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE following_email=?").bind(targetEmail).first(); followerCount = f?.c || 0; }catch{}
-
-        let followingCount = 0;
-        try{ const fg = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE follower_email=?").bind(targetEmail).first(); followingCount = fg?.c || 0; }catch{}
-
-        let isFollowing=false;
-        try{ if(myEmail){ const c=await env.DB.prepare("SELECT 1 FROM follows WHERE follower_email=? AND following_email=?").bind(myEmail,targetEmail).first(); isFollowing=!!c; } }catch{}
-        
-        return new Response(JSON.stringify({
-          email: targetEmail, 
-          name: user?.name || targetEmail.split('@')[0],
-          picture: user?.picture || LOGO_DEFAULT, 
-          posts: postCount, 
-          followers: followerCount, 
-          following: followingCount, 
-          isFollowing
-        }), { headers: h });
-      }
-
-      // 4. UPDATE PROFIL
-      if (path === "/api/akun/update" && method === "POST") {
-        const { email, name, picture } = await req.json();
-        const cleanEmail = (email || "").toLowerCase().trim();
-        let pic = picture || LOGO_DEFAULT;
-        if(pic.startsWith("data:") && pic.length>150000) pic = LOGO_DEFAULT;
-        await env.DB.prepare("UPDATE users SET name=COALESCE(?,name), picture=COALESCE(?,picture) WHERE LOWER(email)=?").bind(name||null, pic||null, cleanEmail).run();
-        return new Response(JSON.stringify({ ok: true }), { headers: h });
-      }
-
-      // 5. FOLLOW
-      if (path === "/api/follow" && method === "POST") {
-        const body = await req.json();
-        const follower = (body.follower || "").toLowerCase().trim();
-        const following = (body.following || "").toLowerCase().trim();
-        if (follower === following) return new Response(JSON.stringify({ ok: false }), { headers: h });
-        const existing = await env.DB.prepare("SELECT follower_email FROM follows WHERE follower_email=? AND following_email=?").bind(follower, following).first();
-        if (existing) {
-          await env.DB.prepare("DELETE FROM follows WHERE follower_email=? AND following_email=?").bind(follower, following).run();
-          return new Response(JSON.stringify({ ok: true, status: "unfollowed" }), { headers: h });
-        } else {
-          await env.DB.prepare("INSERT INTO follows (follower_email, following_email, created_at) VALUES (?,?,?)").bind(follower, following, Date.now()).run();
-          return new Response(JSON.stringify({ ok: true, status: "followed" }), { headers: h });
-        }
-      }
-
-      // 6. FOLLOWERS & FOLLOWING
-      if (path === "/api/followers" || path === "/api/following") {
-        const email = (url.searchParams.get("email") || "").toLowerCase().trim();
-        let sql = path.includes("followers") 
-          ? `SELECT u.email, u.name, u.picture FROM follows f JOIN users u ON f.follower_email=u.email WHERE f.following_email=?`
-          : `SELECT u.email, u.name, u.picture FROM follows f JOIN users u ON f.following_email=u.email WHERE f.follower_email=?`;
-        const result = await env.DB.prepare(sql).bind(email).all().catch(()=>({results:[]}));
-        return new Response(JSON.stringify(result.results||[]), { headers: h });
-      }
-
-      // 7. FOTO V2
-      if (path === "/api/akun/photos") {
-        if (method === "POST") {
-          const { email, photos } = await req.json();
-          const clean = (email || "").toLowerCase().trim();
-          if (!photos || !Array.isArray(photos)) return new Response(JSON.stringify({ ok: false }), { headers: h, status:400 });
-          await env.DB.prepare("DELETE FROM d1consule_photos_v2 WHERE email=?").bind(clean).run();
-          for (let i=0;i<Math.min(photos.length,12);i++) {
-            await env.DB.prepare("INSERT INTO d1consule_photos_v2 (email, idx, photo, updated_at) VALUES (?,?,?,?)").bind(clean, i, photos[i], Date.now()).run();
-          }
-          return new Response(JSON.stringify({ ok: true, count: photos.length }), { headers: h });
-        }
-        if (method === "GET") {
-          const email = (url.searchParams.get("email") || "").toLowerCase().trim();
-          const res = await env.DB.prepare("SELECT photo FROM d1consule_photos_v2 WHERE email=? ORDER BY idx ASC").bind(email).all().catch(()=>({results:[]}));
-          return new Response(JSON.stringify((res.results||[]).map(r=>r.photo)), { headers: h });
-        }
-      }
-
-      // 8. API LIKE FOTO PERMANEN
-      if (path === "/api/photo/like") {
-        let photo_key = url.searchParams.get("photo_key");
-        let user_email = (url.searchParams.get("user_email") || "").toLowerCase().trim();
-
-        if (method === "POST") {
-          const body = await req.json().catch(()=>({}));
-          photo_key = body.photo_key || photo_key;
-          user_email = (body.user_email || user_email).toLowerCase().trim();
-          
-          if (!photo_key || !user_email) return new Response(JSON.stringify({ ok: false, error: "Missing data" }), { headers: h, status: 400 });
-          
-          const existing = await env.DB.prepare("SELECT 1 FROM photo_likes WHERE photo_key=? AND user_email=?").bind(photo_key, user_email).first();
-          if (existing) {
-            await env.DB.prepare("DELETE FROM photo_likes WHERE photo_key=? AND user_email=?").bind(photo_key, user_email).run();
-          } else {
-            await env.DB.prepare("INSERT OR IGNORE INTO photo_likes (photo_key, user_email) VALUES (?,?)").bind(photo_key, user_email).run();
-          }
-        }
-        
-        if (!photo_key) return new Response(JSON.stringify({ ok: false, error: "Missing photo_key" }), { headers: h, status: 400 });
-
-        const countRes = await env.DB.prepare("SELECT COUNT(*) as c FROM photo_likes WHERE photo_key=?").bind(photo_key).first();
-        let likedRes = null;
-        if (user_email) {
-          likedRes = await env.DB.prepare("SELECT 1 FROM photo_likes WHERE photo_key=? AND user_email=?").bind(photo_key, user_email).first();
-        }
-        
-        return new Response(JSON.stringify({ ok: true, likes: countRes?.c || 0, likedByMe: !!likedRes }), { headers: h });
-      }
-
-      // 9. API LIKE KOMENTAR
-      if (path === "/api/akun/komen/like" && method === "POST") {
-        const { comment_id, email } = await req.json().catch(()=>({}));
-        const cleanEmail = (email || "").toLowerCase().trim();
-        if (!comment_id || !cleanEmail) return new Response(JSON.stringify({ ok: false }), { headers: h, status: 400 });
-        
-        const existing = await env.DB.prepare("SELECT 1 FROM comment_likes WHERE comment_id=? AND user_email=?").bind(comment_id, cleanEmail).first();
-        if (existing) {
-          await env.DB.prepare("DELETE FROM comment_likes WHERE comment_id=? AND user_email=?").bind(comment_id, cleanEmail).run();
-        } else {
-          await env.DB.prepare("INSERT OR IGNORE INTO comment_likes (comment_id, user_email) VALUES (?,?)").bind(comment_id, cleanEmail).run();
-        }
-        return new Response(JSON.stringify({ ok: true }), { headers: h });
-      }
-
-      // 10. API KOMENTAR & DELETE KOMENTAR
-      if (path === "/api/photo/comment") {
-        if (method === "POST") {
-          const { photo_key, user_name, comment } = await req.json().catch(()=>({}));
-          if (!photo_key || !comment) return new Response(JSON.stringify({ ok: false }), { headers: h, status: 400 });
-          await env.DB.prepare("INSERT INTO photo_comments (photo_key, user_name, comment, time) VALUES (?,?,?,?)")
-            .bind(photo_key, user_name || "Dunsanak", comment.trim(), Date.now()).run();
-          return new Response(JSON.stringify({ ok: true }), { headers: h });
-        }
-        if (method === "DELETE") {
-          const { comment_id } = await req.json().catch(()=>({}));
-          if (!comment_id) return new Response(JSON.stringify({ ok: false }), { headers: h, status: 400 });
-          await env.DB.prepare("DELETE FROM photo_comments WHERE id=?").bind(comment_id).run();
-          await env.DB.prepare("DELETE FROM comment_likes WHERE comment_id=?").bind(comment_id).run();
-          return new Response(JSON.stringify({ ok: true }), { headers: h });
-        }
-        
-        const photo_key = url.searchParams.get("photo_key");
-        const myEmail = (url.searchParams.get("me") || "").toLowerCase().trim();
-        
-        const comments = await env.DB.prepare("SELECT id, user_name as user, comment as text, time FROM photo_comments WHERE photo_key=? ORDER BY id ASC").bind(photo_key).all().catch(()=>({results:[]}));
-        
-        let results = [];
-        for(let c of (comments.results || [])){
-          let countRes = await env.DB.prepare("SELECT COUNT(*) as c FROM comment_likes WHERE comment_id=?").bind(c.id).first();
-          let likedRes = myEmail ? await env.DB.prepare("SELECT 1 FROM comment_likes WHERE comment_id=? AND user_email=?").bind(c.id, myEmail).first() : null;
-          results.push({
-            ...c,
-            likes: countRes?.c || 0,
-            likedByMe: !!likedRes
-          });
-        }
-        
-        return new Response(JSON.stringify(results), { headers: h });
-      }
-
-      // 11. API CHAT & CLEAR CHAT
-      if (path === "/api/chat/send" && method === "POST") {
-        const { sender, receiver, message } = await req.json().catch(()=>({}));
-        const cleanSender = (sender || "").toLowerCase().trim();
-        const cleanReceiver = (receiver || "").toLowerCase().trim();
-        const cleanMessage = (message || "").trim();
-
-        if (!cleanSender || !cleanReceiver || !cleanMessage) {
-          return new Response(JSON.stringify({ ok: false, error: "Data kurang" }), { headers: h, status: 400 });
-        }
-
-        await env.DB.prepare("INSERT INTO chats (sender, receiver, message, time) VALUES (?, ?, ?, ?)")
-          .bind(cleanSender, cleanReceiver, cleanMessage, Date.now()).run();
-
-        return new Response(JSON.stringify({ ok: true }), { headers: h });
-      }
-
-      if (path === "/api/chat/get" && method === "GET") {
-        const user1 = (url.searchParams.get("user1") || "").toLowerCase().trim();
-        const user2 = (url.searchParams.get("user2") || "").toLowerCase().trim();
-
-        if (!user1 || !user2) {
-          return new Response(JSON.stringify({ ok: false, messages: [] }), { headers: h });
-        }
-
-        const { results } = await env.DB.prepare(
-          "SELECT * FROM chats WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) ORDER BY id ASC"
-        ).bind(user1, user2, user2, user1).all().catch(()=>({results:[]}));
-
-        return new Response(JSON.stringify({ ok: true, messages: results || [] }), { headers: h });
-      }
-
-      // TAMBAHAN ENDPOINT HAPUS SEMUA CHAT
-      if (path === "/api/chat/clear" && method === "POST") {
-        const { user1, user2 } = await req.json().catch(()=>({}));
-        const cleanUser1 = (user1 || "").toLowerCase().trim();
-        const cleanUser2 = (user2 || "").toLowerCase().trim();
-
-        if (!cleanUser1 || !cleanUser2) {
-          return new Response(JSON.stringify({ ok: false, error: "User kurang" }), { headers: h, status: 400 });
-        }
-
-        await env.DB.prepare(
-          "DELETE FROM chats WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?)"
-        ).bind(cleanUser1, cleanUser2, cleanUser2, cleanUser1).run();
-
-        return new Response(JSON.stringify({ ok: true }), { headers: h });
-      }
-
-    } catch (err) {
-      return new Response(JSON.stringify({ ok: false, error: err.message }), { headers: h, status: 500 });
-    }
-    return null;
+    } catch(e){}
+    
+    feedHTML += \`
+      <div class="postCard" id="postCard-\${index}">
+        <div class="postHeader">
+          <span style="font-weight:900;color:#00ff88">\${authorName}</span>
+          \${window._isMyProfile ? '<button onclick="deletePhotoIndex('+index+')" style="background:#ff4444;color:#fff;border:0;padding:5px 10px;border-radius:10px;font-weight:900;cursor:pointer">🗑️ Hapus</button>' : ''}
+        </div>
+        <div class="postImgWrap"><img src="\${pUrl}"></div>
+        <div class="postActions">
+          <span id="likeBtn-\${index}" onclick="toggleLikeIndex(\${index})" style="cursor:pointer;color:\${likedByMe?'#ff4444':'#fff'}">❤️ <span id="likeCount-\${index}" style="font-size:14px">\${likesCount}</span></span>
+          <span onclick="openCommentSheet('\${key}', \${index})" style="cursor:pointer;font-size:14px">💬 <span id="commentCount-\${index}">\${comments.length}</span> Komentar</span>
+        </div>
+      </div>\`;
   }
-};
 
-export default AKUN_API;
+  document.getElementById('modalFeedContainer').innerHTML = feedHTML;
+  document.getElementById('photoModal').style.display = 'block';
+
+  setTimeout(() => {
+    let targetCard = document.getElementById('postCard-' + startIndex);
+    if(targetCard){ targetCard.scrollIntoView({ behavior: 'smooth' }); }
+  }, 100);
+}
+
+function closePhotoModal(){ document.getElementById('photoModal').style.display = 'none'; }
+
+async function openCommentSheet(key, index){
+  currentActivePhotoKey = { key, index };
+  document.getElementById('commentModal').style.display = 'flex';
+  loadSheetComments(key);
+}
+
+function closeCommentModal(){
+  document.getElementById('commentModal').style.display = 'none';
+}
+
+async function loadSheetComments(key){
+  let listEl = document.getElementById('commentSheetList');
+  listEl.innerHTML = '<div style="text-align:center;color:#666;padding:20px">Memuat komentar...</div>';
+  let myName = getMyName().toLowerCase().trim();
+  let myEmail = getMyEmail();
+  let isMyProfile = window._isMyProfile;
+
+  try {
+    let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key) + '&me=' + encodeURIComponent(myEmail));
+    let text = await res.text();
+    let json = text.startsWith('<') ? [] : JSON.parse(text);
+    let comments = Array.isArray(json) ? json : (json.results || []);
+    
+    document.getElementById('commentSheetTitle').innerText = \`Komentar (\${comments.length})\`;
+    
+    if(!comments.length){
+      listEl.innerHTML = '<div style="text-align:center;color:#666;padding:30px">Belum ada komentar. Jadilah yang pertama!</div>';
+      return;
+    }
+    
+    let rUsers = await fetch('/api/akun/list?t=' + Date.now()).catch(()=>({json:()=>[]}));
+    let allUsers = await rUsers.json().catch(()=>[]);
+    let userAvatarMap = {};
+    if(Array.isArray(allUsers)){
+      allUsers.forEach(u => {
+        if(u.name) userAvatarMap[u.name.toLowerCase().trim()] = u.picture || LOGO_INNER;
+      });
+    }
+
+    listEl.innerHTML = comments.map(c=> {
+      let commentUser = (c.user || 'Dunsanak').toLowerCase().trim();
+      let canDelete = (myName && commentUser === myName) || isMyProfile;
+      let likedColor = c.likedByMe ? '#ff4444' : '#aaa';
+      let avatarUrl = userAvatarMap[commentUser] || LOGO_INNER;
+
+      return \`
+        <div style="padding:12px 0;border-bottom:1px solid #222;display:flex;gap:12px;align-items:flex-start">
+          <img src="\${avatarUrl}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1.5px solid #00ff88;flex-shrink:0" onerror="this.src=LOGO_INNER">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:900;color:#00ff88;font-size:13px">\${c.user || 'Dunsanak'}</div>
+            <div style="font-size:13px;color:#ddd;margin-top:4px;word-break:break-word">\${c.text || c.comment || ''}</div>
+            <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:#aaa;align-items:center">
+              <span style="cursor:pointer;color:\${likedColor};font-weight:bold" onclick="loveKomen(\${c.id}, '\${key}')">❤️ Love (\${c.likes || 0})</span>
+              <span style="cursor:pointer" onclick="replyComment('\${c.user}')">Balas</span>
+            </div>
+          </div>
+          \${canDelete ? '<button onclick="deleteComment(' + c.id + ', \\'' + key + '\\', ' + currentActivePhotoKey.index + ')" style="background:transparent;color:#ff4444;border:0;font-size:12px;font-weight:bold;cursor:pointer;padding:4px 8px;flex-shrink:0">🗑️ Hapus</button>' : ''}
+        </div>
+      \`;
+    }).join('');
+  } catch(e){
+    listEl.innerHTML = '<div style="text-align:center;color:#f66;padding:20px">Gagal memuat komentar</div>';
+  }
+}
+
+function replyComment(username){
+  let inp = document.getElementById('sheetCommentInput');
+  inp.value = '@' + username + ' ';
+  inp.focus();
+}
+
+async function deleteComment(commentId, key, index){
+  if(!confirm('Hapus komentar ini Bos?')) return;
+  try {
+    let r = await fetch('/api/photo/comment', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ comment_id: commentId })
+    });
+    let j = await r.json();
+    if(j.ok){
+      loadSheetComments(key);
+      let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
+      let json = await res.json();
+      let count = Array.isArray(json) ? json.length : (json.results?.length || 0);
+      let counterEl = document.getElementById('commentCount-' + index);
+      if(counterEl) counterEl.innerText = count;
+      toast('Komentar dihapus Bos!');
+    } else {
+      toast('Gagal hapus komentar');
+    }
+  } catch(e){ toast('Error: ' + e.message); }
+}
+
+async function loveKomen(commentId, key){
+  const email = getMyEmail(); 
+  if(!email){ toast("Login dulu Bos!"); return; }
+  try {
+    await fetch("/api/akun/komen/like", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ comment_id: String(commentId), email: email })
+    });
+    loadSheetComments(key);
+  } catch(e){ toast("Gagal Love komentar"); }
+}
+
+async function submitSheetComment(){
+  if(!currentActivePhotoKey) return;
+  let inp = document.getElementById('sheetCommentInput');
+  let text = inp.value.trim();
+  if(!text) return toast('Tulis komentar dulu');
+  let me = getMyEmail();
+  if(!me) return toast('Login dulu');
+  
+  let { key, index } = currentActivePhotoKey;
+  let myName = getMyName();
+  
+  try {
+    await fetch('/api/photo/comment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ photo_key: key, user_name: myName, comment: text })
+    });
+    inp.value = '';
+    loadSheetComments(key);
+    
+    let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
+    let json = await res.json();
+    let count = Array.isArray(json) ? json.length : (json.results?.length || 0);
+    let counterEl = document.getElementById('commentCount-' + index);
+    if(counterEl) counterEl.innerText = count;
+    
+    toast('Komentar terkirim Bos!');
+  } catch(e){ toast('Gagal kirim komentar'); }
+}
+
+async function toggleLikeIndex(index){
+  let me = getMyEmail();
+  if(!me) return toast('Login dulu untuk Like!');
+  let key = (window._currentProfileEmail || 'unknown') + '_' + index;
+  
+  try {
+    let r = await fetch('/api/photo/like', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ photo_key: key, user_email: me })
+    });
+    let text = await r.text();
+    let j = text.startsWith('<') ? {ok:false} : JSON.parse(text);
+    if(j.ok){
+      document.getElementById('likeCount-' + index).innerText = j.likes;
+      document.getElementById('likeBtn-' + index).style.color = j.likedByMe ? '#ff4444' : '#fff';
+    } else {
+      toast('Gagal Like');
+    }
+  } catch(e){ toast('Error Like: ' + e.message); }
+}
+
+async function deletePhotoIndex(index){
+  if(!confirm('Hapus foto ini')) return;
+  let photos = window._photosCache || [];
+  photos.splice(index, 1);
+  try{
+    let r = await fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),photos:photos})});
+    let j = await r.json();
+    if(j.ok){
+      window._photosCache = photos;
+      closePhotoModal();
+      loadContent(getMyEmail(), true);
+      toast('Foto berhasil dihapus');
+    } else { toast('Gagal hapus'); }
+  }catch(e){ toast('Error: '+e.message); }
+}
+
+function showEdit(){
+  document.getElementById('editModal').style.display='grid';
+  document.getElementById('editName').value=getMyName();
+  let av=getMyAvatar();
+  document.getElementById('editPicUrl').value=av.startsWith('data:')?'' : av;
+  document.getElementById('editPrev').src=av;
+  _editB64=null;
+  document.getElementById('editPicFile').onchange=(e)=>{
+    let f=e.target.files[0]; if(!f) return;
+    let img=new Image();
+    img.onload=()=>{
+      let c=document.createElement('canvas');
+      let max=400; let w=img.width, h=img.height;
+      if(w>h){ if(w>max){ h*=max/w; w=max; } } else { if(h>max){ w*=max/h; h=max; } }
+      c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      _editB64=c.toDataURL('image/jpeg',0.7);
+      document.getElementById('editPrev').src=_editB64;
+      document.getElementById('editPicUrl').value='';
+    };
+    let r=new FileReader(); r.onload=()=>{ img.src=r.result; }; r.readAsDataURL(f);
+  };
+}
+function closeEdit(){ document.getElementById('editModal').style.display='none'; }
+async function saveEdit(){
+  let name=document.getElementById('editName').value.trim()||getMyName();
+  let urlVal=document.getElementById('editPicUrl').value.trim();
+  let pic=_editB64 || urlVal || getMyAvatar();
+  if(!pic) pic=LOGO_INNER;
+  try{ 
+    localStorage.setItem('rg_name',name); 
+    localStorage.setItem('rg_avatar',pic); 
+  }catch(e){ 
+    if(pic.startsWith('data:')){ pic=LOGO_INNER; localStorage.setItem('rg_avatar',pic); toast('Foto kebesaran, pakai link aja biar bebas'); }
+  }
+  toast('Ganti foto'); closeEdit(); render();
+  try{
+    await fetch('/api/akun/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),name,picture:pic})});
+    toast('Profile update');
+  }catch(e){}
+}
+function addPhoto(){
+  let input=document.createElement('input'); input.type='file'; input.accept='image/*'; input.multiple=true;
+  input.onchange=async()=>{
+    if(input.files.length + (window._photosCache||[]).length > 12) return toast('Max 12 foto');
+    let list=[...(window._photosCache||[])];
+    for(let f of input.files){
+      let b64=await new Promise(res=>{
+        let img=new Image();
+        img.onload=()=>{
+          let c=document.createElement('canvas'); let max=600; let w=img.width,h=img.height;
+          if(w>h){ if(w>max){ h*=max/w; w=max; } } else { if(h>max){ w*=max/h; h=max; } }
+          c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
+          res(c.toDataURL('image/jpeg',0.75));
+        };
+        let r=new FileReader(); r.onload=()=>{ img.src=r.result; }; r.readAsDataURL(f);
+      });
+      list.unshift(b64);
+    }
+    let r=await fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),photos:list})});
+    let j=await r.json();
+    if(j.ok){ toast('Foto kesimpan '+j.count); window._photosCache=list; loadContent(getMyEmail(),true); }
+    else toast('Gagal: '+(j.error||'')); 
+  };
+  input.click();
+}
+async function toggleFollow(target){
+  const me=getMyEmail(); if(!me){ toast('Login dulu'); return; }
+  try{
+    let res=await fetch('/api/follow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({follower:me, following:target.toLowerCase()})});
+    let j=await res.json();
+    if(j.ok){ toast(j.status==='followed'?'Followed':'Unfollowed'); render(); }
+    else toast(j.error||'Gagal');
+  }catch(e){ toast('Error: '+e.message); }
+}
+render();
+</script>
+</body></html>
+`;
+
+export default AKUN_HTML;

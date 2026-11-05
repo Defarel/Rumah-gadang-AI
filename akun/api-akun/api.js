@@ -269,7 +269,6 @@ export const AKUN_API = {
         return new Response(JSON.stringify({ ok: true, messages: results || [] }), { headers: h });
       }
 
-      // TAMBAHAN API HAPUS SEMUA CHAT
       if (path === "/api/chat/clear" && method === "POST") {
         const { user1, user2 } = await req.json().catch(()=>({}));
         const cleanUser1 = (user1 || "").toLowerCase().trim();

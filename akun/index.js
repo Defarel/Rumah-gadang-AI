@@ -29,6 +29,8 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .btn-keluar{flex:1;padding:13px;background:#111;color:#ff6b6b;border:1.5px solid #ff4444;border-radius:12px;font-weight:800;box-shadow:0 0 8px rgba(255,68,68,.3);cursor:pointer}
 .btn-follow-real{width:100%;padding:14px;background:#00ff88;color:#000;border:1.5px solid #00ff88;border-radius:14px;font-weight:900;box-shadow:0 0 15px #00ff88;cursor:pointer}
 .btn-following-real{width:100%;padding:14px;background:#111;color:#fff;border:1.5px solid #00ff88;border-radius:14px;font-weight:800;box-shadow:0 0 10px rgba(0,255,136,.3);cursor:pointer}
+.btn-chat-real{flex:1;padding:14px;background:#222;color:#fff;border:1.5px solid #00ff88;border-radius:14px;font-weight:800;box-shadow:0 0 10px rgba(0,255,136,.3);cursor:pointer;text-align:center}
+.btn-extra-real{padding:14px 18px;background:#111;color:#00ff88;border:1.5px solid #00ff88;border-radius:14px;font-weight:900;box-shadow:0 0 10px rgba(0,255,136,.3);cursor:pointer}
 .profile-sec{padding:18px 16px 10px}
 .prof-top{display:flex;align-items:center;gap:18px;margin-bottom:14px}
 .avatar-wrap{position:relative;width:76px;height:76px;cursor:pointer}
@@ -147,6 +149,8 @@ function saveAuth(e,n,a){localStorage.setItem('rg_email',e.toLowerCase().trim())
 function logout(){ if(confirm("Keluar?")){localStorage.clear();viewingUserEmail=null;history.pushState(null,'','/akun');render();}}
 function viewUser(e){ viewingUserEmail=e.toLowerCase().trim(); activeMainTab='tulis'; history.pushState(null,'','/akun?profil='+encodeURIComponent(e)); render(); }
 function switchTab(t){ activeMainTab=t; const me=viewingUserEmail||getMyEmail(); loadContent(me, me===getMyEmail()); document.querySelectorAll('.m-tab').forEach(b=>{ b.classList.toggle('active', b.innerText.toLowerCase()===t); }); }
+function openChat(e){ toast('Membuka Chat dengan ' + e); }
+function openExtraMenu(){ toast('Menu Opsi Tambahan'); }
 function setLoginMode(m){
   window.loginMode=m;
   document.getElementById('tMasuk').classList.toggle('on',m==='masuk');
@@ -216,16 +220,11 @@ async function renderProfile(container,targetEmail,isMe){
     if(!Array.isArray(photos)) photos = photos.results || photos.data || [];
 
     // ===== AUTO REVERSE LOGIC - FIX BAJU BIRU DI BAWAH =====
-    // Kalau data lama masih urutan lama (push ke bawah), kita auto balik biar yang baru di atas
-    // Cek flag biar gak bolak-balik reverse terus
     let migrateKey = 'rg_migrated_reverse_'+targetEmail;
     let alreadyMigrated = localStorage.getItem(migrateKey);
     if(photos.length > 1 && !alreadyMigrated){
-      // Kalau belum pernah di-migrate, reverse sekali dan save ulang
-      // Ini yang bikin foto biru naufa yang baru upload langsung naik ke atas
       photos = photos.slice().reverse();
       localStorage.setItem(migrateKey, '1');
-      // Auto save hasil reverse ke server biar permanen
       if(isMe){
         fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:targetEmail,photos:photos})}).catch(()=>{});
       }
@@ -239,7 +238,7 @@ async function renderProfile(container,targetEmail,isMe){
         <div class="stats-wrap"><div><div class="stat-num">\${data.posts||0}</div><div class="stat-label">tulisan</div></div><div><div class="stat-num">\${data.followers||0}</div><div class="stat-label">pengikut</div></div><div><div class="stat-num">\${data.following||0}</div><div class="stat-label">mengikuti</div></div></div>
       </div>
       <div style="font-size:18px;font-weight:900">\${data.name}</div><div style="font-size:12px;color:#00ff88;margin-bottom:14px">\${targetEmail}</div>
-      <div style="margin-bottom:16px">\${isMe ? '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>' : '<button class="'+(data.isFollowing?'btn-following-real':'btn-follow-real')+'" onclick="toggleFollow(\\''+targetEmail+'\\")">'+(data.isFollowing?'✓ Mengikuti':'Follow')+'</button>'}</div>
+      <div style="margin-bottom:16px">\${isMe ? '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>' : '<div style="display:flex;gap:8px"><button class="'+(data.isFollowing?'btn-following-real':'btn-follow-real')+'" style="flex:2" onclick="toggleFollow(\\''+targetEmail+'\\")">'+(data.isFollowing?'✓ Mengikuti':'Follow')+'</button><button class="btn-chat-real" onclick="openChat(\\''+targetEmail+'\\")">Chat</button><button class="btn-extra-real" onclick="openExtraMenu()">⚙️</button></div>'}</div>
       <div class="main-tabs">
         <button class="m-tab \${activeMainTab==='tulis'?'active':''}" onclick="switchTab('tulis')">TULIS</button>
         <button class="m-tab \${activeMainTab==='foto'?'active':''}" onclick="switchTab('foto')">FOTO</button>
@@ -281,6 +280,8 @@ async function loadContent(targetEmail,isMe){
     box.innerHTML=addBtn+'<div class="photo-grid-2x2">'+photos.map((p,i)=>'<div class="photo-card" onclick="openPhotoModal('+i+')"><img src="'+p+'"></div>').join('')+'</div>';
   } else if(activeMainTab==='tulis'){
     try{ let r=await fetch('/api/tulis?t='+Date.now()); let list=await r.json(); let arr=Array.isArray(list)?list:(list.results||list.data||[]); let mine=arr.filter(p=>(p.user_email||p.email||'').toLowerCase()===targetEmail.toLowerCase()); if(!mine.length){box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada tulisan</div>';return;} box.innerHTML=mine.map(p=>'<div class="private-card">'+(p.text||p.isi||'')+'</div>').join(''); }catch{ box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Gagal memuat tulisan</div>'; }
+  } else if(activeMainTab==='video'){
+    box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada video</div>';
   } else { box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Segera Bos</div>'; }
 }
 

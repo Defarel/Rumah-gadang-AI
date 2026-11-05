@@ -7,7 +7,7 @@ export const AKUN_API = {
     const method = req.method;
 
     try {
-      // INIT TABLES
+      // INIT TABLES (Struktur asli Bos dipertahankan 100%)
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER)`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS rg_users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER)`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS follows (follower_email TEXT, following_email TEXT, created_at INTEGER, PRIMARY KEY(follower_email, following_email))`).run();
@@ -19,7 +19,7 @@ export const AKUN_API = {
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, photo_key TEXT, user_name TEXT, comment TEXT, time INTEGER)`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS comment_likes (comment_id INTEGER, user_email TEXT, PRIMARY KEY(comment_id, user_email))`).run();
       
-      // TABEL CHATS (TAMBAHAN UNTUK FITUR CHAT)
+      // TABEL CHATS
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS chats (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, receiver TEXT, message TEXT, time INTEGER)`).run();
 
       // 1. REGISTER / LOGIN
@@ -51,6 +51,11 @@ export const AKUN_API = {
           return new Response(JSON.stringify({ ok: true, email, name, picture: pic }), { headers: h });
         }
         return new Response(JSON.stringify({ ok: true, email: u.email, name: u.name, picture: u.picture }), { headers: h });
+      }
+
+      // API PING ONLINE (Opsional pendukung frontend)
+      if (path === "/api/akun/ping" && method === "POST") {
+        return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
       // 2. LIST SEMUA AKUN
@@ -225,7 +230,7 @@ export const AKUN_API = {
         return new Response(JSON.stringify(results), { headers: h });
       }
 
-      // 11. API CHAT (TAMBAHAN PENGIRIMAN & PENGAMBILAN PESAN)
+      // 11. API CHAT & CLEAR CHAT
       if (path === "/api/chat/send" && method === "POST") {
         const { sender, receiver, message } = await req.json().catch(()=>({}));
         const cleanSender = (sender || "").toLowerCase().trim();
@@ -255,6 +260,23 @@ export const AKUN_API = {
         ).bind(user1, user2, user2, user1).all().catch(()=>({results:[]}));
 
         return new Response(JSON.stringify({ ok: true, messages: results || [] }), { headers: h });
+      }
+
+      // TAMBAHAN ENDPOINT HAPUS SEMUA CHAT
+      if (path === "/api/chat/clear" && method === "POST") {
+        const { user1, user2 } = await req.json().catch(()=>({}));
+        const cleanUser1 = (user1 || "").toLowerCase().trim();
+        const cleanUser2 = (user2 || "").toLowerCase().trim();
+
+        if (!cleanUser1 || !cleanUser2) {
+          return new Response(JSON.stringify({ ok: false, error: "User kurang" }), { headers: h, status: 400 });
+        }
+
+        await env.DB.prepare(
+          "DELETE FROM chats WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?)"
+        ).bind(cleanUser1, cleanUser2, cleanUser2, cleanUser1).run();
+
+        return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
     } catch (err) {

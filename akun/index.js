@@ -29,8 +29,8 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .btn-keluar{flex:1;padding:13px;background:#111;color:#ff6b6b;border:1.5px solid #ff4444;border-radius:12px;font-weight:800;box-shadow:0 0 8px rgba(255,68,68,.3);cursor:pointer}
 .btn-follow-real{width:100%;padding:14px;background:#00ff88;color:#000;border:1.5px solid #00ff88;border-radius:14px;font-weight:900;box-shadow:0 0 15px #00ff88;cursor:pointer}
 .btn-following-real{width:100%;padding:14px;background:#111;color:#fff;border:1.5px solid #00ff88;border-radius:14px;font-weight:800;box-shadow:0 0 10px rgba(0,255,136,.3);cursor:pointer}
-.btn-chat-real{flex:1;padding:14px;background:#222;color:#fff;border:1.5px solid #00ff88;border-radius:14px;font-weight:800;box-shadow:0 0 10px rgba(0,255,136,.3);cursor:pointer;text-align:center}
-.btn-extra-real{padding:14px 18px;background:#111;color:#00ff88;border:1.5px solid #00ff88;border-radius:14px;font-weight:900;box-shadow:0 0 10px rgba(0,255,136,.3);cursor:pointer}
+.btn-chat-real{flex:1;padding:14px;background:#222;color:#fff;border:1.5px solid #00ff88;border-radius:14px;font-weight:800;box-shadow:0 0 10px rgba(0,255,136,.3);cursor:pointer;text-align:center;z-index:5;position:relative}
+.btn-extra-real{padding:14px 18px;background:#111;color:#00ff88;border:1.5px solid #00ff88;border-radius:14px;font-weight:900;box-shadow:0 0 10px rgba(0,255,136,.3);cursor:pointer;z-index:5;position:relative}
 .profile-sec{padding:18px 16px 10px}
 .prof-top{display:flex;align-items:center;gap:18px;margin-bottom:14px}
 .avatar-wrap{position:relative;width:76px;height:76px;cursor:pointer}
@@ -150,9 +150,9 @@ function logout(){ if(confirm("Keluar?")){localStorage.clear();viewingUserEmail=
 function viewUser(e){ viewingUserEmail=e.toLowerCase().trim(); activeMainTab='tulis'; history.pushState(null,'','/akun?profil='+encodeURIComponent(e)); render(); }
 function switchTab(t){ activeMainTab=t; const me=viewingUserEmail||getMyEmail(); loadContent(me, me===getMyEmail()); document.querySelectorAll('.m-tab').forEach(b=>{ b.classList.toggle('active', b.innerText.toLowerCase()===t); }); }
 
-// Fungsi agar tombol Chat bisa diklik dan langsung membuka halaman chat
+// FUNGSI UTAMA AGAR TOMBOL CHAT BISA DIKLIK DAN BERPINDAH HALAMAN
 function openChat(email){
-  if(!email) { toast('Email tidak valid'); return; }
+  if(!email){ toast('Email tujuan tidak ada'); return; }
   window.location.href = '/akun/chat?email=' + encodeURIComponent(email);
 }
 
@@ -235,6 +235,21 @@ async function renderProfile(container,targetEmail,isMe){
       }
     }
   }catch{}
+  
+  // RENDER TOMBOL ATAS: Jika bukan profil sendiri, tampilkan tombol Follow, Chat, dan Settings dengan benar
+  let actionButtonsHtml = '';
+  if(isMe) {
+    actionButtonsHtml = '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>';
+  } else {
+    let followBtnClass = data.isFollowing ? 'btn-following-real' : 'btn-follow-real';
+    let followBtnText = data.isFollowing ? '✓ Mengikuti' : 'Follow';
+    actionButtonsHtml = \`<div style="display:flex;gap:8px">
+      <button class="\${followBtnClass}" style="flex:2" onclick="toggleFollow('\${targetEmail}')">\${followBtnText}</button>
+      <button class="btn-chat-real" onclick="openChat('\${targetEmail}')">Chat</button>
+      <button class="btn-extra-real" onclick="openExtraMenu()">⚙️</button>
+    </div>\`;
+  }
+
   container.innerHTML = \`
     <div class="profile-sec">
       <div class="prof-top">
@@ -242,7 +257,7 @@ async function renderProfile(container,targetEmail,isMe){
         <div class="stats-wrap"><div><div class="stat-num">\${data.posts||0}</div><div class="stat-label">tulisan</div></div><div><div class="stat-num">\${data.followers||0}</div><div class="stat-label">pengikut</div></div><div><div class="stat-num">\${data.following||0}</div><div class="stat-label">mengikuti</div></div></div>
       </div>
       <div style="font-size:18px;font-weight:900">\${data.name}</div><div style="font-size:12px;color:#00ff88;margin-bottom:14px">\${targetEmail}</div>
-      <div style="margin-bottom:16px">\${isMe ? '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>' : '<div style="display:flex;gap:8px"><button class="'+(data.isFollowing?'btn-following-real':'btn-follow-real')+'" style="flex:2" onclick="toggleFollow(\\''+targetEmail+'\\")">'+(data.isFollowing?'✓ Mengikuti':'Follow')+'</button><button class="btn-chat-real" onclick="openChat(\\''+targetEmail+'\\")">Chat</button><button class="btn-extra-real" onclick="openExtraMenu()">⚙️</button></div>'}</div>
+      <div style="margin-bottom:16px">\${actionButtonsHtml}</div>
       <div class="main-tabs">
         <button class="m-tab \${activeMainTab==='tulis'?'active':''}" onclick="switchTab('tulis')">TULIS</button>
         <button class="m-tab \${activeMainTab==='foto'?'active':''}" onclick="switchTab('foto')">FOTO</button>

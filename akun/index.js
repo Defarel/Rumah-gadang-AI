@@ -171,7 +171,6 @@ setInterval(sendMyPresence, 5000);
 function openChat(email){
   if(!email){ toast('Email tujuan tidak ada'); return; }
   let cleanEmail = email.toLowerCase().trim();
-  // Set tanda baca pesan sudah dibaca berdasarkan email pengirim & penerima aktif
   localStorage.setItem('rg_read_' + getMyEmail() + '_' + cleanEmail, 'true');
   window.location.href = '/akun/chat?email=' + encodeURIComponent(cleanEmail);
 }
@@ -211,7 +210,7 @@ async function render(){
   const target=viewingUserEmail||my; renderProfile(cont,target,target===my);
 }
 async function doLogin(){
-  let email=document.getElementById('emailIn'].value.trim().toLowerCase();
+  let email=document.getElementById('emailIn').value.trim().toLowerCase();
   let pass=document.getElementById('passIn').value.trim();
   let name=document.getElementById('nameIn').value.trim()||email.split('@')[0];
   if(!email.includes('@')) email+='@rumahgadang-ai.my.id';
@@ -236,12 +235,9 @@ async function doLogin(){
 }
 async function renderProfile(container,targetEmail,isMe){
   container.innerHTML='<div style="text-align:center;padding:40px;color:#666">Memuat...</div>';
-  let data={name:isMe?getMyName():targetEmail.split('@')[0],picture:isMe?getMyAvatar():LOGO_INNER,posts:0,followers:0,following:0,isFollowing:false,last_seen:0};
+  let data={name:isMe?getMyName():targetEmail.split('@')[0],picture:isMe?getMyAvatar():LOGO_INNER,posts:0,followers:0,following:0,isFollowing:false};
   try{ let r=await fetch('/api/akun/profile?email='+encodeURIComponent(targetEmail)+'&me='+encodeURIComponent(getMyEmail())); if(r.ok){ let d=await r.json(); data={...data,...d}; } }catch{}
   
-  let isOnline = data.last_seen && (Date.now() - data.last_seen < 15000);
-  let onlineBadgeProfileHtml = isOnline ? '<div class="online-indicator"><div class="online-dot"></div>online</div>' : '';
-
   let unreadCount = 0;
   if(!isMe && getMyEmail()){
     try {
@@ -299,9 +295,8 @@ async function renderProfile(container,targetEmail,isMe){
         <div class="stats-wrap"><div><div class="stat-num">\${data.posts||0}</div><div class="stat-label">tulisan</div></div><div><div class="stat-num">\${data.followers||0}</div><div class="stat-label">pengikut</div></div><div><div class="stat-num">\${data.following||0}</div><div class="stat-label">mengikuti</div></div></div>
       </div>
       <div style="font-size:18px;font-weight:900">\${data.name}</div>
-      <div style="font-size:12px;color:#00ff88;margin-bottom:4px">\${targetEmail}</div>
-      \${onlineBadgeProfileHtml}
-      <div style="margin:14px 0">\${actionButtonsHtml}</div>
+      <div style="font-size:12px;color:#00ff88;margin-bottom:14px">\${targetEmail}</div>
+      <div style="margin-bottom:16px">\${actionButtonsHtml}</div>
       <div class="main-tabs">
         <button class="m-tab \${activeMainTab==='tulis'?'active':''}" onclick="switchTab('tulis')">TULIS</button>
         <button class="m-tab \${activeMainTab==='foto'?'active':''}" onclick="switchTab('foto')">FOTO</button>
@@ -330,17 +325,6 @@ async function loadContent(targetEmail,isMe){
       let friendsHtml = '';
 
       for(let x of list){
-        let isFriendOnline = false;
-        try {
-          let rProf = await fetch('/api/akun/profile?email=' + encodeURIComponent(x.email) + '&me=' + encodeURIComponent(myEmail));
-          let dProf = await rProf.json();
-          if(dProf.last_seen && (Date.now() - dProf.last_seen < 15000)){
-            isFriendOnline = true;
-          }
-        } catch(e){}
-
-        let friendOnlineHtml = isFriendOnline ? '<span class="online-indicator"><span class="online-dot"></span>online</span>' : '';
-
         let unread = 0;
         if(myEmail){
           try {
@@ -361,10 +345,7 @@ async function loadContent(targetEmail,isMe){
           <div class="user-fb">
             <img src="\${x.picture||LOGO_INNER}" class="user-fb-av" onerror="this.src=LOGO_INNER">
             <div style="flex:1;min-width:0">
-              <div style="display:flex;align-items:center;gap:6px">
-                <div style="font-weight:900;font-size:15px">\${x.name||x.email.split('@')[0]}</div>
-                \${friendOnlineHtml}
-              </div>
+              <div style="font-weight:900;font-size:15px">\${x.name||x.email.split('@')[0]}</div>
               <div style="font-size:11px;color:#888;overflow:hidden;text-overflow:ellipsis">\${x.email}</div>
               <div style="display:flex;gap:8px;margin-top:10px">
                 <button class="btn-neon-follow" onclick="toggleFollow('\${x.email}')">Follow</button>

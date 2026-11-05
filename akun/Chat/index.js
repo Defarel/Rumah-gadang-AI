@@ -4,7 +4,7 @@ export const CHAT_HTML = `<!DOCTYPE html><html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Chat - Rumah Gadang AI</title>
-<link rel="icon" href="${LOGO_DEFAULT}">
+<link rel="icon" href="\${LOGO_DEFAULT}">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;color:#fff;font-family:sans-serif;height:100vh;display:flex;flex-direction:column}
@@ -12,7 +12,7 @@ body{background:#000;color:#fff;font-family:sans-serif;height:100vh;display:flex
 .chat-header-left{display:flex;align-items:center;gap:12px}
 .chat-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #00ff88;box-shadow:0 0 10px #00ff88}
 .chat-title{font-size:16px;font-weight:900;color:#fff}
-.chat-subtitle{font-size:11px;color:#00ff88}
+.chat-subtitle{font-size:11px;color:#00ff88;font-weight:bold}
 .chat-header-right{display:flex;gap:16px;font-size:20px;color:#00ff88;align-items:center;position:relative}
 .chat-body{flex:1;background-color:#000;background-image:radial-gradient(circle, rgba(0,255,136,0.06) 1px, transparent 1px);background-size:24px 24px;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
 .encryption-badge{background:#0a0a0a;color:#00ff88;font-size:11px;padding:10px 14px;border-radius:12px;text-align:center;max-width:340px;margin:0 auto 12px;line-height:1.4;border:1px solid #00ff88;box-shadow:0 0 12px rgba(0,255,136,0.25)}
@@ -35,10 +35,10 @@ body{background:#000;color:#fff;font-family:sans-serif;height:100vh;display:flex
 <div class="chat-header">
   <div class="chat-header-left">
     <button onclick="history.back()" style="background:transparent;color:#00ff88;border:0;font-size:20px;cursor:pointer;font-weight:900">⬅</button>
-    <img id="chatHeaderAvatar" src="${LOGO_DEFAULT}" class="chat-avatar" onerror="this.src='${LOGO_DEFAULT}'">
+    <img id="chatHeaderAvatar" src="\${LOGO_DEFAULT}" class="chat-avatar" onerror="this.src='\${LOGO_DEFAULT}'">
     <div>
       <div id="chatHeaderName" class="chat-title">Memuat...</div>
-      <div class="chat-subtitle">terakhir dilihat baru saja</div>
+      <div id="chatStatus" class="chat-subtitle">mengecek status...</div>
     </div>
   </div>
   <div class="chat-header-right">
@@ -72,13 +72,18 @@ body{background:#000;color:#fff;font-family:sans-serif;height:100vh;display:flex
 <div id="toast"></div>
 
 <script>
-const LOGO_FALLBACK = "${LOGO_DEFAULT}";
+const LOGO_FALLBACK = "\${LOGO_DEFAULT}";
 const urlParams = new URLSearchParams(window.location.search);
 let targetEmail = (urlParams.get('email') || urlParams.get('profil') || '').toLowerCase().trim();
 let myEmail = (localStorage.getItem('rg_email') || '').toLowerCase().trim();
 
 if(targetEmail && !targetEmail.includes('@')) targetEmail += '@rumahgadang-ai.my.id';
 if(myEmail && !myEmail.includes('@')) myEmail += '@rumahgadang-ai.my.id';
+
+// Tandai langsung sudah dibaca begitu chat dibuka
+if(myEmail && targetEmail){
+  localStorage.setItem('rg_read_' + myEmail + '_' + targetEmail, 'true');
+}
 
 function toast(m){let t=document.getElementById('toast');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
 
@@ -93,15 +98,31 @@ window.addEventListener('click', () => {
   if(menu) menu.style.display = 'none';
 });
 
-function clearAllChat(){
+async function clearAllChat(){
   if(confirm("Hapus semua riwayat chat ini?")){
-    toast("Semua chat dihapus");
-    document.getElementById('chatBody').innerHTML = \`
-      <div class="encryption-badge">
-        🔒 Pesan dan telepon terenkripsi secara end-to-end. Hanya orang di obrolan ini yang bisa membaca, mendengar, atau membagikannya.
-      </div>
-      <div class="date-divider">Hari ini</div>
-    \`;
+    try {
+      let r = await fetch('/api/chat/clear', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user1: myEmail, user2: targetEmail })
+      });
+      let j = await r.json();
+      if(j.ok){
+        toast("Semua chat dihapus");
+        // Hapus juga status read di localStorage agar badge bersih total
+        localStorage.removeItem('rg_read_' + myEmail + '_' + targetEmail);
+        document.getElementById('chatBody').innerHTML = \`
+          <div class="encryption-badge">
+            🔒 Pesan dan telepon terenkripsi secara end-to-end. Hanya orang di obrolan ini yang bisa membaca, mendengar, atau membagikannya.
+          </div>
+          <div class="date-divider">Hari ini</div>
+        \`;
+      } else {
+        toast("Gagal menghapus chat");
+      }
+    } catch(e) {
+      toast("Error: " + e.message);
+    }
   }
 }
 
@@ -112,23 +133,53 @@ function blockUser(){
   }
 }
 
+async function sendMyPresence(){
+  if(!myEmail) return;
+  try {
+    await fetch('/api/akun/ping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: myEmail })
+    });
+  } catch(e){}
+}
+
 async function initChat() {
   if(!targetEmail) {
     document.getElementById('chatHeaderName').innerText = "Dunsanak";
     return;
   }
   document.getElementById('chatHeaderName').innerText = targetEmail.split('@')[0];
+  
+  sendMyPresence();
+  setInterval(sendMyPresence, 5000);
+
+  fetchProfileAndStatus();
+  setInterval(fetchProfileAndStatus, 3000);
+
+  loadMessages();
+  setInterval(loadMessages, 3000); // Auto refresh pesan otomatis
+}
+
+async function fetchProfileAndStatus(){
+  if(!targetEmail) return;
   try {
     let r = await fetch('/api/akun/profile?email=' + encodeURIComponent(targetEmail) + '&me=' + encodeURIComponent(myEmail));
     if(r.ok) {
       let d = await r.json();
       if(d.name) document.getElementById('chatHeaderName').innerText = d.name;
       if(d.picture) document.getElementById('chatHeaderAvatar').src = d.picture;
+      
+      let statusEl = document.getElementById('chatStatus');
+      if(d.last_seen && (Date.now() - d.last_seen < 15000)){
+        statusEl.innerText = "online";
+        statusEl.style.color = "#00ff88";
+      } else {
+        statusEl.innerText = "terakhir dilihat baru saja";
+        statusEl.style.color = "#888";
+      }
     }
   } catch(e){}
-  
-  loadMessages();
-  setInterval(loadMessages, 3000);
 }
 
 async function loadMessages(){
@@ -153,7 +204,7 @@ async function loadMessages(){
       body.innerHTML = topHtml + msgsHtml;
       if(isAtBottom) { body.scrollTop = body.scrollHeight; }
     }
-  } catch(e){}
+  }catch(e){}
 }
 
 function handleKeyPress(e){
@@ -177,6 +228,7 @@ async function sendMessage(){
     if(j.ok){
       inp.value = '';
       loadMessages();
+      sendMyPresence();
     } else {
       toast('Gagal kirim pesan');
     }

@@ -149,7 +149,10 @@ function saveAuth(e,n,a){localStorage.setItem('rg_email',e.toLowerCase().trim())
 function logout(){ if(confirm("Keluar?")){localStorage.clear();viewingUserEmail=null;history.pushState(null,'','/akun');render();}}
 function viewUser(e){ viewingUserEmail=e.toLowerCase().trim(); activeMainTab='tulis'; history.pushState(null,'','/akun?profil='+encodeURIComponent(e)); render(); }
 function switchTab(t){ activeMainTab=t; const me=viewingUserEmail||getMyEmail(); loadContent(me, me===getMyEmail()); document.querySelectorAll('.m-tab').forEach(b=>{ b.classList.toggle('active', b.innerText.toLowerCase()===t); }); }
-function openChat(e){ toast('Membuka Chat dengan ' + e); }
+function openChat(email){
+  if(!email) { toast('Email tidak valid'); return; }
+  window.location.href = '/akun/chat?email=' + encodeURIComponent(email);
+}
 function openExtraMenu(){ toast('Menu Opsi Tambahan'); }
 function setLoginMode(m){
   window.loginMode=m;
@@ -219,7 +222,6 @@ async function renderProfile(container,targetEmail,isMe){
     photos=await rp.json(); 
     if(!Array.isArray(photos)) photos = photos.results || photos.data || [];
 
-    // ===== AUTO REVERSE LOGIC - FIX BAJU BIRU DI BAWAH =====
     let migrateKey = 'rg_migrated_reverse_'+targetEmail;
     let alreadyMigrated = localStorage.getItem(migrateKey);
     if(photos.length > 1 && !alreadyMigrated){
@@ -229,7 +231,6 @@ async function renderProfile(container,targetEmail,isMe){
         fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:targetEmail,photos:photos})}).catch(()=>{});
       }
     }
-    // ===============================================
   }catch{}
   container.innerHTML = \`
     <div class="profile-sec">

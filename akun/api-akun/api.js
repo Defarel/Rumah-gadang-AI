@@ -18,6 +18,9 @@ export const AKUN_API = {
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_likes (photo_key TEXT, user_email TEXT, PRIMARY KEY(photo_key, user_email))`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, photo_key TEXT, user_name TEXT, comment TEXT, time INTEGER)`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS comment_likes (comment_id INTEGER, user_email TEXT, PRIMARY KEY(comment_id, user_email))`).run();
+      
+      // TABEL CHATS (TAMBAHAN UNTUK FITUR CHAT)
+      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS chats (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, receiver TEXT, message TEXT, time INTEGER)`).run();
 
       // 1. REGISTER / LOGIN
       if (path === "/api/akun/register" && method === "POST") {
@@ -220,6 +223,38 @@ export const AKUN_API = {
         }
         
         return new Response(JSON.stringify(results), { headers: h });
+      }
+
+      // 11. API CHAT (TAMBAHAN PENGIRIMAN & PENGAMBILAN PESAN)
+      if (path === "/api/chat/send" && method === "POST") {
+        const { sender, receiver, message } = await req.json().catch(()=>({}));
+        const cleanSender = (sender || "").toLowerCase().trim();
+        const cleanReceiver = (receiver || "").toLowerCase().trim();
+        const cleanMessage = (message || "").trim();
+
+        if (!cleanSender || !cleanReceiver || !cleanMessage) {
+          return new Response(JSON.stringify({ ok: false, error: "Data kurang" }), { headers: h, status: 400 });
+        }
+
+        await env.DB.prepare("INSERT INTO chats (sender, receiver, message, time) VALUES (?, ?, ?, ?)")
+          .bind(cleanSender, cleanReceiver, cleanMessage, Date.now()).run();
+
+        return new Response(JSON.stringify({ ok: true }), { headers: h });
+      }
+
+      if (path === "/api/chat/get" && method === "GET") {
+        const user1 = (url.searchParams.get("user1") || "").toLowerCase().trim();
+        const user2 = (url.searchParams.get("user2") || "").toLowerCase().trim();
+
+        if (!user1 || !user2) {
+          return new Response(JSON.stringify({ ok: false, messages: [] }), { headers: h });
+        }
+
+        const { results } = await env.DB.prepare(
+          "SELECT * FROM chats WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) ORDER BY id ASC"
+        ).bind(user1, user2, user2, user1).all().catch(()=>({results:[]}));
+
+        return new Response(JSON.stringify({ ok: true, messages: results || [] }), { headers: h });
       }
 
     } catch (err) {

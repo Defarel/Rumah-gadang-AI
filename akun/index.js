@@ -1,13 +1,11 @@
-const LOGO_INNER="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
-const LOGO_LOGIN="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
-const LOGO_VIDEO = "https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@9fa479e6634ebcb2f1dfcde85fb106ac77d2b122/akun/RumahGadangV2.mp4";
+const LOGO_DEFAULT = "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png"
 
 export const AKUN_HTML = `<!DOCTYPE html><html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="canonical" href="https://rumahgadang-ai.my.id/akun">
 <title>Akun - Rumah Gadang AI</title>
-<link rel="icon" href="\${LOGO_INNER}">
+<link rel="icon" href="${LOGO_DEFAULT}">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;color:#fff;font-family:sans-serif}
@@ -118,6 +116,10 @@ body{background:#000;color:#fff;font-family:sans-serif}
 </div>
 
 <script>
+const LOGO_INNER="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
+const LOGO_LOGIN="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
+const LOGO_VIDEO = "https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@9fa479e6634ebcb2f1dfcde85fb106ac77d2b122/akun/RumahGadangV2.mp4";
+
 let activeMainTab="teman"; 
 let currentActivePhotoKey = null;
 const urlParams = new URLSearchParams(window.location.search);
@@ -151,7 +153,7 @@ function logout(){ if(confirm("Keluar?")){localStorage.clear();viewingUserEmail=
 function viewUser(e){ viewingUserEmail=e.toLowerCase().trim(); activeMainTab='tulis'; history.pushState(null,'','/akun?profil='+encodeURIComponent(e)); render(); }
 function switchTab(t){ activeMainTab=t; const me=viewingUserEmail||getMyEmail(); loadContent(me, me===getMyEmail()); document.querySelectorAll('.m-tab').forEach(b=>{ b.classList.toggle('active', b.innerText.toLowerCase()===t); }); }
 
-// Ping online otomatis
+// Ping online otomatis setiap 5 detik agar status online selalu terdeteksi
 async function sendMyPresence(){
   let my = getMyEmail();
   if(!my) return;
@@ -169,6 +171,7 @@ setInterval(sendMyPresence, 5000);
 function openChat(email){
   if(!email){ toast('Email tujuan tidak ada'); return; }
   let cleanEmail = email.toLowerCase().trim();
+  // Tandai pesan sudah dibaca (tersinkronisasi agar badge hilang)
   localStorage.setItem('rg_read_' + getMyEmail() + '_' + cleanEmail, 'true');
   window.location.href = '/akun/chat?email=' + encodeURIComponent(cleanEmail);
 }
@@ -257,9 +260,8 @@ async function renderProfile(container,targetEmail,isMe){
   let photos=[]; 
   try{ 
     let rp=await fetch('/api/akun/photos?email='+encodeURIComponent(targetEmail)); 
-    let text = await rp.text();
-    let json = text.startsWith('<') ? [] : JSON.parse(text);
-    photos = Array.isArray(json) ? json : (json.results || json.data || []);
+    photos=await rp.json(); 
+    if(!Array.isArray(photos)) photos = photos.results || photos.data || [];
 
     let migrateKey = 'rg_migrated_reverse_'+targetEmail;
     let alreadyMigrated = localStorage.getItem(migrateKey);
@@ -317,10 +319,8 @@ async function loadContent(targetEmail,isMe){
   if(activeMainTab==='teman'){
     box.innerHTML='<div style="text-align:center;color:#555;padding:20px">Memuat teman...</div>';
     try{
-      let r=await fetch('/api/akun/list?t='+Date.now());
-      let text = await r.text();
-      let u = text.startsWith('<') ? [] : JSON.parse(text);
-      let list = Array.isArray(u) ? u.filter(x=>x.email.toLowerCase()!==getMyEmail().toLowerCase()) : [];
+      let r=await fetch('/api/akun/list?t='+Date.now()); let u=await r.json();
+      let list=Array.isArray(u) ? u.filter(x=>x.email.toLowerCase()!==getMyEmail().toLowerCase()) : [];
       if(!list.length){ box.innerHTML='<div style="text-align:center;color:#555">Belum ada teman</div>'; return; }
       
       let myEmail = getMyEmail();
@@ -381,15 +381,7 @@ async function loadContent(targetEmail,isMe){
     if(!photos.length){ box.innerHTML=addBtn+'<div style="text-align:center;padding:30px;color:#555">Belum ada foto</div>'; return; }
     box.innerHTML=addBtn+'<div class="photo-grid-2x2">'+photos.map((p,i)=>'<div class="photo-card" onclick="openPhotoModal('+i+')"><img src="'+p+'"></div>').join('')+'</div>';
   } else if(activeMainTab==='tulis'){
-    try{
-      let r=await fetch('/api/tulis?t='+Date.now());
-      let text = await r.text();
-      let list = text.startsWith('<') ? [] : JSON.parse(text);
-      let arr=Array.isArray(list)?list:(list.results||list.data||[]);
-      let mine=arr.filter(p=>(p.user_email||p.email||'').toLowerCase()===targetEmail.toLowerCase());
-      if(!mine.length){box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada tulisan</div>';return;}
-      box.innerHTML=mine.map(p=>'<div class="private-card">'+(p.text||p.isi||'')+'</div>').join('');
-    }catch{ box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Gagal memuat tulisan</div>'; }
+    try{ let r=await fetch('/api/tulis?t='+Date.now()); let list=await r.json(); let arr=Array.isArray(list)?list:(list.results||list.data||[]); let mine=arr.filter(p=>(p.user_email||p.email||'').toLowerCase()===targetEmail.toLowerCase()); if(!mine.length){box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada tulisan</div>';return;} box.innerHTML=mine.map(p=>'<div class="private-card">'+(p.text||p.isi||'')+'</div>').join(''); }catch{ box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Gagal memuat tulisan</div>'; }
   } else if(activeMainTab==='video'){
     box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada video</div>';
   } else { box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Segera Bos</div>'; }
@@ -482,8 +474,7 @@ async function loadSheetComments(key){
     }
     
     let rUsers = await fetch('/api/akun/list?t=' + Date.now()).catch(()=>({json:()=>[]}));
-    let rText = await rUsers.text();
-    let allUsers = rText.startsWith('<') ? [] : JSON.parse(rText);
+    let allUsers = await rUsers.json().catch(()=>[]);
     let userAvatarMap = {};
     if(Array.isArray(allUsers)){
       allUsers.forEach(u => {
@@ -535,8 +526,7 @@ async function deleteComment(commentId, key, index){
     if(j.ok){
       loadSheetComments(key);
       let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
-      let text = await res.text();
-      let json = text.startsWith('<') ? [] : JSON.parse(text);
+      let json = await res.json();
       let count = Array.isArray(json) ? json.length : (json.results?.length || 0);
       let counterEl = document.getElementById('commentCount-' + index);
       if(counterEl) counterEl.innerText = count;
@@ -581,8 +571,7 @@ async function submitSheetComment(){
     loadSheetComments(key);
     
     let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
-    let text = await res.text();
-    let json = text.startsWith('<') ? [] : JSON.parse(text);
+    let json = await res.json();
     let count = Array.isArray(json) ? json.length : (json.results?.length || 0);
     let counterEl = document.getElementById('commentCount-' + index);
     if(counterEl) counterEl.innerText = count;
@@ -675,7 +664,6 @@ function addPhoto(){
   input.onchange=async()=>{
     if(input.files.length + (window._photosCache||[]).length > 12) return toast('Max 12 foto');
     let list=[...(window._photosCache||[])];
-    let countNew = 0;
     for(let f of input.files){
       let b64=await new Promise(res=>{
         let img=new Image();
@@ -688,17 +676,11 @@ function addPhoto(){
         let r=new FileReader(); r.onload=()=>{ img.src=r.result; }; r.readAsDataURL(f);
       });
       list.unshift(b64);
-      countNew++;
     }
-    try {
-      let r=await fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),photos:list})});
-      let text = await r.text();
-      let j = text.startsWith('<') ? {ok:true} : JSON.parse(text);
-      if(r.ok || j.ok){ toast('Foto kesimpan ' + countNew); window._photosCache=list; loadContent(getMyEmail(),true); }
-      else toast('Gagal: '+(j.error||'')); 
-    } catch(err){
-      toast('Gagal simpan foto');
-    }
+    let r=await fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),photos:list})});
+    let j=await r.json();
+    if(j.ok){ toast('Foto kesimpan '+j.count); window._photosCache=list; loadContent(getMyEmail(),true); }
+    else toast('Gagal: '+(j.error||'')); 
   };
   input.click();
 }

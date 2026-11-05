@@ -27,6 +27,8 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .btn-neon-lihat{flex:1;background:#000;color:#00ff88;border:1.5px solid #00ff88;padding:10px;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer;box-shadow:0 0 8px rgba(0,255,136,.3);position:relative}
 .badge-notif{position:absolute;top:-8px;right:-6px;background:#00ff88;color:#000;font-size:11px;font-weight:900;padding:2px 7px;border-radius:10px;border:1.5px solid #000;box-shadow:0 0 8px #00ff88}
 .badge-notif-profile{position:absolute;top:-10px;right:-6px;background:#00ff88;color:#000;font-size:11px;font-weight:900;padding:2px 7px;border-radius:10px;border:1.5px solid #000;box-shadow:0 0 10px #00ff88;z-index:10}
+.online-indicator{display:inline-flex;align-items:center;gap:6px;background:#111;border:1px solid #00ff88;padding:2px 8px;border-radius:10px;font-size:10px;color:#00ff88;font-weight:900;box-shadow:0 0 8px rgba(0,255,136,0.3);margin-top:4px}
+.online-dot{width:8px;height:8px;background:#00ff88;border-radius:50%;box-shadow:0 0 6px #00ff88}
 .btn-edit{flex:1;padding:13px;background:#111;color:#fff;border:1.5px solid #00ff88;border-radius:12px;font-weight:700;box-shadow:0 0 8px rgba(0,255,136,.3);cursor:pointer}
 .btn-keluar{flex:1;padding:13px;background:#111;color:#ff6b6b;border:1.5px solid #ff4444;border-radius:12px;font-weight:800;box-shadow:0 0 8px rgba(255,68,68,.3);cursor:pointer}
 .btn-follow-real{width:100%;padding:14px;background:#00ff88;color:#000;border:1.5px solid #00ff88;border-radius:14px;font-weight:900;box-shadow:0 0 15px #00ff88;cursor:pointer}
@@ -151,9 +153,26 @@ function logout(){ if(confirm("Keluar?")){localStorage.clear();viewingUserEmail=
 function viewUser(e){ viewingUserEmail=e.toLowerCase().trim(); activeMainTab='tulis'; history.pushState(null,'','/akun?profil='+encodeURIComponent(e)); render(); }
 function switchTab(t){ activeMainTab=t; const me=viewingUserEmail||getMyEmail(); loadContent(me, me===getMyEmail()); document.querySelectorAll('.m-tab').forEach(b=>{ b.classList.toggle('active', b.innerText.toLowerCase()===t); }); }
 
+// Ping aktivitas saya sendiri agar tercatat online
+async function sendMyPresence(){
+  let my = getMyEmail();
+  if(!my) return;
+  try {
+    await fetch('/api/akun/ping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: my })
+    });
+  } catch(e){}
+}
+sendMyPresence();
+setInterval(sendMyPresence, 5000);
+
 function openChat(email){
   if(!email){ toast('Email tujuan tidak ada'); return; }
-  window.location.href = '/akun/chat?email=' + encodeURIComponent(email);
+  let cleanEmail = email.toLowerCase().trim();
+  localStorage.setItem('rg_read_' + getMyEmail() + '_' + cleanEmail, 'true');
+  window.location.href = '/akun/chat?email=' + encodeURIComponent(cleanEmail);
 }
 
 function setLoginMode(m){
@@ -216,19 +235,21 @@ async function doLogin(){
 }
 async function renderProfile(container,targetEmail,isMe){
   container.innerHTML='<div style="text-align:center;padding:40px;color:#666">Memuat...</div>';
-  let data={name:isMe?getMyName():targetEmail.split('@')[0],picture:isMe?getMyAvatar():LOGO_INNER,posts:0,followers:0,following:0,isFollowing:false};
+  let data={name:isMe?getMyName():targetEmail.split('@')[0],picture:isMe?getMyAvatar():LOGO_INNER,posts:0,followers:0,following:0,isFollowing:false,last_seen:0};
   try{ let r=await fetch('/api/akun/profile?email='+encodeURIComponent(targetEmail)+'&me='+encodeURIComponent(getMyEmail())); if(r.ok){ let d=await r.json(); data={...data,...d}; } }catch{}
   
-  // Ambil cek pesan masuk untuk badge di profil jika bukan profil sendiri
+  let isOnline = data.last_seen && (Date.now() - data.last_seen < 12000);
+  let onlineBadgeProfileHtml = isOnline ? '<div class="online-indicator"><div class="online-dot"></div>online</div>' : '';
+
   let unreadCount = 0;
   if(!isMe && getMyEmail()){
     try {
       let rMsg = await fetch('/api/chat/get?user1=' + encodeURIComponent(getMyEmail()) + '&user2=' + encodeURIComponent(targetEmail));
       let jMsg = await rMsg.json();
       if(jMsg.ok && Array.isArray(jMsg.messages)){
-        // Hitung pesan masuk terakhir dari targetemail
         let lastMsg = jMsg.messages[jMsg.messages.length - 1];
-        if(lastMsg && lastMsg.sender.toLowerCase() === targetEmail.toLowerCase()){
+        let isRead = localStorage.getItem('rg_read_' + getMyEmail() + '_' + targetEmail) === 'true';
+        if(!isRead && lastMsg && lastMsg.sender.toLowerCase() === targetEmail.toLowerCase()){
           unreadCount = 1;
         }
       }
@@ -260,7 +281,6 @@ async function renderProfile(container,targetEmail,isMe){
     let followBtnText = data.isFollowing ? '✓ Mengikuti' : 'Follow';
     let chatBadgeHtml = unreadCount > 0 ? '<div class="badge-notif-profile">' + unreadCount + '</div>' : '';
     
-    // Lambang gigi dihapus dan hanya menyisakan tombol Follow & Chat
     actionButtonsHtml = \`<div style="display:flex;gap:8px">
       <button class="\${followBtnClass}" style="flex:1" onclick="toggleFollow('\${targetEmail}')">\${followBtnText}</button>
       <div style="flex:1;position:relative;display:flex">
@@ -276,8 +296,10 @@ async function renderProfile(container,targetEmail,isMe){
         <div class="avatar-wrap" onclick="\${isMe?'showEdit()':''}"><img src="\${data.picture}" class="avatar-img"><div class="avatar-edit-badge">\${isMe?'✎ Ganti':''}</div></div>
         <div class="stats-wrap"><div><div class="stat-num">\${data.posts||0}</div><div class="stat-label">tulisan</div></div><div><div class="stat-num">\${data.followers||0}</div><div class="stat-label">pengikut</div></div><div><div class="stat-num">\${data.following||0}</div><div class="stat-label">mengikuti</div></div></div>
       </div>
-      <div style="font-size:18px;font-weight:900">\${data.name}</div><div style="font-size:12px;color:#00ff88;margin-bottom:14px">\${targetEmail}</div>
-      <div style="margin-bottom:16px">\${actionButtonsHtml}</div>
+      <div style="font-size:18px;font-weight:900">\${data.name}</div>
+      <div style="font-size:12px;color:#00ff88;margin-bottom:4px">\${targetEmail}</div>
+      \${onlineBadgeProfileHtml}
+      <div style="margin:14px 0">\${actionButtonsHtml}</div>
       <div class="main-tabs">
         <button class="m-tab \${activeMainTab==='tulis'?'active':''}" onclick="switchTab('tulis')">TULIS</button>
         <button class="m-tab \${activeMainTab==='foto'?'active':''}" onclick="switchTab('foto')">FOTO</button>
@@ -304,6 +326,18 @@ async function loadContent(targetEmail,isMe){
       let friendsHtml = '';
 
       for(let x of list){
+        // Ambil profil detail untuk status last_seen
+        let isFriendOnline = false;
+        try {
+          let rProf = await fetch('/api/akun/profile?email=' + encodeURIComponent(x.email) + '&me=' + encodeURIComponent(myEmail));
+          let dProf = await rProf.json();
+          if(dProf.last_seen && (Date.now() - dProf.last_seen < 12000)){
+            isFriendOnline = true;
+          }
+        } catch(e){}
+
+        let friendOnlineHtml = isFriendOnline ? '<span class="online-indicator" style="padding:1px 6px;font-size:9px"><span class="online-dot" style="width:6px;height:6px"></span>online</span>' : '';
+
         let unread = 0;
         if(myEmail){
           try {
@@ -311,7 +345,8 @@ async function loadContent(targetEmail,isMe){
             let jMsg = await rMsg.json();
             if(jMsg.ok && Array.isArray(jMsg.messages)){
               let lastMsg = jMsg.messages[jMsg.messages.length - 1];
-              if(lastMsg && lastMsg.sender.toLowerCase() === x.email.toLowerCase()){
+              let isRead = localStorage.getItem('rg_read_' + myEmail + '_' + x.email.toLowerCase()) === 'true';
+              if(!isRead && lastMsg && lastMsg.sender.toLowerCase() === x.email.toLowerCase()){
                 unread = 1;
               }
             }
@@ -323,7 +358,10 @@ async function loadContent(targetEmail,isMe){
           <div class="user-fb">
             <img src="\${x.picture||LOGO_INNER}" class="user-fb-av" onerror="this.src=LOGO_INNER">
             <div style="flex:1;min-width:0">
-              <div style="font-weight:900;font-size:15px">\${x.name||x.email.split('@')[0]}</div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="font-weight:900;font-size:15px">\${x.name||x.email.split('@')[0]}</div>
+                \${friendOnlineHtml}
+              </div>
               <div style="font-size:11px;color:#888;overflow:hidden;text-overflow:ellipsis">\${x.email}</div>
               <div style="display:flex;gap:8px;margin-top:10px">
                 <button class="btn-neon-follow" onclick="toggleFollow('\${x.email}')">Follow</button>

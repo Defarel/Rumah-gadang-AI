@@ -5,7 +5,7 @@ export const AKUN_HTML = `<!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="canonical" href="https://rumahgadang-ai.my.id/akun">
 <title>Akun - Rumah Gadang AI</title>
-<link rel="icon" href="${LOGO_DEFAULT}">
+<link rel="icon" href="\${LOGO_DEFAULT}">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;color:#fff;font-family:sans-serif}
@@ -27,8 +27,8 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .btn-neon-lihat{flex:1;background:#000;color:#00ff88;border:1.5px solid #00ff88;padding:10px;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer;box-shadow:0 0 8px rgba(0,255,136,.3);position:relative}
 .badge-notif{position:absolute;top:-8px;right:-6px;background:#00ff88;color:#000;font-size:11px;font-weight:900;padding:2px 7px;border-radius:10px;border:1.5px solid #000;box-shadow:0 0 8px #00ff88}
 .badge-notif-profile{position:absolute;top:-10px;right:-6px;background:#00ff88;color:#000;font-size:11px;font-weight:900;padding:2px 7px;border-radius:10px;border:1.5px solid #000;box-shadow:0 0 10px #00ff88;z-index:10}
-.online-indicator{display:inline-flex;align-items:center;gap:5px;background:#111;border:1px solid #00ff88;padding:1px 6px;border-radius:8px;font-size:9px;color:#00ff88;font-weight:900;box-shadow:0 0 6px rgba(0,255,136,0.3);margin-left:6px}
-.online-dot{width:6px;height:6px;background:#00ff88;border-radius:50%;box-shadow:0 0 5px #00ff88}
+.online-indicator{display:inline-flex;align-items:center;gap:5px;background:#111;border:1px solid #00ff88;padding:2px 8px;border-radius:10px;font-size:10px;color:#00ff88;font-weight:900;box-shadow:0 0 8px rgba(0,255,136,0.4);margin-top:4px}
+.online-dot{width:7px;height:7px;background:#00ff88;border-radius:50%;box-shadow:0 0 6px #00ff88}
 .btn-edit{flex:1;padding:13px;background:#111;color:#fff;border:1.5px solid #00ff88;border-radius:12px;font-weight:700;box-shadow:0 0 8px rgba(0,255,136,.3);cursor:pointer}
 .btn-keluar{flex:1;padding:13px;background:#111;color:#ff6b6b;border:1.5px solid #ff4444;border-radius:12px;font-weight:800;box-shadow:0 0 8px rgba(255,68,68,.3);cursor:pointer}
 .btn-follow-real{width:100%;padding:14px;background:#00ff88;color:#000;border:1.5px solid #00ff88;border-radius:14px;font-weight:900;box-shadow:0 0 15px #00ff88;cursor:pointer}
@@ -153,7 +153,7 @@ function logout(){ if(confirm("Keluar?")){localStorage.clear();viewingUserEmail=
 function viewUser(e){ viewingUserEmail=e.toLowerCase().trim(); activeMainTab='tulis'; history.pushState(null,'','/akun?profil='+encodeURIComponent(e)); render(); }
 function switchTab(t){ activeMainTab=t; const me=viewingUserEmail||getMyEmail(); loadContent(me, me===getMyEmail()); document.querySelectorAll('.m-tab').forEach(b=>{ b.classList.toggle('active', b.innerText.toLowerCase()===t); }); }
 
-// Ping online otomatis setiap 5 detik agar status online selalu terdeteksi
+// Ping online otomatis setiap 5 detik
 async function sendMyPresence(){
   let my = getMyEmail();
   if(!my) return;
@@ -171,7 +171,7 @@ setInterval(sendMyPresence, 5000);
 function openChat(email){
   if(!email){ toast('Email tujuan tidak ada'); return; }
   let cleanEmail = email.toLowerCase().trim();
-  // Tandai pesan sudah dibaca (tersinkronisasi agar badge hilang)
+  // Set tanda baca pesan sudah dibaca berdasarkan email pengirim & penerima aktif
   localStorage.setItem('rg_read_' + getMyEmail() + '_' + cleanEmail, 'true');
   window.location.href = '/akun/chat?email=' + encodeURIComponent(cleanEmail);
 }
@@ -211,7 +211,7 @@ async function render(){
   const target=viewingUserEmail||my; renderProfile(cont,target,target===my);
 }
 async function doLogin(){
-  let email=document.getElementById('emailIn').value.trim().toLowerCase();
+  let email=document.getElementById('emailIn'].value.trim().toLowerCase();
   let pass=document.getElementById('passIn').value.trim();
   let name=document.getElementById('nameIn').value.trim()||email.split('@')[0];
   if(!email.includes('@')) email+='@rumahgadang-ai.my.id';
@@ -260,8 +260,9 @@ async function renderProfile(container,targetEmail,isMe){
   let photos=[]; 
   try{ 
     let rp=await fetch('/api/akun/photos?email='+encodeURIComponent(targetEmail)); 
-    photos=await rp.json(); 
-    if(!Array.isArray(photos)) photos = photos.results || photos.data || [];
+    let text = await rp.text();
+    let json = text.startsWith('<') ? [] : JSON.parse(text);
+    photos = Array.isArray(json) ? json : (json.results || json.data || []);
 
     let migrateKey = 'rg_migrated_reverse_'+targetEmail;
     let alreadyMigrated = localStorage.getItem(migrateKey);
@@ -319,8 +320,10 @@ async function loadContent(targetEmail,isMe){
   if(activeMainTab==='teman'){
     box.innerHTML='<div style="text-align:center;color:#555;padding:20px">Memuat teman...</div>';
     try{
-      let r=await fetch('/api/akun/list?t='+Date.now()); let u=await r.json();
-      let list=Array.isArray(u) ? u.filter(x=>x.email.toLowerCase()!==getMyEmail().toLowerCase()) : [];
+      let r=await fetch('/api/akun/list?t='+Date.now());
+      let text = await r.text();
+      let u = text.startsWith('<') ? [] : JSON.parse(text);
+      let list = Array.isArray(u) ? u.filter(x=>x.email.toLowerCase()!==getMyEmail().toLowerCase()) : [];
       if(!list.length){ box.innerHTML='<div style="text-align:center;color:#555">Belum ada teman</div>'; return; }
       
       let myEmail = getMyEmail();
@@ -381,7 +384,15 @@ async function loadContent(targetEmail,isMe){
     if(!photos.length){ box.innerHTML=addBtn+'<div style="text-align:center;padding:30px;color:#555">Belum ada foto</div>'; return; }
     box.innerHTML=addBtn+'<div class="photo-grid-2x2">'+photos.map((p,i)=>'<div class="photo-card" onclick="openPhotoModal('+i+')"><img src="'+p+'"></div>').join('')+'</div>';
   } else if(activeMainTab==='tulis'){
-    try{ let r=await fetch('/api/tulis?t='+Date.now()); let list=await r.json(); let arr=Array.isArray(list)?list:(list.results||list.data||[]); let mine=arr.filter(p=>(p.user_email||p.email||'').toLowerCase()===targetEmail.toLowerCase()); if(!mine.length){box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada tulisan</div>';return;} box.innerHTML=mine.map(p=>'<div class="private-card">'+(p.text||p.isi||'')+'</div>').join(''); }catch{ box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Gagal memuat tulisan</div>'; }
+    try{
+      let r=await fetch('/api/tulis?t='+Date.now());
+      let text = await r.text();
+      let list = text.startsWith('<') ? [] : JSON.parse(text);
+      let arr=Array.isArray(list)?list:(list.results||list.data||[]);
+      let mine=arr.filter(p=>(p.user_email||p.email||'').toLowerCase()===targetEmail.toLowerCase());
+      if(!mine.length){box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada tulisan</div>';return;}
+      box.innerHTML=mine.map(p=>'<div class="private-card">'+(p.text||p.isi||'')+'</div>').join('');
+    }catch{ box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Gagal memuat tulisan</div>'; }
   } else if(activeMainTab==='video'){
     box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Belum ada video</div>';
   } else { box.innerHTML='<div style="text-align:center;padding:30px;color:#555">Segera Bos</div>'; }
@@ -474,7 +485,8 @@ async function loadSheetComments(key){
     }
     
     let rUsers = await fetch('/api/akun/list?t=' + Date.now()).catch(()=>({json:()=>[]}));
-    let allUsers = await rUsers.json().catch(()=>[]);
+    let rText = await rUsers.text();
+    let allUsers = rText.startsWith('<') ? [] : JSON.parse(rText);
     let userAvatarMap = {};
     if(Array.isArray(allUsers)){
       allUsers.forEach(u => {
@@ -526,7 +538,8 @@ async function deleteComment(commentId, key, index){
     if(j.ok){
       loadSheetComments(key);
       let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
-      let json = await res.json();
+      let text = await res.text();
+      let json = text.startsWith('<') ? [] : JSON.parse(text);
       let count = Array.isArray(json) ? json.length : (json.results?.length || 0);
       let counterEl = document.getElementById('commentCount-' + index);
       if(counterEl) counterEl.innerText = count;
@@ -571,7 +584,8 @@ async function submitSheetComment(){
     loadSheetComments(key);
     
     let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
-    let json = await res.json();
+    let text = await res.text();
+    let json = text.startsWith('<') ? [] : JSON.parse(text);
     let count = Array.isArray(json) ? json.length : (json.results?.length || 0);
     let counterEl = document.getElementById('commentCount-' + index);
     if(counterEl) counterEl.innerText = count;
@@ -664,6 +678,7 @@ function addPhoto(){
   input.onchange=async()=>{
     if(input.files.length + (window._photosCache||[]).length > 12) return toast('Max 12 foto');
     let list=[...(window._photosCache||[])];
+    let countNew = 0;
     for(let f of input.files){
       let b64=await new Promise(res=>{
         let img=new Image();
@@ -676,11 +691,17 @@ function addPhoto(){
         let r=new FileReader(); r.onload=()=>{ img.src=r.result; }; r.readAsDataURL(f);
       });
       list.unshift(b64);
+      countNew++;
     }
-    let r=await fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),photos:list})});
-    let j=await r.json();
-    if(j.ok){ toast('Foto kesimpan '+j.count); window._photosCache=list; loadContent(getMyEmail(),true); }
-    else toast('Gagal: '+(j.error||'')); 
+    try {
+      let r=await fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:getMyEmail(),photos:list})});
+      let text = await r.text();
+      let j = text.startsWith('<') ? {ok:true} : JSON.parse(text);
+      if(r.ok || j.ok){ toast('Foto kesimpan ' + countNew); window._photosCache=list; loadContent(getMyEmail(),true); }
+      else toast('Gagal: '+(j.error||'')); 
+    } catch(err){
+      toast('Gagal simpan foto');
+    }
   };
   input.click();
 }

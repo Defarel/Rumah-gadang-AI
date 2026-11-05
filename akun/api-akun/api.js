@@ -7,8 +7,8 @@ export const AKUN_API = {
     const method = req.method;
 
     try {
-      // INIT TABLES (kolom last_seen untuk status online)
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER, last_seen INTEGER)`).run();
+      // INIT TABLES
+      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER)`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS rg_users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER)`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS follows (follower_email TEXT, following_email TEXT, created_at INTEGER, PRIMARY KEY(follower_email, following_email))`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS d1consule_photos_v2 (email TEXT, idx INTEGER, photo TEXT, updated_at INTEGER, PRIMARY KEY(email, idx))`).run();
@@ -19,7 +19,7 @@ export const AKUN_API = {
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, photo_key TEXT, user_name TEXT, comment TEXT, time INTEGER)`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS comment_likes (comment_id INTEGER, user_email TEXT, PRIMARY KEY(comment_id, user_email))`).run();
       
-      // TABEL CHATS
+      // TABEL CHATS (TAMBAHAN UNTUK FITUR CHAT)
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS chats (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, receiver TEXT, message TEXT, time INTEGER)`).run();
 
       // 1. REGISTER / LOGIN
@@ -32,9 +32,9 @@ export const AKUN_API = {
         if (!email.includes('@')) email += "@rumahgadang-ai.my.id";
         
         await env.DB.prepare(
-          `INSERT INTO users (email, name, picture, time, last_seen) VALUES (?,?,?,?,?)
-           ON CONFLICT(email) DO UPDATE SET name=excluded.name, picture=excluded.picture, time=excluded.time, last_seen=excluded.last_seen`
-        ).bind(email, name, picture, Date.now(), Date.now()).run();
+          `INSERT INTO users (email, name, picture, time) VALUES (?,?,?,?)
+           ON CONFLICT(email) DO UPDATE SET name=excluded.name, picture=excluded.picture, time=excluded.time`
+        ).bind(email, name, picture, Date.now()).run();
         
         return new Response(JSON.stringify({ ok: true, email, name, picture }), { headers: h });
       }
@@ -43,30 +43,19 @@ export const AKUN_API = {
         const body = await req.json();
         let email = (body.email || "").toLowerCase().trim();
         if (!email.includes('@')) email += "@rumahgadang-ai.my.id";
-        let u = await env.DB.prepare(`SELECT email,name,picture,last_seen FROM users WHERE email=?`).bind(email).first();
+        let u = await env.DB.prepare(`SELECT email,name,picture FROM users WHERE email=?`).bind(email).first();
         if(!u){
           let name = body.name || email.split('@')[0];
           let pic = LOGO_DEFAULT;
-          await env.DB.prepare(`INSERT INTO users (email,name,picture,time,last_seen) VALUES (?,?,?,?,?) ON CONFLICT(email) DO NOTHING`).bind(email,name,pic,Date.now(),Date.now()).run();
+          await env.DB.prepare(`INSERT INTO users (email,name,picture,time) VALUES (?,?,?,?) ON CONFLICT(email) DO NOTHING`).bind(email,name,pic,Date.now()).run();
           return new Response(JSON.stringify({ ok: true, email, name, picture: pic }), { headers: h });
         }
-        await env.DB.prepare(`UPDATE users SET last_seen=? WHERE email=?`).bind(Date.now(), email).run();
-        return new Response(JSON.stringify({ ok: true, email: u.email, name: u.name, picture: u.picture, last_seen: Date.now() }), { headers: h });
-      }
-
-      // API PING ONLINE
-      if (path === "/api/akun/ping" && method === "POST") {
-        const { email } = await req.json().catch(()=>({}));
-        const cleanEmail = (email || "").toLowerCase().trim();
-        if (cleanEmail) {
-          await env.DB.prepare("UPDATE users SET last_seen = ? WHERE LOWER(email) = ?").bind(Date.now(), cleanEmail).run();
-        }
-        return new Response(JSON.stringify({ ok: true }), { headers: h });
+        return new Response(JSON.stringify({ ok: true, email: u.email, name: u.name, picture: u.picture }), { headers: h });
       }
 
       // 2. LIST SEMUA AKUN
       if (path === "/api/akun/list" && method === "GET") {
-        const r1 = await env.DB.prepare("SELECT email, name, picture, last_seen FROM users ORDER BY time DESC LIMIT 100").all().catch(()=>({results:[]}));
+        const r1 = await env.DB.prepare("SELECT email, name, picture FROM users ORDER BY time DESC LIMIT 100").all().catch(()=>({results:[]}));
         return new Response(JSON.stringify(r1.results), { headers: h });
       }
 
@@ -74,7 +63,7 @@ export const AKUN_API = {
       if (path === "/api/akun/profile" && method === "GET") {
         const targetEmail = (url.searchParams.get("email") || "").toLowerCase().trim();
         const myEmail = (url.searchParams.get("me") || "").toLowerCase().trim();
-        let user = await env.DB.prepare("SELECT email, name, picture, last_seen FROM users WHERE LOWER(email)=?").bind(targetEmail).first();
+        let user = await env.DB.prepare("SELECT email, name, picture FROM users WHERE LOWER(email)=?").bind(targetEmail).first();
         
         let postCount = 0;
         try{ const p = await env.DB.prepare("SELECT COUNT(*) as c FROM tulis WHERE LOWER(email)=? OR LOWER(user_email)=?").bind(targetEmail,targetEmail).first(); postCount=p?.c||0; }catch{}
@@ -95,8 +84,7 @@ export const AKUN_API = {
           posts: postCount, 
           followers: followerCount, 
           following: followingCount, 
-          isFollowing,
-          last_seen: user?.last_seen || 0
+          isFollowing
         }), { headers: h });
       }
 
@@ -106,7 +94,7 @@ export const AKUN_API = {
         const cleanEmail = (email || "").toLowerCase().trim();
         let pic = picture || LOGO_DEFAULT;
         if(pic.startsWith("data:") && pic.length>150000) pic = LOGO_DEFAULT;
-        await env.DB.prepare("UPDATE users SET name=COALESCE(?,name), picture=COALESCE(?,picture), last_seen=? WHERE LOWER(email)=?").bind(name||null, pic||null, Date.now(), cleanEmail).run();
+        await env.DB.prepare("UPDATE users SET name=COALESCE(?,name), picture=COALESCE(?,picture) WHERE LOWER(email)=?").bind(name||null, pic||null, cleanEmail).run();
         return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
@@ -130,8 +118,8 @@ export const AKUN_API = {
       if (path === "/api/followers" || path === "/api/following") {
         const email = (url.searchParams.get("email") || "").toLowerCase().trim();
         let sql = path.includes("followers") 
-          ? `SELECT u.email, u.name, u.picture, u.last_seen FROM follows f JOIN users u ON f.follower_email=u.email WHERE f.following_email=?`
-          : `SELECT u.email, u.name, u.picture, u.last_seen FROM follows f JOIN users u ON f.following_email=u.email WHERE f.follower_email=?`;
+          ? `SELECT u.email, u.name, u.picture FROM follows f JOIN users u ON f.follower_email=u.email WHERE f.following_email=?`
+          : `SELECT u.email, u.name, u.picture FROM follows f JOIN users u ON f.following_email=u.email WHERE f.follower_email=?`;
         const result = await env.DB.prepare(sql).bind(email).all().catch(()=>({results:[]}));
         return new Response(JSON.stringify(result.results||[]), { headers: h });
       }
@@ -237,7 +225,7 @@ export const AKUN_API = {
         return new Response(JSON.stringify(results), { headers: h });
       }
 
-      // 11. API CHAT & CLEAR CHAT
+      // 11. API CHAT (TAMBAHAN PENGIRIMAN & PENGAMBILAN PESAN)
       if (path === "/api/chat/send" && method === "POST") {
         const { sender, receiver, message } = await req.json().catch(()=>({}));
         const cleanSender = (sender || "").toLowerCase().trim();
@@ -267,22 +255,6 @@ export const AKUN_API = {
         ).bind(user1, user2, user2, user1).all().catch(()=>({results:[]}));
 
         return new Response(JSON.stringify({ ok: true, messages: results || [] }), { headers: h });
-      }
-
-      if (path === "/api/chat/clear" && method === "POST") {
-        const { user1, user2 } = await req.json().catch(()=>({}));
-        const cleanUser1 = (user1 || "").toLowerCase().trim();
-        const cleanUser2 = (user2 || "").toLowerCase().trim();
-
-        if (!cleanUser1 || !cleanUser2) {
-          return new Response(JSON.stringify({ ok: false, error: "User kurang" }), { headers: h, status: 400 });
-        }
-
-        await env.DB.prepare(
-          "DELETE FROM chats WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?)"
-        ).bind(cleanUser1, cleanUser2, cleanUser2, cleanUser1).run();
-
-        return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
     } catch (err) {

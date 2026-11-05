@@ -7,31 +7,34 @@ export const CHAT_HTML = `<!DOCTYPE html><html><head>
 <link rel="icon" href="${LOGO_DEFAULT}">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0b141a;color:#fff;font-family:sans-serif;height:100vh;display:flex;flex-direction:column}
-.chat-header{display:flex;align-items:center;justify-content:space-between;background:#202c33;padding:10px 16px;position:sticky;top:0;z-index:10;border-bottom:1px solid #222}
+body{background:#000;color:#fff;font-family:sans-serif;height:100vh;display:flex;flex-direction:column}
+.chat-header{display:flex;align-items:center;justify-content:space-between;background:#050505;padding:12px 16px;position:sticky;top:0;z-index:10;border-bottom:1.5px solid #00ff88;box-shadow:0 0 15px rgba(0,255,136,0.3)}
 .chat-header-left{display:flex;align-items:center;gap:12px}
-.chat-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1.5px solid #00ff88}
-.chat-title{font-size:16px;font-weight:700;color:#e9edef}
-.chat-subtitle{font-size:11px;color:#8696a0}
-.chat-header-right{display:flex;gap:20px;font-size:20px;color:#aebac1;align-items:center}
-.chat-body{flex:1;background-color:#0b141a;background-image:radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);background-size:20px 20px;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
-.encryption-badge{background:#182229;color:#ffd279;font-size:11px;padding:8px 12px;border-radius:8px;text-align:center;max-width:320px;margin:0 auto 12px;line-height:1.4;box-shadow:0 1px 0.5px rgba(0,0,0,0.3)}
-.date-divider{background:#182229;color:#8696a0;font-size:11px;padding:6px 12px;border-radius:6px;align-self:center;margin:8px 0;box-shadow:0 1px 0.5px rgba(0,0,0,0.3)}
-.message{max-width:75%;padding:8px 12px;border-radius:8px;font-size:14px;line-height:1.4;position:relative;word-wrap:break-word}
-.message.incoming{background:#202c33;color:#e9edef;align-self:flex-start;border-top-left-radius:0}
-.message.outgoing{background:#005c4b;color:#e9edef;align-self:flex-end;border-top-right-radius:0}
-.chat-footer{display:flex;align-items:center;gap:8px;background:#202c33;padding:10px 16px;position:sticky;bottom:0}
-.chat-input-wrap{flex:1;background:#2a3942;display:flex;align-items:center;border-radius:24px;padding:8px 16px;gap:12px}
+.chat-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #00ff88;box-shadow:0 0 10px #00ff88}
+.chat-title{font-size:16px;font-weight:900;color:#fff}
+.chat-subtitle{font-size:11px;color:#00ff88}
+.chat-header-right{display:flex;gap:16px;font-size:20px;color:#00ff88;align-items:center;position:relative}
+.chat-body{flex:1;background-color:#000;background-image:radial-gradient(circle, rgba(0,255,136,0.06) 1px, transparent 1px);background-size:24px 24px;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.encryption-badge{background:#0a0a0a;color:#00ff88;font-size:11px;padding:10px 14px;border-radius:12px;text-align:center;max-width:340px;margin:0 auto 12px;line-height:1.4;border:1px solid #00ff88;box-shadow:0 0 12px rgba(0,255,136,0.25)}
+.date-divider{background:#0a0a0a;color:#00ff88;font-size:11px;padding:6px 14px;border-radius:12px;align-self:center;margin:8px 0;border:1px solid #00ff88;box-shadow:0 0 8px rgba(0,255,136,0.2)}
+.message{max-width:75%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.4;position:relative;word-wrap:break-word}
+.message.incoming{background:#111;color:#fff;align-self:flex-start;border:1.5px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,0.25);border-top-left-radius:4px}
+.message.outgoing{background:#00331f;color:#fff;align-self:flex-end;border:1.5px solid #00ff88;box-shadow:0 0 12px rgba(0,255,136,0.4);border-top-right-radius:4px}
+.chat-footer{display:flex;align-items:center;gap:8px;background:#050505;padding:12px 16px;position:sticky;bottom:0;border-top:1.5px solid #00ff88;box-shadow:0 0 15px rgba(0,255,136,0.3)}
+.chat-input-wrap{flex:1;background:#0a0a0a;display:flex;align-items:center;border-radius:24px;padding:8px 16px;gap:12px;border:1.5px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,0.2)}
 .chat-input{flex:1;background:transparent;border:0;color:#fff;font-size:14px;outline:none}
-.chat-input::placeholder{color:#8696a0}
-.chat-tools{display:flex;gap:16px;font-size:20px;color:#8696a0;cursor:pointer}
-.btn-send{background:#00a884;color:#000;border:0;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0}
-#toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:#00ff88;color:#000;padding:10px 16px;border-radius:20px;font-weight:900;display:none;z-index:9999;box-shadow:0 0 15px #00ff88}
+.chat-input::placeholder{color:#666}
+.chat-tools{display:flex;gap:14px;font-size:20px;color:#00ff88;cursor:pointer}
+.btn-send{background:#00ff88;color:#000;border:0;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;cursor:pointer;flex-shrink:0;box-shadow:0 0 15px #00ff88}
+.dropdown-menu{display:none;position:absolute;right:0;top:36px;background:#111;border:1.5px solid #00ff88;border-radius:12px;box-shadow:0 0 20px rgba(0,255,136,0.4);z-index:999;width:160px;overflow:hidden}
+.dropdown-item{padding:12px 16px;font-size:13px;color:#fff;cursor:pointer;border-bottom:1px solid #222;font-weight:700}
+.dropdown-item:hover{background:#00ff88;color:#000}
+#toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:#00ff88;color:#000;padding:10px 18px;border-radius:22px;font-weight:900;display:none;z-index:9999;box-shadow:0 0 20px #00ff88}
 </style></head><body>
 
 <div class="chat-header">
   <div class="chat-header-left">
-    <button onclick="history.back()" style="background:transparent;color:#aebac1;border:0;font-size:20px;cursor:pointer">⬅</button>
+    <button onclick="history.back()" style="background:transparent;color:#00ff88;border:0;font-size:20px;cursor:pointer;font-weight:900">⬅</button>
     <img id="chatHeaderAvatar" src="${LOGO_DEFAULT}" class="chat-avatar" onerror="this.src='${LOGO_DEFAULT}'">
     <div>
       <div id="chatHeaderName" class="chat-title">Memuat...</div>
@@ -39,9 +42,13 @@ body{background:#0b141a;color:#fff;font-family:sans-serif;height:100vh;display:f
     </div>
   </div>
   <div class="chat-header-right">
-    <span style="cursor:pointer" onclick="toast('Video call segera hadir')">📹</span>
-    <span style="cursor:pointer" onclick="toast('Telepon segera hadir')">📞</span>
-    <span style="cursor:pointer" onclick="toast('Opsi lainnya')">⋮</span>
+    <span style="cursor:pointer;font-size:18px" onclick="toast('Video call segera hadir')">📹</span>
+    <span style="cursor:pointer;font-size:18px" onclick="toast('Telepon segera hadir')">📞</span>
+    <span style="cursor:pointer;font-size:20px;padding:0 4px" onclick="toggleMenu(event)">⋮</span>
+    <div id="chatDropdown" class="dropdown-menu">
+      <div class="dropdown-item" onclick="clearAllChat()">Hapus semua chat</div>
+      <div class="dropdown-item" onclick="blockUser()" style="color:#ff6b6b">Blokir</div>
+    </div>
   </div>
 </div>
 
@@ -75,6 +82,36 @@ if(myEmail && !myEmail.includes('@')) myEmail += '@rumahgadang-ai.my.id';
 
 function toast(m){let t=document.getElementById('toast');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
 
+function toggleMenu(e){
+  e.stopPropagation();
+  let menu = document.getElementById('chatDropdown');
+  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+window.addEventListener('click', () => {
+  let menu = document.getElementById('chatDropdown');
+  if(menu) menu.style.display = 'none';
+});
+
+function clearAllChat(){
+  if(confirm("Hapus semua riwayat chat ini?")){
+    toast("Semua chat dihapus");
+    document.getElementById('chatBody').innerHTML = \`
+      <div class="encryption-badge">
+        🔒 Pesan dan telepon terenkripsi secara end-to-end. Hanya orang di obrolan ini yang bisa membaca, mendengar, atau membagikannya.
+      </div>
+      <div class="date-divider">Hari ini</div>
+    \`;
+  }
+}
+
+function blockUser(){
+  if(confirm("Blokir pengguna ini?")){
+    toast("Pengguna diblokir");
+    setTimeout(() => history.back(), 1500);
+  }
+}
+
 async function initChat() {
   if(!targetEmail) {
     document.getElementById('chatHeaderName').innerText = "Dunsanak";
@@ -91,7 +128,7 @@ async function initChat() {
   } catch(e){}
   
   loadMessages();
-  setInterval(loadMessages, 3000); // Sinkronisasi pesan otomatis tiap 3 detik
+  setInterval(loadMessages, 3000);
 }
 
 async function loadMessages(){

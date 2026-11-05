@@ -17,9 +17,10 @@ body{background:#000;color:#fff;font-family:sans-serif;height:100vh;display:flex
 .chat-body{flex:1;background-color:#000;background-image:radial-gradient(circle, rgba(0,255,136,0.06) 1px, transparent 1px);background-size:24px 24px;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
 .encryption-badge{background:#0a0a0a;color:#00ff88;font-size:11px;padding:10px 14px;border-radius:12px;text-align:center;max-width:340px;margin:0 auto 12px;line-height:1.4;border:1px solid #00ff88;box-shadow:0 0 12px rgba(0,255,136,0.25)}
 .date-divider{background:#0a0a0a;color:#00ff88;font-size:11px;padding:6px 14px;border-radius:12px;align-self:center;margin:8px 0;border:1px solid #00ff88;box-shadow:0 0 8px rgba(0,255,136,0.2)}
-.message{max-width:75%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.4;position:relative;word-wrap:break-word}
+.message{max-width:75%;padding:10px 14px 22px 14px;border-radius:14px;font-size:14px;line-height:1.4;position:relative;word-wrap:break-word}
 .message.incoming{background:#111;color:#fff;align-self:flex-start;border:1.5px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,0.25);border-top-left-radius:4px}
 .message.outgoing{background:#00331f;color:#fff;align-self:flex-end;border:1.5px solid #00ff88;box-shadow:0 0 12px rgba(0,255,136,0.4);border-top-right-radius:4px}
+.msg-time{font-size:10px;color:#aaa;position:absolute;bottom:4px;right:10px;display:flex;align-items:center;gap:3px}
 .chat-footer{display:flex;align-items:center;gap:8px;background:#050505;padding:12px 16px;position:sticky;bottom:0;border-top:1.5px solid #00ff88;box-shadow:0 0 15px rgba(0,255,136,0.3)}
 .chat-input-wrap{flex:1;background:#0a0a0a;display:flex;align-items:center;border-radius:24px;padding:8px 16px;gap:12px;border:1.5px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,0.2)}
 .chat-input{flex:1;background:transparent;border:0;color:#fff;font-size:14px;outline:none}
@@ -87,6 +88,15 @@ if(myEmail && targetEmail){
 
 function toast(m){let t=document.getElementById('toast');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
 
+// Format Jam (Contoh: 14.07 atau 18.15)
+function formatChatTime(timestamp) {
+  if (!timestamp) return '';
+  let date = new Date(timestamp);
+  let hours = String(date.getHours()).padStart(2, '0');
+  let minutes = String(date.getMinutes()).padStart(2, '0');
+  return hours + '.' + minutes;
+}
+
 function toggleMenu(e){
   e.stopPropagation();
   let menu = document.getElementById('chatDropdown');
@@ -109,7 +119,6 @@ async function clearAllChat(){
       let j = await r.json();
       if(j.ok){
         toast("Semua chat dihapus");
-        // Hapus juga status read di localStorage agar badge bersih total
         localStorage.removeItem('rg_read_' + myEmail + '_' + targetEmail);
         document.getElementById('chatBody').innerHTML = \`
           <div class="encryption-badge">
@@ -158,7 +167,7 @@ async function initChat() {
   setInterval(fetchProfileAndStatus, 3000);
 
   loadMessages();
-  setInterval(loadMessages, 3000); // Auto refresh pesan otomatis
+  setInterval(loadMessages, 3000);
 }
 
 async function fetchProfileAndStatus(){
@@ -195,9 +204,19 @@ async function loadMessages(){
         </div>
         <div class="date-divider">Hari ini</div>
       \`;
+      
       let msgsHtml = data.messages.map(m => {
         let isOutgoing = (m.sender || '').toLowerCase().trim() === myEmail;
-        return \`<div class="message \${isOutgoing ? 'outgoing' : 'incoming'}">\${m.message}</div>\`;
+        let timeStr = formatChatTime(m.time);
+        return \`
+          <div class="message \${isOutgoing ? 'outgoing' : 'incoming'}">
+            <div>\${m.message}</div>
+            <div class="msg-time">
+              <span>\${timeStr}</span>
+              \${isOutgoing ? '<span style="color:#00ff88">✓✓</span>' : ''}
+            </div>
+          </div>
+        \`;
       }).join('');
       
       let isAtBottom = body.scrollHeight - body.scrollTop <= body.clientHeight + 100;

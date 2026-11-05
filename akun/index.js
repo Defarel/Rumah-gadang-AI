@@ -149,10 +149,13 @@ function saveAuth(e,n,a){localStorage.setItem('rg_email',e.toLowerCase().trim())
 function logout(){ if(confirm("Keluar?")){localStorage.clear();viewingUserEmail=null;history.pushState(null,'','/akun');render();}}
 function viewUser(e){ viewingUserEmail=e.toLowerCase().trim(); activeMainTab='tulis'; history.pushState(null,'','/akun?profil='+encodeURIComponent(e)); render(); }
 function switchTab(t){ activeMainTab=t; const me=viewingUserEmail||getMyEmail(); loadContent(me, me===getMyEmail()); document.querySelectorAll('.m-tab').forEach(b=>{ b.classList.toggle('active', b.innerText.toLowerCase()===t); }); }
+
+// Fungsi agar tombol Chat bisa diklik dan langsung membuka halaman chat
 function openChat(email){
   if(!email) { toast('Email tidak valid'); return; }
   window.location.href = '/akun/chat?email=' + encodeURIComponent(email);
 }
+
 function openExtraMenu(){ toast('Menu Opsi Tambahan'); }
 function setLoginMode(m){
   window.loginMode=m;

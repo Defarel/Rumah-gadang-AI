@@ -21,16 +21,17 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .tabLogin.on{background:#000;color:#fff}
 .m-tab{min-width:78px;flex:1;padding:12px 10px;border-radius:12px;background:#111;color:#888;text-align:center;font-weight:900;font-size:12px;cursor:pointer;border:1.5px solid #00ff88;box-shadow:0 0 8px rgba(0,255,136,.35), inset 0 0 6px rgba(0,255,136,.15);transition:.2s}
 .m-tab.active{background:#00ff88;color:#000;border-color:#00ff88;box-shadow:0 0 18px #00ff88, 0 0 35px rgba(0,255,136,.6)}
-.user-fb{display:flex;gap:12px;background:#0a0a0a;padding:12px;border-radius:14px;margin-bottom:12px;border:1.5px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,.25)}
+.user-fb{display:flex;gap:12px;background:#0a0a0a;padding:12px;border-radius:14px;margin-bottom:12px;border:1.5px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,.25);position:relative}
 .user-fb-av{width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid #00ff88;box-shadow:0 0 10px #00ff88}
 .btn-neon-follow{flex:1;background:#00ff88;color:#000;border:1.5px solid #00ff88;padding:10px;border-radius:10px;font-weight:900;font-size:12px;cursor:pointer;box-shadow:0 0 12px #00ff88}
-.btn-neon-lihat{flex:1;background:#000;color:#00ff88;border:1.5px solid #00ff88;padding:10px;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer;box-shadow:0 0 8px rgba(0,255,136,.3)}
+.btn-neon-lihat{flex:1;background:#000;color:#00ff88;border:1.5px solid #00ff88;padding:10px;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer;box-shadow:0 0 8px rgba(0,255,136,.3);position:relative}
+.badge-notif{position:absolute;top:-8px;right:-6px;background:#00ff88;color:#000;font-size:11px;font-weight:900;padding:2px 7px;border-radius:10px;border:1.5px solid #000;box-shadow:0 0 8px #00ff88}
+.badge-notif-profile{position:absolute;top:-10px;right:-6px;background:#00ff88;color:#000;font-size:11px;font-weight:900;padding:2px 7px;border-radius:10px;border:1.5px solid #000;box-shadow:0 0 10px #00ff88;z-index:10}
 .btn-edit{flex:1;padding:13px;background:#111;color:#fff;border:1.5px solid #00ff88;border-radius:12px;font-weight:700;box-shadow:0 0 8px rgba(0,255,136,.3);cursor:pointer}
 .btn-keluar{flex:1;padding:13px;background:#111;color:#ff6b6b;border:1.5px solid #ff4444;border-radius:12px;font-weight:800;box-shadow:0 0 8px rgba(255,68,68,.3);cursor:pointer}
 .btn-follow-real{width:100%;padding:14px;background:#00ff88;color:#000;border:1.5px solid #00ff88;border-radius:14px;font-weight:900;box-shadow:0 0 15px #00ff88;cursor:pointer}
 .btn-following-real{width:100%;padding:14px;background:#111;color:#fff;border:1.5px solid #00ff88;border-radius:14px;font-weight:800;box-shadow:0 0 10px rgba(0,255,136,.3);cursor:pointer}
 .btn-chat-real{flex:1;padding:14px;background:#222;color:#fff;border:1.5px solid #00ff88;border-radius:14px;font-weight:800;box-shadow:0 0 10px rgba(0,255,136,.3);cursor:pointer;text-align:center;z-index:5;position:relative}
-.btn-extra-real{padding:14px 18px;background:#111;color:#00ff88;border:1.5px solid #00ff88;border-radius:14px;font-weight:900;box-shadow:0 0 10px rgba(0,255,136,.3);cursor:pointer;z-index:5;position:relative}
 .profile-sec{padding:18px 16px 10px}
 .prof-top{display:flex;align-items:center;gap:18px;margin-bottom:14px}
 .avatar-wrap{position:relative;width:76px;height:76px;cursor:pointer}
@@ -150,13 +151,11 @@ function logout(){ if(confirm("Keluar?")){localStorage.clear();viewingUserEmail=
 function viewUser(e){ viewingUserEmail=e.toLowerCase().trim(); activeMainTab='tulis'; history.pushState(null,'','/akun?profil='+encodeURIComponent(e)); render(); }
 function switchTab(t){ activeMainTab=t; const me=viewingUserEmail||getMyEmail(); loadContent(me, me===getMyEmail()); document.querySelectorAll('.m-tab').forEach(b=>{ b.classList.toggle('active', b.innerText.toLowerCase()===t); }); }
 
-// FUNGSI UTAMA AGAR TOMBOL CHAT BISA DIKLIK DAN BERPINDAH HALAMAN
 function openChat(email){
   if(!email){ toast('Email tujuan tidak ada'); return; }
   window.location.href = '/akun/chat?email=' + encodeURIComponent(email);
 }
 
-function openExtraMenu(){ toast('Menu Opsi Tambahan'); }
 function setLoginMode(m){
   window.loginMode=m;
   document.getElementById('tMasuk').classList.toggle('on',m==='masuk');
@@ -219,6 +218,23 @@ async function renderProfile(container,targetEmail,isMe){
   container.innerHTML='<div style="text-align:center;padding:40px;color:#666">Memuat...</div>';
   let data={name:isMe?getMyName():targetEmail.split('@')[0],picture:isMe?getMyAvatar():LOGO_INNER,posts:0,followers:0,following:0,isFollowing:false};
   try{ let r=await fetch('/api/akun/profile?email='+encodeURIComponent(targetEmail)+'&me='+encodeURIComponent(getMyEmail())); if(r.ok){ let d=await r.json(); data={...data,...d}; } }catch{}
+  
+  // Ambil cek pesan masuk untuk badge di profil jika bukan profil sendiri
+  let unreadCount = 0;
+  if(!isMe && getMyEmail()){
+    try {
+      let rMsg = await fetch('/api/chat/get?user1=' + encodeURIComponent(getMyEmail()) + '&user2=' + encodeURIComponent(targetEmail));
+      let jMsg = await rMsg.json();
+      if(jMsg.ok && Array.isArray(jMsg.messages)){
+        // Hitung pesan masuk terakhir dari targetemail
+        let lastMsg = jMsg.messages[jMsg.messages.length - 1];
+        if(lastMsg && lastMsg.sender.toLowerCase() === targetEmail.toLowerCase()){
+          unreadCount = 1;
+        }
+      }
+    } catch(e){}
+  }
+
   let photos=[]; 
   try{ 
     let rp=await fetch('/api/akun/photos?email='+encodeURIComponent(targetEmail)); 
@@ -236,17 +252,21 @@ async function renderProfile(container,targetEmail,isMe){
     }
   }catch{}
   
-  // RENDER TOMBOL ATAS: Jika bukan profil sendiri, tampilkan tombol Follow, Chat, dan Settings dengan benar
   let actionButtonsHtml = '';
   if(isMe) {
     actionButtonsHtml = '<div style="display:flex;gap:8px"><button class="btn-edit" onclick="showEdit()">Edit</button><button class="btn-keluar" onclick="logout()">Keluar</button></div>';
   } else {
     let followBtnClass = data.isFollowing ? 'btn-following-real' : 'btn-follow-real';
     let followBtnText = data.isFollowing ? '✓ Mengikuti' : 'Follow';
+    let chatBadgeHtml = unreadCount > 0 ? '<div class="badge-notif-profile">' + unreadCount + '</div>' : '';
+    
+    // Lambang gigi dihapus dan hanya menyisakan tombol Follow & Chat
     actionButtonsHtml = \`<div style="display:flex;gap:8px">
-      <button class="\${followBtnClass}" style="flex:2" onclick="toggleFollow('\${targetEmail}')">\${followBtnText}</button>
-      <button class="btn-chat-real" onclick="openChat('\${targetEmail}')">Chat</button>
-      <button class="btn-extra-real" onclick="openExtraMenu()">⚙️</button>
+      <button class="\${followBtnClass}" style="flex:1" onclick="toggleFollow('\${targetEmail}')">\${followBtnText}</button>
+      <div style="flex:1;position:relative;display:flex">
+        \${chatBadgeHtml}
+        <button class="btn-chat-real" style="width:100%" onclick="openChat('\${targetEmail}')">Chat</button>
+      </div>
     </div>\`;
   }
 
@@ -279,18 +299,43 @@ async function loadContent(targetEmail,isMe){
       let r=await fetch('/api/akun/list?t='+Date.now()); let u=await r.json();
       let list=u.filter(x=>x.email.toLowerCase()!==getMyEmail().toLowerCase());
       if(!list.length){ box.innerHTML='<div style="text-align:center;color:#555">Belum ada teman</div>'; return; }
-      box.innerHTML=list.map(x=> \`
-        <div class="user-fb">
-          <img src="\${x.picture||LOGO_INNER}" class="user-fb-av" onerror="this.src=LOGO_INNER">
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:900;font-size:15px">\${x.name||x.email.split('@')[0]}</div>
-            <div style="font-size:11px;color:#888;overflow:hidden;text-overflow:ellipsis">\${x.email}</div>
-            <div style="display:flex;gap:8px;margin-top:10px">
-              <button class="btn-neon-follow" onclick="toggleFollow('\${x.email}')">Follow</button>
-              <button class="btn-neon-lihat" onclick="viewUser('\${x.email}')">Lihat</button>
+      
+      let myEmail = getMyEmail();
+      let friendsHtml = '';
+
+      for(let x of list){
+        let unread = 0;
+        if(myEmail){
+          try {
+            let rMsg = await fetch('/api/chat/get?user1=' + encodeURIComponent(myEmail) + '&user2=' + encodeURIComponent(x.email));
+            let jMsg = await rMsg.json();
+            if(jMsg.ok && Array.isArray(jMsg.messages)){
+              let lastMsg = jMsg.messages[jMsg.messages.length - 1];
+              if(lastMsg && lastMsg.sender.toLowerCase() === x.email.toLowerCase()){
+                unread = 1;
+              }
+            }
+          } catch(e){}
+        }
+        let badgeHtml = unread > 0 ? '<div class="badge-notif">' + unread + '</div>' : '';
+
+        friendsHtml += \`
+          <div class="user-fb">
+            <img src="\${x.picture||LOGO_INNER}" class="user-fb-av" onerror="this.src=LOGO_INNER">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:900;font-size:15px">\${x.name||x.email.split('@')[0]}</div>
+              <div style="font-size:11px;color:#888;overflow:hidden;text-overflow:ellipsis">\${x.email}</div>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button class="btn-neon-follow" onclick="toggleFollow('\${x.email}')">Follow</button>
+                <div style="flex:1;position:relative;display:flex">
+                  \${badgeHtml}
+                  <button class="btn-neon-lihat" style="width:100%" onclick="viewUser('\${x.email}')">Lihat</button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>\`).join('');
+          </div>\`;
+      }
+      box.innerHTML = friendsHtml;
     }catch(e){ box.innerHTML='<div style="text-align:center;color:#f66">Gagal load</div>'; }
   } else if(activeMainTab==='foto'){
     let photos=window._photosCache||[];

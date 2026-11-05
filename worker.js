@@ -174,6 +174,22 @@ export default {
       return Response.redirect("https://rumahgadang-ai.my.id" + path.slice(0, -1), 301);
     }
 
+    // PING ONLINE (Global Handler Pendukung Status Aktif)
+    if (path === "/api/akun/ping" && req.method === "POST") {
+      try {
+        let body = await req.json().catch(() => ({}));
+        let email = (body.email || "").toLowerCase().trim();
+        if (email && env.DB) {
+          // Otomatis buat tabel users dengan last_seen jika belum ada
+          await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER, last_seen INTEGER)`).run();
+          await env.DB.prepare("UPDATE users SET last_seen = ? WHERE LOWER(email) = ?").bind(Date.now(), email).run();
+        }
+        return new Response(JSON.stringify({ ok: true }), { headers: cors });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
+      }
+    }
+
     // SITEMAP.XML
     if (path === "/sitemap.xml" || path === "/sitemap/" || path === "/sitemap") {
       const now = new Date().toISOString().split('T')[0];

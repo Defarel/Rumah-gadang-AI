@@ -50,7 +50,6 @@ body{background:#0b141a;color:#fff;font-family:sans-serif;height:100vh;display:f
     🔒 Pesan dan telepon terenkripsi secara end-to-end. Hanya orang di obrolan ini yang bisa membaca, mendengar, atau membagikannya.
   </div>
   <div class="date-divider">Hari ini</div>
-  <div class="message incoming">Halo Dunsanak! Ada yang bisa dibantu terkait Rumah Gadang AI?</div>
 </div>
 
 <div class="chat-footer">
@@ -60,7 +59,7 @@ body{background:#0b141a;color:#fff;font-family:sans-serif;height:100vh;display:f
     <span class="chat-tools" onclick="toast('Lampiran')">📎</span>
     <span class="chat-tools" onclick="toast('Kamera')">📷</span>
   </div>
-  <button class="btn-send" onclick="sendMessage()">🎤</button>
+  <button class="btn-send" onclick="sendMessage()">➤</button>
 </div>
 
 <div id="toast"></div>
@@ -68,22 +67,54 @@ body{background:#0b141a;color:#fff;font-family:sans-serif;height:100vh;display:f
 <script>
 const LOGO_FALLBACK = "${LOGO_DEFAULT}";
 const urlParams = new URLSearchParams(window.location.search);
-let targetEmail = urlParams.get('email') || urlParams.get('profil') || '';
+let targetEmail = (urlParams.get('email') || urlParams.get('profil') || '').toLowerCase().trim();
+let myEmail = (localStorage.getItem('rg_email') || '').toLowerCase().trim();
+
+if(targetEmail && !targetEmail.includes('@')) targetEmail += '@rumahgadang-ai.my.id';
+if(myEmail && !myEmail.includes('@')) myEmail += '@rumahgadang-ai.my.id';
 
 function toast(m){let t=document.getElementById('toast');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
 
-async function initChatHeader() {
+async function initChat() {
   if(!targetEmail) {
     document.getElementById('chatHeaderName').innerText = "Dunsanak";
     return;
   }
   document.getElementById('chatHeaderName').innerText = targetEmail.split('@')[0];
   try {
-    let r = await fetch('/api/akun/profile?email=' + encodeURIComponent(targetEmail) + '&me=' + encodeURIComponent(localStorage.getItem('rg_email')||''));
+    let r = await fetch('/api/akun/profile?email=' + encodeURIComponent(targetEmail) + '&me=' + encodeURIComponent(myEmail));
     if(r.ok) {
       let d = await r.json();
       if(d.name) document.getElementById('chatHeaderName').innerText = d.name;
       if(d.picture) document.getElementById('chatHeaderAvatar').src = d.picture;
+    }
+  } catch(e){}
+  
+  loadMessages();
+  setInterval(loadMessages, 3000); // Sinkronisasi pesan otomatis tiap 3 detik
+}
+
+async function loadMessages(){
+  if(!myEmail || !targetEmail) return;
+  try {
+    let res = await fetch(\`/api/chat/get?user1=\${encodeURIComponent(myEmail)}&user2=\${encodeURIComponent(targetEmail)}\`);
+    let data = await res.json();
+    if(data.ok && Array.isArray(data.messages)){
+      let body = document.getElementById('chatBody');
+      let topHtml = \`
+        <div class="encryption-badge">
+          🔒 Pesan dan telepon terenkripsi secara end-to-end. Hanya orang di obrolan ini yang bisa membaca, mendengar, atau membagikannya.
+        </div>
+        <div class="date-divider">Hari ini</div>
+      \`;
+      let msgsHtml = data.messages.map(m => {
+        let isOutgoing = (m.sender || '').toLowerCase().trim() === myEmail;
+        return \`<div class="message \${isOutgoing ? 'outgoing' : 'incoming'}">\${m.message}</div>\`;
+      }).join('');
+      
+      let isAtBottom = body.scrollHeight - body.scrollTop <= body.clientHeight + 100;
+      body.innerHTML = topHtml + msgsHtml;
+      if(isAtBottom) { body.scrollTop = body.scrollHeight; }
     }
   } catch(e){}
 }
@@ -92,23 +123,32 @@ function handleKeyPress(e){
   if(e.key === 'Enter') sendMessage();
 }
 
-function sendMessage(){
+async function sendMessage(){
   let inp = document.getElementById('messageInput');
   let text = inp.value.trim();
   if(!text) return;
-  
-  let body = document.getElementById('chatBody');
-  let msgDiv = document.createElement('div');
-  msgDiv.className = 'message outgoing';
-  msgDiv.innerText = text;
-  body.appendChild(msgDiv);
-  
-  inp.value = '';
-  body.scrollTop = body.scrollHeight;
-  toast('Pesan terkirim');
+  if(!myEmail) { toast('Login dulu Bos!'); return; }
+  if(!targetEmail) { toast('Penerima tidak valid!'); return; }
+
+  try {
+    let r = await fetch('/api/chat/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sender: myEmail, receiver: targetEmail, message: text })
+    });
+    let j = await r.json();
+    if(j.ok){
+      inp.value = '';
+      loadMessages();
+    } else {
+      toast('Gagal kirim pesan');
+    }
+  } catch(e){
+    toast('Error: ' + e.message);
+  }
 }
 
-initChatHeader();
+initChat();
 </script>
 </body></html>
 `;

@@ -7,16 +7,22 @@ export const AKUN_API = {
     const method = req.method;
 
     try {
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER, last_seen INTEGER)`).run();
+      // INIT TABLES (Struktur asli Bos dipertahankan 100%)
+      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER)`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS rg_users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER)`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS follows (follower_email TEXT, following_email TEXT, created_at INTEGER, PRIMARY KEY(follower_email, following_email))`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS d1consule_photos_v2 (email TEXT, idx INTEGER, photo TEXT, updated_at INTEGER, PRIMARY KEY(email, idx))`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, user_email TEXT, name TEXT, picture TEXT, time INTEGER)`).run();
+      
+      // TABEL LIKE & KOMENTAR & LIKE KOMENTAR
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_likes (photo_key TEXT, user_email TEXT, PRIMARY KEY(photo_key, user_email))`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, photo_key TEXT, user_name TEXT, comment TEXT, time INTEGER)`).run();
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS comment_likes (comment_id INTEGER, user_email TEXT, PRIMARY KEY(comment_id, user_email))`).run();
+      
+      // TABEL CHATS
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS chats (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, receiver TEXT, message TEXT, time INTEGER)`).run();
 
+      // 1. REGISTER / LOGIN
       if (path === "/api/akun/register" && method === "POST") {
         const body = await req.json();
         let email = (body.email || "").toLowerCase().trim();
@@ -26,9 +32,9 @@ export const AKUN_API = {
         if (!email.includes('@')) email += "@rumahgadang-ai.my.id";
         
         await env.DB.prepare(
-          `INSERT INTO users (email, name, picture, time, last_seen) VALUES (?,?,?,?,?)
-           ON CONFLICT(email) DO UPDATE SET name=excluded.name, picture=excluded.picture, time=excluded.time, last_seen=excluded.last_seen`
-        ).bind(email, name, picture, Date.now(), Date.now()).run();
+          `INSERT INTO users (email, name, picture, time) VALUES (?,?,?,?)
+           ON CONFLICT(email) DO UPDATE SET name=excluded.name, picture=excluded.picture, time=excluded.time`
+        ).bind(email, name, picture, Date.now()).run();
         
         return new Response(JSON.stringify({ ok: true, email, name, picture }), { headers: h });
       }
@@ -37,40 +43,32 @@ export const AKUN_API = {
         const body = await req.json();
         let email = (body.email || "").toLowerCase().trim();
         if (!email.includes('@')) email += "@rumahgadang-ai.my.id";
-        let u = await env.DB.prepare(`SELECT email,name,picture,last_seen FROM users WHERE email=?`).bind(email).first();
+        let u = await env.DB.prepare(`SELECT email,name,picture FROM users WHERE email=?`).bind(email).first();
         if(!u){
           let name = body.name || email.split('@')[0];
           let pic = LOGO_DEFAULT;
-          await env.DB.prepare(`INSERT INTO users (email,name,picture,time,last_seen) VALUES (?,?,?,?,?) ON CONFLICT(email) DO NOTHING`).bind(email,name,pic,Date.now(),Date.now()).run();
+          await env.DB.prepare(`INSERT INTO users (email,name,picture,time) VALUES (?,?,?,?) ON CONFLICT(email) DO NOTHING`).bind(email,name,pic,Date.now()).run();
           return new Response(JSON.stringify({ ok: true, email, name, picture: pic }), { headers: h });
         }
-        await env.DB.prepare(`UPDATE users SET last_seen=? WHERE email=?`).bind(Date.now(), email).run();
-        return new Response(JSON.stringify({ ok: true, email: u.email, name: u.name, picture: u.picture, last_seen: Date.now() }), { headers: h });
+        return new Response(JSON.stringify({ ok: true, email: u.email, name: u.name, picture: u.picture }), { headers: h });
       }
 
+      // API PING ONLINE (Opsional pendukung frontend)
       if (path === "/api/akun/ping" && method === "POST") {
-        const { email } = await req.json().catch(()=>({}));
-        const cleanEmail = (email || "").toLowerCase().trim();
-        if (cleanEmail) {
-          await env.DB.prepare("UPDATE users SET last_seen = ? WHERE LOWER(email) = ?").bind(Date.now(), cleanEmail).run();
-        }
         return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
+      // 2. LIST SEMUA AKUN
       if (path === "/api/akun/list" && method === "GET") {
-        const r1 = await env.DB.prepare("SELECT email, name, picture, last_seen FROM users ORDER BY time DESC LIMIT 100").all().catch(()=>({results:[]}));
-        let list = r1.results || [];
-        if(list.length === 0){
-          const r2 = await env.DB.prepare("SELECT email, name, picture, time FROM rg_users LIMIT 100").all().catch(()=>({results:[]}));
-          list = (r2.results || []).map(x => ({ ...x, last_seen: 0 }));
-        }
-        return new Response(JSON.stringify(list), { headers: h });
+        const r1 = await env.DB.prepare("SELECT email, name, picture FROM users ORDER BY time DESC LIMIT 100").all().catch(()=>({results:[]}));
+        return new Response(JSON.stringify(r1.results), { headers: h });
       }
 
+      // 3. PROFILE
       if (path === "/api/akun/profile" && method === "GET") {
         const targetEmail = (url.searchParams.get("email") || "").toLowerCase().trim();
         const myEmail = (url.searchParams.get("me") || "").toLowerCase().trim();
-        let user = await env.DB.prepare("SELECT email, name, picture, last_seen FROM users WHERE LOWER(email)=?").bind(targetEmail).first();
+        let user = await env.DB.prepare("SELECT email, name, picture FROM users WHERE LOWER(email)=?").bind(targetEmail).first();
         
         let postCount = 0;
         try{ const p = await env.DB.prepare("SELECT COUNT(*) as c FROM tulis WHERE LOWER(email)=? OR LOWER(user_email)=?").bind(targetEmail,targetEmail).first(); postCount=p?.c||0; }catch{}
@@ -91,20 +89,21 @@ export const AKUN_API = {
           posts: postCount, 
           followers: followerCount, 
           following: followingCount, 
-          isFollowing,
-          last_seen: user?.last_seen || 0
+          isFollowing
         }), { headers: h });
       }
 
+      // 4. UPDATE PROFIL
       if (path === "/api/akun/update" && method === "POST") {
         const { email, name, picture } = await req.json();
         const cleanEmail = (email || "").toLowerCase().trim();
         let pic = picture || LOGO_DEFAULT;
         if(pic.startsWith("data:") && pic.length>150000) pic = LOGO_DEFAULT;
-        await env.DB.prepare("UPDATE users SET name=COALESCE(?,name), picture=COALESCE(?,picture), last_seen=? WHERE LOWER(email)=?").bind(name||null, pic||null, Date.now(), cleanEmail).run();
+        await env.DB.prepare("UPDATE users SET name=COALESCE(?,name), picture=COALESCE(?,picture) WHERE LOWER(email)=?").bind(name||null, pic||null, cleanEmail).run();
         return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
+      // 5. FOLLOW
       if (path === "/api/follow" && method === "POST") {
         const body = await req.json();
         const follower = (body.follower || "").toLowerCase().trim();
@@ -120,15 +119,17 @@ export const AKUN_API = {
         }
       }
 
+      // 6. FOLLOWERS & FOLLOWING
       if (path === "/api/followers" || path === "/api/following") {
         const email = (url.searchParams.get("email") || "").toLowerCase().trim();
         let sql = path.includes("followers") 
-          ? `SELECT u.email, u.name, u.picture, u.last_seen FROM follows f JOIN users u ON f.follower_email=u.email WHERE f.following_email=?`
-          : `SELECT u.email, u.name, u.picture, u.last_seen FROM follows f JOIN users u ON f.following_email=u.email WHERE f.follower_email=?`;
+          ? `SELECT u.email, u.name, u.picture FROM follows f JOIN users u ON f.follower_email=u.email WHERE f.following_email=?`
+          : `SELECT u.email, u.name, u.picture FROM follows f JOIN users u ON f.following_email=u.email WHERE f.follower_email=?`;
         const result = await env.DB.prepare(sql).bind(email).all().catch(()=>({results:[]}));
         return new Response(JSON.stringify(result.results||[]), { headers: h });
       }
 
+      // 7. FOTO V2
       if (path === "/api/akun/photos") {
         if (method === "POST") {
           const { email, photos } = await req.json();
@@ -147,6 +148,7 @@ export const AKUN_API = {
         }
       }
 
+      // 8. API LIKE FOTO PERMANEN
       if (path === "/api/photo/like") {
         let photo_key = url.searchParams.get("photo_key");
         let user_email = (url.searchParams.get("user_email") || "").toLowerCase().trim();
@@ -177,6 +179,7 @@ export const AKUN_API = {
         return new Response(JSON.stringify({ ok: true, likes: countRes?.c || 0, likedByMe: !!likedRes }), { headers: h });
       }
 
+      // 9. API LIKE KOMENTAR
       if (path === "/api/akun/komen/like" && method === "POST") {
         const { comment_id, email } = await req.json().catch(()=>({}));
         const cleanEmail = (email || "").toLowerCase().trim();
@@ -191,6 +194,7 @@ export const AKUN_API = {
         return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
+      // 10. API KOMENTAR & DELETE KOMENTAR
       if (path === "/api/photo/comment") {
         if (method === "POST") {
           const { photo_key, user_name, comment } = await req.json().catch(()=>({}));
@@ -226,6 +230,7 @@ export const AKUN_API = {
         return new Response(JSON.stringify(results), { headers: h });
       }
 
+      // 11. API CHAT & CLEAR CHAT
       if (path === "/api/chat/send" && method === "POST") {
         const { sender, receiver, message } = await req.json().catch(()=>({}));
         const cleanSender = (sender || "").toLowerCase().trim();
@@ -257,6 +262,7 @@ export const AKUN_API = {
         return new Response(JSON.stringify({ ok: true, messages: results || [] }), { headers: h });
       }
 
+      // TAMBAHAN ENDPOINT HAPUS SEMUA CHAT
       if (path === "/api/chat/clear" && method === "POST") {
         const { user1, user2 } = await req.json().catch(()=>({}));
         const cleanUser1 = (user1 || "").toLowerCase().trim();

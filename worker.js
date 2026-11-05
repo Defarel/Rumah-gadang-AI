@@ -5,7 +5,7 @@ import * as LUAR_M from './kantor/Luar/index.js';
 import * as DALAM_M from './kantor/Dalam/index.js';
 import * as AI_M from './ai/index.js';
 import * as AKUN_M from './akun/index.js';
-import * as CHAT_M from './akun/Chat/index.js'; // TAMBAHAN: Import modul Chat HTML Bos
+import * as CHAT_M from './akun/Chat/index.js';
 import * as TULIS_M from './home/api-tulis/api.js';
 import * as FOTO_API_M from './foto/api-foto/api.js';
 import * as VIDEO_API_M from './video/api-video/api.js';
@@ -120,7 +120,7 @@ const DALAM_HTML = getHtml(DALAM_M);
 const KANTOR_HTML = LUAR_HTML;
 const AI_HTML = getHtml(AI_M);
 const AKUN_HTML = getHtml(AKUN_M);
-const CHAT_HTML = getHtml(CHAT_M); // TAMBAHAN: Variabel CHAT_HTML Bos
+const CHAT_HTML = getHtml(CHAT_M);
 
 function injectCanonical(html, canonicalUrl) {
   if (!html || typeof html !== 'string') return html;
@@ -291,7 +291,7 @@ Host: https://rumahgadang-ai.my.id`;
         if (path.startsWith('/api/video')) {
           let m = getApi(VIDEO_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
         }
-        if (path.startsWith('/api/akun') || path.startsWith('/api/follow') || path.startsWith('/api/followers') || path.startsWith('/api/following') || path.startsWith('/api/photo') || path.startsWith('/api/users') || path.startsWith('/api/search-users')) {
+        if (path.startsWith('/api/akun') || path.startsWith('/api/follow') || path.startsWith('/api/followers') || path.startsWith('/api/following') || path.startsWith('/api/photo') || path.startsWith('/api/users') || path.startsWith('/api/search-users') || path.startsWith('/api/chat')) {
           let m = getApi(AKUN_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
         }
         if (path.startsWith('/api/ai') || path.startsWith('/api/t2i')) {
@@ -328,7 +328,7 @@ Host: https://rumahgadang-ai.my.id`;
     if (path.startsWith("/kantor/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/kantor/dalam");
     if (path.startsWith("/kantor")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor");
     
-    // TAMBAHAN: Routing untuk halaman Chat
+    // Routing untuk halaman Chat
     if (path === "/akun/chat" || path === "/chat") {
       return htmlResponse(CHAT_HTML, "https://rumahgadang-ai.my.id/akun/chat");
     }

@@ -234,7 +234,7 @@ async function sendMessage(){
   let inp = document.getElementById('messageInput');
   let text = inp.value.trim();
   if(!text) return;
-  if(!myEmail) { toast('Login dulu Bos!'); return; }
+  if(!myEmail) { toast('Login dulu dusanak'); return; }
   if(!targetEmail) { toast('Penerima tidak valid!'); return; }
 
   try {

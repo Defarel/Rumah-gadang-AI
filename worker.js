@@ -77,16 +77,48 @@ function injectCanonical(html, canonicalUrl) {
   return html;
 }
 
+// ===== OBAT TOMBOL BAWAH - DIPASANG DI SEMUA HALAMAN, BOS - BIAR KLIK KANTOR HARUS PINDAH =====
+const OBAT_NAV = `<script>(function(){
+document.addEventListener('click', function(e){
+  try{
+    var a = e.target.closest ? e.target.closest('a') : null;
+    if(!a) return;
+    var href = a.getAttribute('href') || '';
+    if(!href) return;
+    var h = href.toLowerCase().split('?')[0];
+    var NAV = ['/','/foto','/video','/kantor','/luar','/dalam','/ai','/akun'];
+    if(NAV.indexOf(h) !== -1){
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      var dest = href + (href.includes('?') ? '&' : '?') + 'v=' + Date.now();
+      window.location.href = dest;
+      return false;
+    }
+  }catch(err){}
+}, true);
+document.addEventListener('touchstart', function(e){
+  try{
+    var a = e.target.closest ? e.target.closest('a') : null;
+    if(!a) return;
+    var href = a.getAttribute('href') || '';
+    if(!href) return;
+    var h = href.toLowerCase().split('?')[0];
+    if(['/kantor','/luar','/dalam'].indexOf(h) !== -1){
+      e.stopPropagation();
+    }
+  }catch(err){}
+}, true);
+})();<\/script>`;
+
 function htmlResponse(html, canonical) {
   let fixed = injectCanonical(html, canonical);
+  // Pasang obat tombol dulu di semua halaman
+  if (fixed.includes('</body>')) fixed = fixed.replace('</body>', OBAT_NAV + '</body>'); else fixed += OBAT_NAV;
   let isKantor = (canonical || "").includes('/kantor') || (canonical || "").includes('/luar') || (canonical || "").includes('/dalam');
-  // ===== OBAT KANTOR: CUMA PAKSA HILANGIN LOADING - TANPA ERUDA / CONSOLE LAGI, BOS =====
   if (isKantor) {
-    const OBAT_KANTOR = `<script>setTimeout(function(){try{var l=document.getElementById('loading');if(l){l.style.display='none';}var g=document.getElementById('gpsText');if(g){g.innerText='Siap Bos! Area Luar Siap!';}}catch(e){}},7000);<\/script>`;
+    const OBAT_KANTOR = `<script>(function(){var start=Date.now();setInterval(function(){try{if(Date.now()-start>7000){var l=document.getElementById('loading');if(l){l.style.display='none';}var g=document.getElementById('gpsText');if(g && g.innerText.includes('Init')){g.innerText='Siap Bos! Kantor Siap (Mode Cepat)';}}if(window.eruda){try{window.eruda.destroy();}catch(e){}var els=document.querySelectorAll('[class*=eruda]');for(var i=0;i<els.length;i++){els[i].remove();}} }catch(e){}},1000);})();<\/script>`;
     if (fixed.includes('</body>')) fixed = fixed.replace('</body>', OBAT_KANTOR + '</body>'); else fixed += OBAT_KANTOR;
-    return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate" } });
+    return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0", "Pragma": "no-cache", "Expires": "0" } });
   }
-  // ===== OBAT HOME =====
   const OBAT = `<script>(function(){
 var DARURAT_HTML='<div style="padding:14px;border-bottom:1px solid #222;text-align:left"><div style="color:#22ff88;font-weight:700;font-size:13px">lintas@rumahgadang.ai</div><div style="color:#fff;font-size:14px;line-height:1.5;margin-top:6px">Pemko Padang bersama BPTD Sumbar resmi meresmikan Terminal Anak Air guna mengoptimalkan fungsi terminal, menertibkan terminal bayangan, serta memperketat pengawasan transportasi publik.</div></div>';
 function gantiKosong(){
@@ -110,7 +142,7 @@ window.fetch=function(u,o){
 };
 })();<\/script>`;
   if (fixed.includes('</body>')) fixed = fixed.replace('</body>', OBAT + '</body>'); else fixed += OBAT;
-  return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate" } });
+  return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0", "Pragma": "no-cache", "Expires": "0" } });
 }
 
 export default {

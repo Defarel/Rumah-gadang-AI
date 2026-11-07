@@ -366,3 +366,5 @@ animate();
 </script>
 </body>
 </html>`;
+
+export default KANTOR_LUAR_HTML;

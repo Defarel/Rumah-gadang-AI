@@ -103,11 +103,15 @@ export const AI_API = {
   }
 };
 
-// ===== HELPERS & TEMPLATES - DIPERBAIKI BOS, BIAR KANTOR GAK JADI HOME LAGI =====
+// ===== HELPERS & TEMPLATES - FIX KANTOR =====
 function pick(mod, ...keys) {
   if (!mod) return null;
   for (let k of keys) {
     if (mod[k] && typeof mod[k] === 'string' && mod[k].length > 100) return mod[k];
+  }
+  // Fallback: cari string panjang pertama yang isinya HTML
+  for (let v of Object.values(mod)) {
+    if (typeof v === 'string' && v.length > 100 && v.includes('<html')) return v;
   }
   return null;
 }
@@ -119,8 +123,8 @@ function getApi(mod) {
 const HOME_HTML = pick(HOME_M, 'HOME_HTML', 'HOME', 'default') || Object.values(HOME_M)[0];
 const FOTO_HTML = pick(FOTO_M, 'FOTO_HTML', 'FOTO', 'default') || Object.values(FOTO_M)[0];
 const VIDEO_HTML = pick(VIDEO_M, 'VIDEO_HTML', 'VIDEO', 'default') || Object.values(VIDEO_M)[0];
-const LUAR_HTML = pick(LUAR_M, 'LUAR_HTML', 'LUAR', 'KANTOR_HTML', 'KANTOR', 'default') || Object.values(LUAR_M)[0];
-const DALAM_HTML = pick(DALAM_M, 'DALAM_HTML', 'DALAM', 'KANTOR_HTML', 'KANTOR', 'default') || Object.values(DALAM_M)[0];
+const LUAR_HTML = pick(LUAR_M, 'KANTOR_LUAR_HTML', 'LUAR_HTML', 'LUAR', 'KANTOR_HTML', 'KANTOR', 'default') || Object.values(LUAR_M)[0];
+const DALAM_HTML = pick(DALAM_M, 'KANTOR_DALAM_HTML', 'DALAM_HTML', 'DALAM', 'KANTOR_HTML', 'KANTOR', 'default') || Object.values(DALAM_M)[0];
 const KANTOR_HTML = LUAR_HTML;
 const AI_HTML = pick(AI_M, 'AI_HTML', 'AI', 'default') || Object.values(AI_M)[0];
 const AKUN_HTML = pick(AKUN_M, 'AKUN_HTML', 'AKUN', 'default') || Object.values(AKUN_M)[0];
@@ -142,10 +146,10 @@ function injectCanonical(html, canonicalUrl) {
 
 function htmlResponse(html, canonical) {
   const fixed = injectCanonical(html, canonical);
-  return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "public, max-age=300" } });
+  return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate" } });
 }
 
-// ===== MAIN WORKER EXPORT - FULL, KANTOR UDAH BENER BOS! =====
+// ===== MAIN WORKER EXPORT =====
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -162,7 +166,6 @@ export default {
     
     if (req.method === "OPTIONS") return new Response("", { headers: cors });
 
-    // Redirect HTTP ke HTTPS & www ke non-www
     const proto = req.headers.get('x-forwarded-proto') || url.protocol.replace(':', '');
     const host = (req.headers.get('host') || url.hostname).toLowerCase();
     
@@ -178,12 +181,11 @@ export default {
       return Response.redirect("https://rumahgadang-ai.my.id" + path.slice(0, -1), 301);
     }
 
-    // FAVICON - BIAR GAK BOLA DUNIA LAGI
     if (path === "/favicon.ico" || path === "/favicon.png" || path === "/icon.png") {
       return Response.redirect("https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png", 302);
     }
 
-    // KANTOR DIPAKSA DULUAN - BIAR GAK MENTAL KE HOME LAGI BOS!
+    // KANTOR DIPAKSA DULUAN
     if (path === "/kantor" || path === "/kantor/" || path.startsWith("/kantor/")) {
       if (path.startsWith("/kantor/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/kantor/dalam");
       if (path.startsWith("/kantor/luar")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor/luar");
@@ -192,7 +194,6 @@ export default {
     if (path === "/luar") return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/luar");
     if (path === "/dalam") return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/dalam");
 
-    // PING ONLINE (Global Handler Pendukung Status Aktif)
     if (path === "/api/akun/ping" && req.method === "POST") {
       try {
         let body = await req.json().catch(() => ({}));
@@ -207,7 +208,6 @@ export default {
       }
     }
 
-    // SITEMAP.XML - 8 BOS, ADA KANTOR!
     if (path === "/sitemap.xml" || path === "/sitemap/" || path === "/sitemap") {
       const now = new Date().toISOString().split('T')[0];
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -227,7 +227,6 @@ export default {
       });
     }
 
-    // ROBOTS.TXT
     if (path === "/robots.txt" || path === "/robots" || path === "/robots/") {
       const robots = `User-agent: *
 Allow: /
@@ -244,7 +243,6 @@ Host: https://rumahgadang-ai.my.id`;
       return new Response(robots, { status: 200, headers: { "Content-Type": "text/plain;charset=utf-8", "Cache-Control": "public, max-age=3600" } });
     }
 
-    // GLOBAL DELETE HANDLER
     const deletePaths = ["/api/ig-curated/delete", "/api/images/delete", "/api/foto/delete", "/api/delete", "/api/tulis/delete", "/api/home/delete"];
     if (deletePaths.includes(path)) {
       try {
@@ -276,7 +274,6 @@ Host: https://rumahgadang-ai.my.id`;
       }
     }
 
-    // DEBUG ENDPOINTS
     if (path.startsWith("/api/debug")) {
       try {
         if (!env.DB) return new Response(JSON.stringify({ ok: false, error: "DB GAK ADA BOS" }), { headers: cors });
@@ -302,12 +299,10 @@ Host: https://rumahgadang-ai.my.id`;
       }
     }
     
-    // Shortcut Aliases
     if (path === "/f" || path === "/f/") path = "/foto";
     if (path === "/v" || path === "/v/") path = "/video";
     if (path === "/a" || path === "/a/") path = "/ai";
 
-    // API ROUTING
     if (path.startsWith('/api/')) {
       const blockedForGet = ["/api/akun/update", "/api/akun/register", "/api/register", "/api/tulis/delete"];
       if (blockedForGet.some(p => path.startsWith(p)) && req.method === "GET") {
@@ -338,7 +333,6 @@ Host: https://rumahgadang-ai.my.id`;
       return new Response(JSON.stringify({ ok: false, error: "No handler " + path }), { headers: cors, status: 404 });
     }
 
-    // USER PROFILE ROUTING (e.g. /username)
     const segments = path.split("/").filter(Boolean);
     if (segments.length > 0) {
       let username = segments[0];
@@ -350,7 +344,6 @@ Host: https://rumahgadang-ai.my.id`;
       }
     }
 
-    // STATIC / PAGE HTML ROUTING
     if (path === "/" || path === "/home" || path.startsWith("/home/")) return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
     if (path.startsWith("/foto")) return htmlResponse(FOTO_HTML, "https://rumahgadang-ai.my.id/foto");
     if (path.startsWith("/video")) return htmlResponse(VIDEO_HTML, "https://rumahgadang-ai.my.id/video");
@@ -361,7 +354,6 @@ Host: https://rumahgadang-ai.my.id`;
     if (path.startsWith("/kantor/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/kantor/dalam");
     if (path.startsWith("/kantor")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor");
     
-    // Routing untuk halaman Chat
     if (path === "/akun/chat" || path === "/chat") {
       return htmlResponse(CHAT_HTML, "https://rumahgadang-ai.my.id/akun/chat");
     }

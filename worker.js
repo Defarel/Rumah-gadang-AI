@@ -305,7 +305,15 @@ Host: https://rumahgadang-ai.my.id`;
       return new Response(JSON.stringify({ ok: false, error: "No handler " + path }), { headers: cors, status: 404 });
     }
 
-    // USER PROFILE ROUTING (e.g. /username)
+    // ✅ 1. TANGKAP RUTE KANTOR, LUAR, & DALAM PALING UTAMA DI ATAS
+    if (path === "/kantor" || path.startsWith("/kantor/") || path === "/luar" || path.startsWith("/luar/")) {
+      return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor");
+    }
+    if (path === "/dalam" || path.startsWith("/dalam/")) {
+      return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/dalam");
+    }
+
+    // ✅ 2. USER PROFILE ROUTING (e.g. /username)
     const segments = path.split("/").filter(Boolean);
     if (segments.length > 0) {
       let username = segments[0];
@@ -322,11 +330,6 @@ Host: https://rumahgadang-ai.my.id`;
     if (path.startsWith("/foto")) return htmlResponse(FOTO_HTML, "https://rumahgadang-ai.my.id/foto");
     if (path.startsWith("/video")) return htmlResponse(VIDEO_HTML, "https://rumahgadang-ai.my.id/video");
     if (path.startsWith("/ai")) return htmlResponse(AI_HTML, "https://rumahgadang-ai.my.id/ai");
-    if (path.startsWith("/luar")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/luar");
-    if (path.startsWith("/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/dalam");
-    if (path.startsWith("/kantor/luar")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor/luar");
-    if (path.startsWith("/kantor/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/kantor/dalam");
-    if (path.startsWith("/kantor")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor");
     
     // Routing untuk halaman Chat
     if (path === "/akun/chat" || path === "/chat") {

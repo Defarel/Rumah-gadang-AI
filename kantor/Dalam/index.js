@@ -1,5 +1,6 @@
 // ==========================================
 // KANTOR DALAM - INDEX.HTML (3 NPC DUDUK, 2 JALAN-JALAN, UKURAN 0.8)
+// FIX: LAMPU - JANGAN scene.add(.position.set) KARENA ITU VECTOR3, BOS
 // ==========================================
 export const KANTOR_DALAM_HTML = `<!DOCTYPE html>
 <html>
@@ -81,8 +82,10 @@ let camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 1000);
 let renderer = new THREE.WebGLRenderer({antialias:true}); renderer.setSize(innerWidth, innerHeight); document.body.appendChild(renderer.domElement);
 renderer.domElement.style.position='absolute'; renderer.domElement.style.top='0'; renderer.domElement.style.left='0'; renderer.domElement.style.zIndex='1'; renderer.domElement.style.touchAction='none';
 
-// Pencahayaan Terang Terbuka Tanpa Atap
-scene.add(new THREE.DirectionalLight(0xffffff, 1.5).position.set(20, 50, 20));
+// Pencahayaan Terang Terbuka Tanpa Atap - FIX BOS: JANGAN scene.add(.position.set)
+let sun = new THREE.DirectionalLight(0xffffff, 1.5);
+sun.position.set(20, 50, 20);
+scene.add(sun);
 scene.add(new THREE.AmbientLight(0xffffff, 1.0));
 
 let inG = new THREE.Group(); scene.add(inG);
@@ -192,17 +195,12 @@ function spawnRobotNPCs(){
     if (!robotBase) return;
     NPC_IN.forEach(d => {
         let o = robotBase.clone(true); 
-        // Ukuran diatur ke 0.8 sesuai permintaan Bos
         o.scale.set(0.8, 0.8, 0.8); 
-        
-        // Jika status duduk, turunkan posisi Y sedikit agar pas di kursi
         let yPos = d.isSit ? -0.2 : 0;
         o.position.set(d.x, yPos, d.z); 
-        
         if (d.isSit) {
-            o.rotation.y = 0; // Menghadap ke depan meja meeting
+            o.rotation.y = 0;
         }
-        
         inG.add(o); 
         npcs.push({...d, group: o});
     });
@@ -255,7 +253,7 @@ document.getElementById('run').addEventListener('touchend', () => { run = false;
 document.getElementById('jump').addEventListener('click', () => { isSit = !isSit; document.getElementById('gpsText').innerText = isSit ? 'DUDUK / SHOLAT' : 'BERDIRI Bos'; });
 
 window.closeNPC = () => { document.getElementById('npcPanel').style.display = 'none'; activeNPC = null; };
-window.closeSewa = () => { document.getElementById('sewaModal').style.display = 'none'; };
+window.closeSewa = () => { let m = document.getElementById('sewaModal'); if(m) m.style.display = 'none'; };
 
 let activeNPC = null;
 function openNPC(n){
@@ -285,15 +283,12 @@ window.handleInteract = function(){
 
 function animate(){
     requestAnimationFrame(animate); 
-
-    // ✅ Logika Robot NPC: 3 Duduk diam, 2 Jalan-Jalan (Patroli)
     npcs.forEach(n => {
         if (!n.group) return;
         if (!n.isSit) {
             let dx = n.targetX - n.group.position.x;
             let dz = n.targetZ - n.group.position.z;
             let dist = Math.hypot(dx, dz);
-            
             if (dist > 1.0) {
                 n.group.position.x += (dx / dist) * n.speed;
                 n.group.position.z += (dz / dist) * n.speed;
@@ -306,12 +301,10 @@ function animate(){
             }
         }
     });
-
     if (!player){ renderer.render(scene, camera); return; }
     let moving = Math.hypot(keys.x, keys.y) > 0.15 && !isSit;
     if (moving){ walkTime += run ? 0.35 : 0.22; player.position.y = baseY + Math.abs(Math.sin(walkTime * 2)) * 0.18; player.rotation.z = Math.sin(walkTime) * 0.12; player.rotation.x = Math.sin(walkTime * 1.5) * 0.08; }
     else { player.position.y = THREE.MathUtils.lerp(player.position.y, baseY, 0.2); player.rotation.z = THREE.MathUtils.lerp(player.rotation.z, 0, 0.2); player.rotation.x = THREE.MathUtils.lerp(player.rotation.x, 0, 0.2); }
-    
     if (!isSit && player){
         let rad = camYaw * 0.01745, fw = keys.y, stt = keys.x, cs = run ? rspd : spd;
         let mx = (Math.sin(rad) * fw + Math.cos(rad) * stt) * cs, mz = (Math.cos(rad) * fw - Math.sin(rad) * stt) * cs;
@@ -330,7 +323,6 @@ function animate(){
         let isSholatArea = player.position.x < -15;
         let areaName = isSholatArea ? "🕌 Ruang Sholat" : "💻 Ruang Kerja / Workspace";
         document.getElementById('gpsText').innerText = areaName + ' Bos';
-
         npcs.forEach(n => { let dd = Math.hypot(player.position.x - n.group.position.x, player.position.z - n.group.position.z); if (dd < mn && dd < 6){ mn = dd; nearNPC = n; } });
         let de = Math.hypot(player.position.x, player.position.z - 25);
         if (de < 6) nearD = true;

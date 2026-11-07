@@ -141,7 +141,7 @@ function htmlResponse(html, canonical) {
   return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "public, max-age=300" } });
 }
 
-// ===== MAIN WORKER EXPORT =====
+// ===== MAIN WORKER EXPORT - KANTOR BALIK, ASLI BOS! =====
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -174,13 +174,17 @@ export default {
       return Response.redirect("https://rumahgadang-ai.my.id" + path.slice(0, -1), 301);
     }
 
+    // FAVICON - CUMA INI DOANG TAMBAHANNYA BOS, BIAR GAK BOLA DUNIA
+    if (path === "/favicon.ico" || path === "/favicon.png" || path === "/icon.png") {
+      return Response.redirect("https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png", 302);
+    }
+
     // PING ONLINE (Global Handler Pendukung Status Aktif)
     if (path === "/api/akun/ping" && req.method === "POST") {
       try {
         let body = await req.json().catch(() => ({}));
         let email = (body.email || "").toLowerCase().trim();
         if (email && env.DB) {
-          // Otomatis buat tabel users dengan last_seen jika belum ada
           await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER, last_seen INTEGER)`).run();
           await env.DB.prepare("UPDATE users SET last_seen = ? WHERE LOWER(email) = ?").bind(Date.now(), email).run();
         }
@@ -190,7 +194,7 @@ export default {
       }
     }
 
-    // SITEMAP.XML
+    // SITEMAP.XML - 8 LAGI BOS, KANTOR ADA!
     if (path === "/sitemap.xml" || path === "/sitemap/" || path === "/sitemap") {
       const now = new Date().toISOString().split('T')[0];
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -333,7 +337,7 @@ Host: https://rumahgadang-ai.my.id`;
       }
     }
 
-    // STATIC / PAGE HTML ROUTING
+    // STATIC / PAGE HTML ROUTING - KANTOR ADA SEMUA BOS!
     if (path === "/" || path === "/home" || path.startsWith("/home/")) return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
     if (path.startsWith("/foto")) return htmlResponse(FOTO_HTML, "https://rumahgadang-ai.my.id/foto");
     if (path.startsWith("/video")) return htmlResponse(VIDEO_HTML, "https://rumahgadang-ai.my.id/video");

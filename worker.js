@@ -1,6 +1,8 @@
 import * as HOME_M from './home/index.js';
 import * as FOTO_M from './foto/index.js';
 import * as VIDEO_M from './video/index.js';
+import * as LUAR_M from './kantor/Luar/index.js';
+import * as DALAM_M from './kantor/Dalam/index.js';
 import * as AI_M from './ai/index.js';
 import * as AKUN_M from './akun/index.js';
 import * as CHAT_M from './akun/Chat/index.js';
@@ -101,9 +103,9 @@ export const AI_API = {
   }
 };
 
-// ===== HELPERS & TEMPLATES - CUMA 5 BOS =====
+// ===== HELPERS & TEMPLATES =====
 function getHtml(mod) { 
-  return mod.default || mod.HOME_HTML || mod.HOME || mod.FOTO_HTML || mod.FOTO || mod.VIDEO_HTML || mod.VIDEO || mod.AI_HTML || mod.AI || mod.AKUN_HTML || mod.AKUN || mod.CHAT_HTML || mod.CHAT || Object.values(mod)[0]; 
+  return mod.default || mod.HOME_HTML || mod.HOME || mod.FOTO_HTML || mod.FOTO || mod.VIDEO_HTML || mod.VIDEO || mod.AI_HTML || mod.AI || mod.KANTOR_HTML || mod.KANTOR || mod.LUAR_HTML || mod.LUAR || mod.DALAM_HTML || mod.DALAM || mod.AKUN_HTML || mod.AKUN || mod.CHAT_HTML || mod.CHAT || Object.values(mod)[0]; 
 }
 
 function getApi(mod) { 
@@ -113,6 +115,9 @@ function getApi(mod) {
 const HOME_HTML = getHtml(HOME_M);
 const FOTO_HTML = getHtml(FOTO_M);
 const VIDEO_HTML = getHtml(VIDEO_M);
+const LUAR_HTML = getHtml(LUAR_M);
+const DALAM_HTML = getHtml(DALAM_M);
+const KANTOR_HTML = LUAR_HTML;
 const AI_HTML = getHtml(AI_M);
 const AKUN_HTML = getHtml(AKUN_M);
 const CHAT_HTML = getHtml(CHAT_M);
@@ -136,7 +141,7 @@ function htmlResponse(html, canonical) {
   return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "public, max-age=300" } });
 }
 
-// ===== MAIN WORKER EXPORT - CUMA 5 HALAMAN =====
+// ===== MAIN WORKER EXPORT - KANTOR HIDUP, SITEMAP CUMA 5 BUAT CONSOLE BOS! =====
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -165,13 +170,13 @@ export default {
       return Response.redirect("https://rumahgadang-ai.my.id/", 301);
     }
     
-    // Redirect halaman lama yang udah dibuang -> ke home biar gak 404
-    if (["/kantor", "/kantor/", "/luar", "/luar/", "/dalam", "/dalam/", "/kantor/luar", "/kantor/dalam"].includes(path)) {
-      return Response.redirect("https://rumahgadang-ai.my.id/", 301);
-    }
-    
-    if (["/foto/", "/video/", "/ai/", "/akun/", "/akun/chat/"].includes(path)) {
+    if (["/foto/", "/video/", "/kantor/", "/ai/", "/akun/", "/luar/", "/dalam/", "/akun/chat/"].includes(path)) {
       return Response.redirect("https://rumahgadang-ai.my.id" + path.slice(0, -1), 301);
+    }
+
+    // FAVICON - BIAR GAK BOLA DUNIA LAGI, BOS!
+    if (path === "/favicon.ico" || path === "/favicon.png" || path === "/icon.png") {
+      return Response.redirect("https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png", 302);
     }
 
     // PING ONLINE (Global Handler Pendukung Status Aktif)
@@ -189,7 +194,7 @@ export default {
       }
     }
 
-    // SITEMAP.XML - CUMA 5 BOS!
+    // SITEMAP.XML - CUMA 5 BUAT CONSOLE, BOS! KANTOR GAK MASUK SITEMAP TAPI TETEP HIDUP!
     if (path === "/sitemap.xml" || path === "/sitemap/" || path === "/sitemap") {
       const now = new Date().toISOString().split('T')[0];
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -206,7 +211,7 @@ export default {
       });
     }
 
-    // ROBOTS.TXT - CUMA 5 BOS!
+    // ROBOTS.TXT - KANTOR TETEP BOLEH DI-CRAWL, CUMA GAK MASUK SITEMAP
     if (path === "/robots.txt" || path === "/robots" || path === "/robots/") {
       const robots = `User-agent: *
 Allow: /
@@ -214,10 +219,10 @@ Allow: /foto
 Allow: /video
 Allow: /ai
 Allow: /akun
+Allow: /kantor
+Allow: /luar
+Allow: /dalam
 
-Disallow: /kantor
-Disallow: /luar
-Disallow: /dalam
 Disallow: /api/akun/update
 Disallow: /api/akun/register
 Disallow: /api/register
@@ -324,11 +329,11 @@ Host: https://rumahgadang-ai.my.id`;
       return new Response(JSON.stringify({ ok: false, error: "No handler " + path }), { headers: cors, status: 404 });
     }
 
-    // USER PROFILE ROUTING (e.g. /username) - tetep ke /akun
+    // USER PROFILE ROUTING (e.g. /username)
     const segments = path.split("/").filter(Boolean);
     if (segments.length > 0) {
       let username = segments[0];
-      const reserved = ["home", "foto", "video", "ai", "akun", "api", "sitemap", "robots", "profil", "profile", "icon.png", "favicon.ico"];
+      const reserved = ["home", "foto", "video", "ai", "kantor", "luar", "dalam", "akun", "api", "sitemap", "robots", "profil", "profile", "icon.png", "favicon.ico"];
       if (!reserved.includes(username) && !username.includes(".") && username.length >= 2) {
         let targetEmail = username.includes('@') ? username : username + '@rumahgadang-ai.my.id';
         let modifiedAkunHtml = AKUN_HTML.replace('window.location.search', `"?profil=${encodeURIComponent(targetEmail)}"`);
@@ -336,13 +341,18 @@ Host: https://rumahgadang-ai.my.id`;
       }
     }
 
-    // STATIC / PAGE HTML ROUTING - CUMA 5 BOS!
+    // STATIC / PAGE HTML ROUTING - KANTOR TETEP HIDUP BOS!
     if (path === "/" || path === "/home" || path.startsWith("/home/")) return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
     if (path.startsWith("/foto")) return htmlResponse(FOTO_HTML, "https://rumahgadang-ai.my.id/foto");
     if (path.startsWith("/video")) return htmlResponse(VIDEO_HTML, "https://rumahgadang-ai.my.id/video");
     if (path.startsWith("/ai")) return htmlResponse(AI_HTML, "https://rumahgadang-ai.my.id/ai");
+    if (path.startsWith("/luar")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/luar");
+    if (path.startsWith("/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/dalam");
+    if (path.startsWith("/kantor/luar")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor/luar");
+    if (path.startsWith("/kantor/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/kantor/dalam");
+    if (path.startsWith("/kantor")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor");
     
-    // Routing untuk halaman Chat - masih bagian dari /akun
+    // Routing untuk halaman Chat
     if (path === "/akun/chat" || path === "/chat") {
       return htmlResponse(CHAT_HTML, "https://rumahgadang-ai.my.id/akun/chat");
     }

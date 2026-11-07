@@ -103,24 +103,28 @@ export const AI_API = {
   }
 };
 
-// ===== HELPERS & TEMPLATES =====
-function getHtml(mod) { 
-  return mod.default || mod.HOME_HTML || mod.HOME || mod.FOTO_HTML || mod.FOTO || mod.VIDEO_HTML || mod.VIDEO || mod.AI_HTML || mod.AI || mod.KANTOR_HTML || mod.KANTOR || mod.LUAR_HTML || mod.LUAR || mod.DALAM_HTML || mod.DALAM || mod.AKUN_HTML || mod.AKUN || mod.CHAT_HTML || mod.CHAT || Object.values(mod)[0]; 
+// ===== HELPERS & TEMPLATES - DIPERBAIKI BOS, BIAR KANTOR GAK JADI HOME LAGI =====
+function pick(mod, ...keys) {
+  if (!mod) return null;
+  for (let k of keys) {
+    if (mod[k] && typeof mod[k] === 'string' && mod[k].length > 100) return mod[k];
+  }
+  return null;
 }
 
 function getApi(mod) { 
   return mod.FOTO_API || mod.VIDEO_API || mod.AKUN_API || mod.AI_API || mod.TULIS_API || mod.SITEMAP_API || mod.default || mod; 
 }
 
-const HOME_HTML = getHtml(HOME_M);
-const FOTO_HTML = getHtml(FOTO_M);
-const VIDEO_HTML = getHtml(VIDEO_M);
-const LUAR_HTML = getHtml(LUAR_M);
-const DALAM_HTML = getHtml(DALAM_M);
+const HOME_HTML = pick(HOME_M, 'HOME_HTML', 'HOME', 'default') || Object.values(HOME_M)[0];
+const FOTO_HTML = pick(FOTO_M, 'FOTO_HTML', 'FOTO', 'default') || Object.values(FOTO_M)[0];
+const VIDEO_HTML = pick(VIDEO_M, 'VIDEO_HTML', 'VIDEO', 'default') || Object.values(VIDEO_M)[0];
+const LUAR_HTML = pick(LUAR_M, 'LUAR_HTML', 'LUAR', 'KANTOR_HTML', 'KANTOR', 'default') || Object.values(LUAR_M)[0];
+const DALAM_HTML = pick(DALAM_M, 'DALAM_HTML', 'DALAM', 'KANTOR_HTML', 'KANTOR', 'default') || Object.values(DALAM_M)[0];
 const KANTOR_HTML = LUAR_HTML;
-const AI_HTML = getHtml(AI_M);
-const AKUN_HTML = getHtml(AKUN_M);
-const CHAT_HTML = getHtml(CHAT_M);
+const AI_HTML = pick(AI_M, 'AI_HTML', 'AI', 'default') || Object.values(AI_M)[0];
+const AKUN_HTML = pick(AKUN_M, 'AKUN_HTML', 'AKUN', 'default') || Object.values(AKUN_M)[0];
+const CHAT_HTML = pick(CHAT_M, 'CHAT_HTML', 'CHAT', 'default') || Object.values(CHAT_M)[0];
 
 function injectCanonical(html, canonicalUrl) {
   if (!html || typeof html !== 'string') return html;
@@ -141,7 +145,7 @@ function htmlResponse(html, canonical) {
   return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "public, max-age=300" } });
 }
 
-// ===== MAIN WORKER EXPORT - KANTOR BALIK, ASLI BOS! =====
+// ===== MAIN WORKER EXPORT - FULL, KANTOR UDAH BENER BOS! =====
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -174,10 +178,19 @@ export default {
       return Response.redirect("https://rumahgadang-ai.my.id" + path.slice(0, -1), 301);
     }
 
-    // FAVICON - CUMA INI DOANG TAMBAHANNYA BOS, BIAR GAK BOLA DUNIA
+    // FAVICON - BIAR GAK BOLA DUNIA LAGI
     if (path === "/favicon.ico" || path === "/favicon.png" || path === "/icon.png") {
       return Response.redirect("https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png", 302);
     }
+
+    // KANTOR DIPAKSA DULUAN - BIAR GAK MENTAL KE HOME LAGI BOS!
+    if (path === "/kantor" || path === "/kantor/" || path.startsWith("/kantor/")) {
+      if (path.startsWith("/kantor/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/kantor/dalam");
+      if (path.startsWith("/kantor/luar")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor/luar");
+      return htmlResponse(KANTOR_HTML, "https://rumahgadang-ai.my.id/kantor");
+    }
+    if (path === "/luar") return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/luar");
+    if (path === "/dalam") return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/dalam");
 
     // PING ONLINE (Global Handler Pendukung Status Aktif)
     if (path === "/api/akun/ping" && req.method === "POST") {
@@ -194,7 +207,7 @@ export default {
       }
     }
 
-    // SITEMAP.XML - 8 LAGI BOS, KANTOR ADA!
+    // SITEMAP.XML - 8 BOS, ADA KANTOR!
     if (path === "/sitemap.xml" || path === "/sitemap/" || path === "/sitemap") {
       const now = new Date().toISOString().split('T')[0];
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -337,7 +350,7 @@ Host: https://rumahgadang-ai.my.id`;
       }
     }
 
-    // STATIC / PAGE HTML ROUTING - KANTOR ADA SEMUA BOS!
+    // STATIC / PAGE HTML ROUTING
     if (path === "/" || path === "/home" || path.startsWith("/home/")) return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
     if (path.startsWith("/foto")) return htmlResponse(FOTO_HTML, "https://rumahgadang-ai.my.id/foto");
     if (path.startsWith("/video")) return htmlResponse(VIDEO_HTML, "https://rumahgadang-ai.my.id/video");

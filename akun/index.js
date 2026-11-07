@@ -122,6 +122,8 @@ const LOGO_VIDEO = "https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@9fa479e6
 
 let activeMainTab="teman"; 
 let currentActivePhotoKey = null;
+let _userCache = null;
+let _userCacheTime = 0;
 const urlParams = new URLSearchParams(window.location.search);
 let viewingUserEmail = urlParams.get('profil') ? decodeURIComponent(urlParams.get('profil')).toLowerCase().trim() : null;
 
@@ -153,7 +155,25 @@ function logout(){ if(confirm("Keluar?")){localStorage.clear();viewingUserEmail=
 function viewUser(e){ viewingUserEmail=e.toLowerCase().trim(); activeMainTab='tulis'; history.pushState(null,'','/akun?profil='+encodeURIComponent(e)); render(); }
 function switchTab(t){ activeMainTab=t; const me=viewingUserEmail||getMyEmail(); loadContent(me, me===getMyEmail()); document.querySelectorAll('.m-tab').forEach(b=>{ b.classList.toggle('active', b.innerText.toLowerCase()===t); }); }
 
-// Ping online otomatis setiap 5 detik
+// Helper fetch cepet + cache user list biar gak fetch berkali-kali
+async function fetchJSON(url){
+  try{
+    let r = await fetch(url);
+    let text = await r.text();
+    if(text.startsWith('<')) return null;
+    return JSON.parse(text);
+  }catch(e){ return null; }
+}
+async function getUserList(){
+  // Cache 30 detik, biar buka komen / teman gak fetch list terus
+  if(_userCache && Date.now() - _userCacheTime < 30000) return _userCache;
+  let u = await fetchJSON('/api/akun/list?t='+Date.now());
+  _userCache = Array.isArray(u) ? u : [];
+  _userCacheTime = Date.now();
+  return _userCache;
+}
+
+// Ping online otomatis - DIPERLAMBAT dari 5 detik jadi 30 detik biar hemat baterai + D1 gak jebol
 async function sendMyPresence(){
   let my = getMyEmail();
   if(!my) return;
@@ -166,7 +186,7 @@ async function sendMyPresence(){
   } catch(e){}
 }
 sendMyPresence();
-setInterval(sendMyPresence, 5000);
+setInterval(sendMyPresence, 30000);
 
 function openChat(email){
   if(!email){ toast('Email tujuan tidak ada'); return; }
@@ -236,30 +256,24 @@ async function doLogin(){
 async function renderProfile(container,targetEmail,isMe){
   container.innerHTML='<div style="text-align:center;padding:40px;color:#666">Memuat...</div>';
   let data={name:isMe?getMyName():targetEmail.split('@')[0],picture:isMe?getMyAvatar():LOGO_INNER,posts:0,followers:0,following:0,isFollowing:false};
-  try{ let r=await fetch('/api/akun/profile?email='+encodeURIComponent(targetEmail)+'&me='+encodeURIComponent(getMyEmail())); if(r.ok){ let d=await r.json(); data={...data,...d}; } }catch{}
-  
+  let photos=[];
   let unreadCount = 0;
-  if(!isMe && getMyEmail()){
-    try {
-      let rMsg = await fetch('/api/chat/get?user1=' + encodeURIComponent(getMyEmail()) + '&user2=' + encodeURIComponent(targetEmail));
-      let jMsg = await rMsg.json();
-      if(jMsg.ok && Array.isArray(jMsg.messages)){
-        let lastMsg = jMsg.messages[jMsg.messages.length - 1];
-        let isRead = localStorage.getItem('rg_read_' + getMyEmail() + '_' + targetEmail) === 'true';
-        if(!isRead && lastMsg && lastMsg.sender.toLowerCase() === targetEmail.toLowerCase()){
-          unreadCount = 1;
-        }
-      }
-    } catch(e){}
-  }
 
-  let photos=[]; 
-  try{ 
-    let rp=await fetch('/api/akun/photos?email='+encodeURIComponent(targetEmail)); 
-    let text = await rp.text();
-    let json = text.startsWith('<') ? [] : JSON.parse(text);
-    photos = Array.isArray(json) ? json : (json.results || json.data || []);
-
+  // BARU: 3 fetch jalan BARENGAN pake Promise.all, bukan satu-satu
+  try{
+    const [profilRes, photosRes, chatRes] = await Promise.all([
+      fetch('/api/akun/profile?email='+encodeURIComponent(targetEmail)+'&me='+encodeURIComponent(getMyEmail())).then(r=>r.json()).catch(()=>null),
+      fetch('/api/akun/photos?email='+encodeURIComponent(targetEmail)).then(r=>r.text()).then(t=> t.startsWith('<')?[]:JSON.parse(t)).catch(()=>[]),
+      (!isMe && getMyEmail() ? fetch('/api/chat/get?user1=' + encodeURIComponent(getMyEmail()) + '&user2=' + encodeURIComponent(targetEmail)).then(r=>r.json()).catch(()=>null) : Promise.resolve(null))
+    ]);
+    if(profilRes) data={...data,...profilRes};
+    photos = Array.isArray(photosRes) ? photosRes : (photosRes.results || photosRes.data || []);
+    if(chatRes && chatRes.ok && Array.isArray(chatRes.messages)){
+      let lastMsg = chatRes.messages[chatRes.messages.length - 1];
+      let isRead = localStorage.getItem('rg_read_' + getMyEmail() + '_' + targetEmail) === 'true';
+      if(!isRead && lastMsg && lastMsg.sender.toLowerCase() === targetEmail.toLowerCase()) unreadCount = 1;
+    }
+    // Migrasi reverse foto - TETEP ADA kayak punya lu
     let migrateKey = 'rg_migrated_reverse_'+targetEmail;
     let alreadyMigrated = localStorage.getItem(migrateKey);
     if(photos.length > 1 && !alreadyMigrated){
@@ -269,7 +283,7 @@ async function renderProfile(container,targetEmail,isMe){
         fetch('/api/akun/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:targetEmail,photos:photos})}).catch(()=>{});
       }
     }
-  }catch{}
+  }catch(e){}
   
   let actionButtonsHtml = '';
   if(isMe) {
@@ -315,33 +329,50 @@ async function loadContent(targetEmail,isMe){
   if(activeMainTab==='teman'){
     box.innerHTML='<div style="text-align:center;color:#555;padding:20px">Memuat teman...</div>';
     try{
-      let r=await fetch('/api/akun/list?t='+Date.now());
-      let text = await r.text();
-      let u = text.startsWith('<') ? [] : JSON.parse(text);
-      let list = Array.isArray(u) ? u.filter(x=>x.email.toLowerCase()!==getMyEmail().toLowerCase()) : [];
-      if(!list.length){ box.innerHTML='<div style="text-align:center;color:#555">Belum ada teman</div>'; return; }
-      
+      // 1. Ambil list + unread sekaligus, barengan
       let myEmail = getMyEmail();
-      let friendsHtml = '';
+      const [u, unreadRes] = await Promise.all([
+        getUserList(),
+        myEmail ? fetchJSON('/api/chat/unread-all?me=' + encodeURIComponent(myEmail)) : Promise.resolve(null)
+      ]);
+      let list = Array.isArray(u) ? u.filter(x=>x.email.toLowerCase()!==myEmail.toLowerCase()) : [];
+      if(!list.length){ box.innerHTML='<div style="text-align:center;color:#555">Belum ada teman</div>'; return; }
 
-      for(let x of list){
-        let unread = 0;
-        if(myEmail){
-          try {
-            let rMsg = await fetch('/api/chat/get?user1=' + encodeURIComponent(myEmail) + '&user2=' + encodeURIComponent(x.email));
-            let jMsg = await rMsg.json();
-            if(jMsg.ok && Array.isArray(jMsg.messages)){
-              let lastMsg = jMsg.messages[jMsg.messages.length - 1];
+      // 2. Siapin set unread dari 1x fetch unread-all + cek rg_read_ lokal
+      // Kalau backend baru belum ke-deploy, fallback ke cara lama tapi pake Promise.all (tetep cepet)
+      let unreadSet = new Set();
+      if(unreadRes && Array.isArray(unreadRes.unread)){
+        unreadRes.unread.forEach(e => {
+          let em = (e||"").toLowerCase();
+          let isRead = localStorage.getItem('rg_read_' + myEmail + '_' + em) === 'true';
+          // Kita tandain dulu semua yang pernah chat, nanti di bawah kita cek detailnya cuma buat yang belum dibaca
+          // Biar gak 100x fetch, kita anggap unread kalau belum pernah dibaca DAN ada di list unread-all
+          // Catatan: kalau mau 100% akurat, backend unread-all di AKUN_API baru udah balikin yang bener
+          if(!isRead) unreadSet.add(em);
+        });
+        // Kalau backend lama (belum ada unread-all), unreadRes.unread bakal kosong, kita fallback di bawah
+        if(unreadRes.unread.length === 0 && myEmail){
+          // Fallback: cek 20 teman pertama aja pake Promise.all, bukan for-await
+          const checks = await Promise.all(list.slice(0,20).map(async (x) => {
+            try{
               let isRead = localStorage.getItem('rg_read_' + myEmail + '_' + x.email.toLowerCase()) === 'true';
-              if(!isRead && lastMsg && lastMsg.sender.toLowerCase() === x.email.toLowerCase()){
-                unread = 1;
+              if(isRead) return null;
+              let jMsg = await fetchJSON('/api/chat/get?user1=' + encodeURIComponent(myEmail) + '&user2=' + encodeURIComponent(x.email));
+              if(jMsg && jMsg.ok && Array.isArray(jMsg.messages) && jMsg.messages.length){
+                let lastMsg = jMsg.messages[jMsg.messages.length - 1];
+                if(lastMsg.sender.toLowerCase() === x.email.toLowerCase()) return x.email.toLowerCase();
               }
-            }
-          } catch(e){}
+            }catch(e){}
+            return null;
+          }));
+          checks.forEach(e => { if(e) unreadSet.add(e); });
         }
-        let badgeHtml = unread > 0 ? '<div class="badge-notif">' + unread + '</div>' : '';
+      }
 
-        friendsHtml += \`
+      // 3. LANGSUNG RENDER SEMUA TEMAN, gak nungguin chat satu-satu lagi
+      box.innerHTML = list.map(x => {
+        let badgeHtml = unreadSet.has(x.email.toLowerCase()) ? '<div class="badge-notif">1</div>' : '';
+        return \`
           <div class="user-fb">
             <img src="\${x.picture||LOGO_INNER}" class="user-fb-av" onerror="this.src=LOGO_INNER">
             <div style="flex:1;min-width:0">
@@ -356,8 +387,7 @@ async function loadContent(targetEmail,isMe){
               </div>
             </div>
           </div>\`;
-      }
-      box.innerHTML = friendsHtml;
+      }).join('');
     }catch(e){ box.innerHTML='<div style="text-align:center;color:#f66">Gagal load</div>'; }
   } else if(activeMainTab==='foto'){
     let photos=window._photosCache||[];
@@ -382,35 +412,20 @@ async function loadContent(targetEmail,isMe){
 async function openPhotoModal(startIndex){
   let photos = window._photosCache || [];
   let authorName = '@' + (window._currentProfileEmail ? window._currentProfileEmail.split('@')[0] : 'user');
-  let feedHTML = '';
   let me = getMyEmail();
 
-  for (let index = 0; index < photos.length; index++) {
-    let pUrl = photos[index];
+  // BARU: Ambil komen + like semua foto BARENGAN pake Promise.all, bukan for-await satu-satu
+  let feedData = await Promise.all(photos.map(async (pUrl, index) => {
     let key = (window._currentProfileEmail || 'unknown') + '_' + index;
-    
-    let comments = [];
-    let likesCount = 0;
-    let likedByMe = false;
-    
-    try {
-      let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key) + '&me=' + encodeURIComponent(me));
-      let text = await res.text();
-      let json = text.startsWith('<') ? [] : JSON.parse(text);
-      comments = Array.isArray(json) ? json : (json.results || []);
-    } catch(e){ comments = []; }
+    const [commentsRes, likeRes] = await Promise.all([
+      fetchJSON('/api/photo/comment?photo_key=' + encodeURIComponent(key) + '&me=' + encodeURIComponent(me)),
+      fetchJSON('/api/photo/like?photo_key=' + encodeURIComponent(key) + '&user_email=' + encodeURIComponent(me || ''))
+    ]);
+    let comments = Array.isArray(commentsRes) ? commentsRes : (commentsRes?.results || []);
+    return { pUrl, index, key, comments, likesCount: likeRes?.likes || 0, likedByMe: likeRes?.likedByMe || false };
+  }));
 
-    try {
-      let rLike = await fetch('/api/photo/like?photo_key=' + encodeURIComponent(key) + '&user_email=' + encodeURIComponent(me || ''));
-      let text = await rLike.text();
-      let jLike = text.startsWith('<') ? {} : JSON.parse(text);
-      if(jLike && jLike.ok){
-        likesCount = jLike.likes || 0;
-        likedByMe = jLike.likedByMe || false;
-      }
-    } catch(e){}
-    
-    feedHTML += \`
+  let feedHTML = feedData.map(({pUrl, index, key, comments, likesCount, likedByMe}) => \`
       <div class="postCard" id="postCard-\${index}">
         <div class="postHeader">
           <span style="font-weight:900;color:#00ff88">\${authorName}</span>
@@ -421,8 +436,7 @@ async function openPhotoModal(startIndex){
           <span id="likeBtn-\${index}" onclick="toggleLikeIndex(\${index})" style="cursor:pointer;color:\${likedByMe?'#ff4444':'#fff'}">❤️ <span id="likeCount-\${index}" style="font-size:14px">\${likesCount}</span></span>
           <span onclick="openCommentSheet('\${key}', \${index})" style="cursor:pointer;font-size:14px">💬 <span id="commentCount-\${index}">\${comments.length}</span> Komentar</span>
         </div>
-      </div>\`;
-  }
+      </div>\`).join('');
 
   document.getElementById('modalFeedContainer').innerHTML = feedHTML;
   document.getElementById('photoModal').style.display = 'block';
@@ -453,10 +467,12 @@ async function loadSheetComments(key){
   let isMyProfile = window._isMyProfile;
 
   try {
-    let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key) + '&me=' + encodeURIComponent(myEmail));
-    let text = await res.text();
-    let json = text.startsWith('<') ? [] : JSON.parse(text);
-    let comments = Array.isArray(json) ? json : (json.results || []);
+    // BARU: komen + list user jalan barengan, list user pake cache
+    const [commentsRes, allUsers] = await Promise.all([
+      fetchJSON('/api/photo/comment?photo_key=' + encodeURIComponent(key) + '&me=' + encodeURIComponent(myEmail)),
+      getUserList()
+    ]);
+    let comments = Array.isArray(commentsRes) ? commentsRes : (commentsRes?.results || []);
     
     document.getElementById('commentSheetTitle').innerText = \`Komentar (\${comments.length})\`;
     
@@ -465,9 +481,6 @@ async function loadSheetComments(key){
       return;
     }
     
-    let rUsers = await fetch('/api/akun/list?t=' + Date.now()).catch(()=>({json:()=>[]}));
-    let rText = await rUsers.text();
-    let allUsers = rText.startsWith('<') ? [] : JSON.parse(rText);
     let userAvatarMap = {};
     if(Array.isArray(allUsers)){
       allUsers.forEach(u => {
@@ -518,10 +531,8 @@ async function deleteComment(commentId, key, index){
     let j = await r.json();
     if(j.ok){
       loadSheetComments(key);
-      let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
-      let text = await res.text();
-      let json = text.startsWith('<') ? [] : JSON.parse(text);
-      let count = Array.isArray(json) ? json.length : (json.results?.length || 0);
+      let json = await fetchJSON('/api/photo/comment?photo_key=' + encodeURIComponent(key));
+      let count = Array.isArray(json) ? json.length : (json?.results?.length || 0);
       let counterEl = document.getElementById('commentCount-' + index);
       if(counterEl) counterEl.innerText = count;
       toast('Komentar dihapus Bos!');
@@ -564,10 +575,8 @@ async function submitSheetComment(){
     inp.value = '';
     loadSheetComments(key);
     
-    let res = await fetch('/api/photo/comment?photo_key=' + encodeURIComponent(key));
-    let text = await res.text();
-    let json = text.startsWith('<') ? [] : JSON.parse(text);
-    let count = Array.isArray(json) ? json.length : (json.results?.length || 0);
+    let json = await fetchJSON('/api/photo/comment?photo_key=' + encodeURIComponent(key));
+    let count = Array.isArray(json) ? json.length : (json?.results?.length || 0);
     let counterEl = document.getElementById('commentCount-' + index);
     if(counterEl) counterEl.innerText = count;
     

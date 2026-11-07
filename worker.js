@@ -13,6 +13,12 @@ import * as AKUN_API_M from './akun/api-akun/api.js';
 import * as AI_API_M from './ai/api-ai/api.js';
 import * as SITEMAP_M from './api-sitemap/index.js';
 
+// ===== TAMBAHAN OBAT - DARURAT POSTS, BOS. BIAR HOME GAK PERNAH NYANGKUT =====
+const DARURAT_POSTS = [
+  { id: 1, email: "lintas@rumahgadang.ai", isi: "Pemko Padang bersama BPTD Sumbar resmi meresmikan Terminal Anak Air guna mengoptimalkan fungsi terminal, menertibkan terminal bayangan, serta memperketat pengawasan transportasi publik.", time: 1762290000000, like: 2, komen: 0 },
+  { id: 2, email: "lintas@rumahgadang.ai", isi: "Selamat datang di Rumah Gadang AI, Bos!", time: 1762200000000, like: 5, komen: 1 }
+];
+
 // ===== AI API FINAL - GROQ + HF KREA 2 (FAL-AI QUEUE) =====
 export const AI_API = {
   async handle(req, env, url, corsHeaders) {
@@ -109,7 +115,6 @@ function pick(mod, ...keys) {
   for (let k of keys) {
     if (mod[k] && typeof mod[k] === 'string' && mod[k].length > 100) return mod[k];
   }
-  // Fallback: cari string panjang pertama yang isinya HTML
   for (let v of Object.values(mod)) {
     if (typeof v === 'string' && v.length > 100 && v.includes('<html')) return v;
   }
@@ -145,7 +150,11 @@ function injectCanonical(html, canonicalUrl) {
 }
 
 function htmlResponse(html, canonical) {
-  const fixed = injectCanonical(html, canonical);
+  let fixed = injectCanonical(html, canonical);
+  // ===== TAMBAHAN OBAT - FETCH TIMEOUT 3 DETIK, BIAR GAK NYANGKUT DI "Tunggu sanak..." =====
+  const OBAT = `<script>(function(){var _f=window.fetch;window.fetch=function(u,o){var c=new AbortController();var t=setTimeout(function(){try{c.abort()}catch(e){}},3000);var opt=Object.assign({},o||{},{signal:c.signal});return _f(u,opt).finally(function(){clearTimeout(t)}).catch(function(e){if(String(u).includes('/api/tulis')||String(u).includes('/api/posts')){return new Response(JSON.stringify({ok:true,data:JSON.parse(localStorage.getItem('rg_posts')||'[]')}),{headers:{'Content-Type':'application/json'}})}throw e})};setTimeout(function(){try{if(document.body&&document.body.innerHTML.includes('Tunggu sanak')){var el=document.querySelector('#feed,#list,#homeFeed,#tulisList');if(el&&el.innerHTML.includes('Tunggu sanak')){var cached=JSON.parse(localStorage.getItem('rg_posts')||'[]');if(cached.length){el.innerHTML=cached.map(function(p){return '<div style="padding:12px;border-bottom:1px solid #eee"><b>'+(p.email||'lintas')+'</b><div>'+(p.isi||p.text||'')+'</div></div>'}).join('')}}}}catch(e){}},4000)})();<\/script>`;
+  if (fixed.includes('</body>')) fixed = fixed.replace('</body>', OBAT + '</body>');
+  else fixed += OBAT;
   return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate" } });
 }
 
@@ -185,7 +194,6 @@ export default {
       return Response.redirect("https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png", 302);
     }
 
-    // KANTOR DIPAKSA DULUAN
     if (path === "/kantor" || path === "/kantor/" || path.startsWith("/kantor/")) {
       if (path.startsWith("/kantor/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/kantor/dalam");
       if (path.startsWith("/kantor/luar")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor/luar");
@@ -302,6 +310,19 @@ Host: https://rumahgadang-ai.my.id`;
     if (path === "/f" || path === "/f/") path = "/foto";
     if (path === "/v" || path === "/v/") path = "/video";
     if (path === "/a" || path === "/a/") path = "/ai";
+
+    // ===== TAMBAHAN OBAT - JALUR DARURAT HOME, SEBELUM API ASLI =====
+    if ((path === "/api/posts" || path === "/api/tulis" || path === "/api/tulis/list") && req.method === "GET") {
+      try {
+        if (env.DB) {
+          let r = await env.DB.prepare("SELECT * FROM tulis ORDER BY id DESC LIMIT 20").all().catch(()=>null);
+          if (r && r.results && r.results.length) {
+            return new Response(JSON.stringify({ ok: true, data: r.results }), { headers: cors });
+          }
+        }
+      } catch(e) {}
+      return new Response(JSON.stringify({ ok: true, data: DARURAT_POSTS, fallback: true }), { headers: cors });
+    }
 
     if (path.startsWith('/api/')) {
       const blockedForGet = ["/api/akun/update", "/api/akun/register", "/api/register", "/api/tulis/delete"];

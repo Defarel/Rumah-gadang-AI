@@ -1,8 +1,6 @@
 import * as HOME_M from './home/index.js';
 import * as FOTO_M from './foto/index.js';
 import * as VIDEO_M from './video/index.js';
-import * as LUAR_M from './kantor/Luar/index.js';
-import * as DALAM_M from './kantor/Dalam/index.js';
 import * as AI_M from './ai/index.js';
 import * as AKUN_M from './akun/index.js';
 import * as CHAT_M from './akun/Chat/index.js';
@@ -103,9 +101,9 @@ export const AI_API = {
   }
 };
 
-// ===== HELPERS & TEMPLATES =====
+// ===== HELPERS & TEMPLATES - CUMA 5 BOS =====
 function getHtml(mod) { 
-  return mod.default || mod.HOME_HTML || mod.HOME || mod.FOTO_HTML || mod.FOTO || mod.VIDEO_HTML || mod.VIDEO || mod.AI_HTML || mod.AI || mod.KANTOR_HTML || mod.KANTOR || mod.LUAR_HTML || mod.LUAR || mod.DALAM_HTML || mod.DALAM || mod.AKUN_HTML || mod.AKUN || mod.CHAT_HTML || mod.CHAT || Object.values(mod)[0]; 
+  return mod.default || mod.HOME_HTML || mod.HOME || mod.FOTO_HTML || mod.FOTO || mod.VIDEO_HTML || mod.VIDEO || mod.AI_HTML || mod.AI || mod.AKUN_HTML || mod.AKUN || mod.CHAT_HTML || mod.CHAT || Object.values(mod)[0]; 
 }
 
 function getApi(mod) { 
@@ -115,9 +113,6 @@ function getApi(mod) {
 const HOME_HTML = getHtml(HOME_M);
 const FOTO_HTML = getHtml(FOTO_M);
 const VIDEO_HTML = getHtml(VIDEO_M);
-const LUAR_HTML = getHtml(LUAR_M);
-const DALAM_HTML = getHtml(DALAM_M);
-const KANTOR_HTML = LUAR_HTML;
 const AI_HTML = getHtml(AI_M);
 const AKUN_HTML = getHtml(AKUN_M);
 const CHAT_HTML = getHtml(CHAT_M);
@@ -141,7 +136,7 @@ function htmlResponse(html, canonical) {
   return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "public, max-age=300" } });
 }
 
-// ===== MAIN WORKER EXPORT =====
+// ===== MAIN WORKER EXPORT - CUMA 5 HALAMAN =====
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -170,7 +165,12 @@ export default {
       return Response.redirect("https://rumahgadang-ai.my.id/", 301);
     }
     
-    if (["/foto/", "/video/", "/kantor/", "/ai/", "/akun/", "/luar/", "/dalam/", "/akun/chat/"].includes(path)) {
+    // Redirect halaman lama yang udah dibuang -> ke home biar gak 404
+    if (["/kantor", "/kantor/", "/luar", "/luar/", "/dalam", "/dalam/", "/kantor/luar", "/kantor/dalam"].includes(path)) {
+      return Response.redirect("https://rumahgadang-ai.my.id/", 301);
+    }
+    
+    if (["/foto/", "/video/", "/ai/", "/akun/", "/akun/chat/"].includes(path)) {
       return Response.redirect("https://rumahgadang-ai.my.id" + path.slice(0, -1), 301);
     }
 
@@ -180,7 +180,6 @@ export default {
         let body = await req.json().catch(() => ({}));
         let email = (body.email || "").toLowerCase().trim();
         if (email && env.DB) {
-          // Otomatis buat tabel users dengan last_seen jika belum ada
           await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER, last_seen INTEGER)`).run();
           await env.DB.prepare("UPDATE users SET last_seen = ? WHERE LOWER(email) = ?").bind(Date.now(), email).run();
         }
@@ -190,7 +189,7 @@ export default {
       }
     }
 
-    // SITEMAP.XML
+    // SITEMAP.XML - CUMA 5 BOS!
     if (path === "/sitemap.xml" || path === "/sitemap/" || path === "/sitemap") {
       const now = new Date().toISOString().split('T')[0];
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -199,10 +198,7 @@ export default {
   <url><loc>https://rumahgadang-ai.my.id/foto</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
   <url><loc>https://rumahgadang-ai.my.id/video</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
   <url><loc>https://rumahgadang-ai.my.id/ai</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/kantor</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/luar</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/dalam</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/akun</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://rumahgadang-ai.my.id/akun</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
 </urlset>`;
       return new Response(xml.trim(), {
         status: 200,
@@ -210,7 +206,7 @@ export default {
       });
     }
 
-    // ROBOTS.TXT
+    // ROBOTS.TXT - CUMA 5 BOS!
     if (path === "/robots.txt" || path === "/robots" || path === "/robots/") {
       const robots = `User-agent: *
 Allow: /
@@ -218,7 +214,8 @@ Allow: /foto
 Allow: /video
 Allow: /ai
 Allow: /akun
-Allow: /kantor
+
+Disallow: /kantor
 Disallow: /luar
 Disallow: /dalam
 Disallow: /api/akun/update
@@ -327,11 +324,11 @@ Host: https://rumahgadang-ai.my.id`;
       return new Response(JSON.stringify({ ok: false, error: "No handler " + path }), { headers: cors, status: 404 });
     }
 
-    // USER PROFILE ROUTING (e.g. /username)
+    // USER PROFILE ROUTING (e.g. /username) - tetep ke /akun
     const segments = path.split("/").filter(Boolean);
     if (segments.length > 0) {
       let username = segments[0];
-      const reserved = ["home", "foto", "video", "ai", "kantor", "luar", "dalam", "akun", "api", "sitemap", "robots", "profil", "profile", "icon.png", "favicon.ico"];
+      const reserved = ["home", "foto", "video", "ai", "akun", "api", "sitemap", "robots", "profil", "profile", "icon.png", "favicon.ico"];
       if (!reserved.includes(username) && !username.includes(".") && username.length >= 2) {
         let targetEmail = username.includes('@') ? username : username + '@rumahgadang-ai.my.id';
         let modifiedAkunHtml = AKUN_HTML.replace('window.location.search', `"?profil=${encodeURIComponent(targetEmail)}"`);
@@ -339,18 +336,13 @@ Host: https://rumahgadang-ai.my.id`;
       }
     }
 
-    // STATIC / PAGE HTML ROUTING
+    // STATIC / PAGE HTML ROUTING - CUMA 5 BOS!
     if (path === "/" || path === "/home" || path.startsWith("/home/")) return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
     if (path.startsWith("/foto")) return htmlResponse(FOTO_HTML, "https://rumahgadang-ai.my.id/foto");
     if (path.startsWith("/video")) return htmlResponse(VIDEO_HTML, "https://rumahgadang-ai.my.id/video");
     if (path.startsWith("/ai")) return htmlResponse(AI_HTML, "https://rumahgadang-ai.my.id/ai");
-    if (path.startsWith("/luar")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/luar");
-    if (path.startsWith("/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/dalam");
-    if (path.startsWith("/kantor/luar")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor/luar");
-    if (path.startsWith("/kantor/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/kantor/dalam");
-    if (path.startsWith("/kantor")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor");
     
-    // Routing untuk halaman Chat
+    // Routing untuk halaman Chat - masih bagian dari /akun
     if (path === "/akun/chat" || path === "/chat") {
       return htmlResponse(CHAT_HTML, "https://rumahgadang-ai.my.id/akun/chat");
     }

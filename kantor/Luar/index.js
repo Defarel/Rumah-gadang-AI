@@ -95,7 +95,6 @@ let camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 1000);
 let renderer = new THREE.WebGLRenderer({antialias:true}); renderer.setSize(innerWidth, innerHeight); document.body.appendChild(renderer.domElement);
 renderer.domElement.style.position='absolute'; renderer.domElement.style.top='0'; renderer.domElement.style.left='0'; renderer.domElement.style.zIndex='1'; renderer.domElement.style.touchAction='none';
 
-// FIX BOS: JANGAN scene.add(.position.set) - ITU VECTOR3, BUKAN LAMPU
 let sun = new THREE.DirectionalLight(0xffffff, 1.2);
 sun.position.set(20, 30, 20);
 scene.add(sun);
@@ -184,7 +183,6 @@ loadHF(RUKO_URL, 'Ruko-Storefront', (g) => {
     check('Ruko');
 });
 
-// ✅ Fungsi untuk membuat Sprite Nama di atas kepala NPC
 function createTextSprite(text) {
     let canvas = document.createElement('canvas');
     canvas.width = 512; canvas.height = 128;
@@ -360,6 +358,17 @@ function animate(){
     renderer.render(scene, camera);
 }
 animate();
+
+// ✅ FIX NAVIGASI BAWAH AGAR SUKSES BERPINDAH HALAMAN
+document.querySelectorAll('.bot a').forEach(el => {
+    el.addEventListener('click', (e) => {
+        let href = el.getAttribute('href');
+        if (href && href !== '#') {
+            e.preventDefault();
+            window.location.href = href;
+        }
+    });
+});
 </script>
 </body>
 </html>`;

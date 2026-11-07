@@ -14,23 +14,15 @@ import * as AI_API_M from './ai/api-ai/api.js';
 import * as SITEMAP_M from './api-sitemap/index.js';
 
 const DARURAT_POSTS = [
-  { id: 1, email: "lintas@rumahgadang.ai", isi: "Pemko Padang bersama BPTD Sumbar resmi meresmikan Terminal Anak Air guna mengoptimalkan fungsi terminal, menertibkan terminal bayangan, serta memperketat pengawasan transportasi publik.", time: 1762290000000, like: 2, komen: 0 },
-  { id: 2, email: "lintas@rumahgadang.ai", isi: "Selamat datang di Rumah Gadang AI, Bos!", time: 1762200000000, like: 5, komen: 1 }
+  { id: 1, email: "lintas@rumahgadang.ai", isi: "Pemko Padang bersama BPTD Sumbar resmi meresmikan Terminal Anak Air guna mengoptimalkan fungsi terminal, menertibkan terminal bayangan, serta memperketat pengawasan transportasi publik.", time: 1762290000000, like: 2, komen: 0 }
 ];
 
 export const AI_API = {
   async handle(req, env, url, corsHeaders) {
-    const cors = corsHeaders || {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "Content-Type": "application/json"
-    };
+    const cors = corsHeaders || { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,OPTIONS", "Access-Control-Allow-Headers": "Content-Type", "Content-Type": "application/json" };
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     const p = url.pathname.toLowerCase();
-    if (req.method === "GET" && (p === "/api/ai" || p === "/api/t2i")) {
-      return new Response(JSON.stringify({ ok: true, TEXT: "GROQ: " + !!env.GROQ_API_KEY, IMAGE: "HF KREA 2 (fal-ai queue): " + !!env.API_T2I }), { headers: cors });
-    }
+    if (req.method === "GET" && (p === "/api/ai" || p === "/api/t2i")) return new Response(JSON.stringify({ ok: true, TEXT: "GROQ: " + !!env.GROQ_API_KEY, IMAGE: "HF KREA 2 (fal-ai queue): " + !!env.API_T2I }), { headers: cors });
     if (p === "/api/ai" && req.method === "POST") {
       let { prompt } = await req.json().catch(() => ({}));
       prompt = (prompt || "").trim();
@@ -38,11 +30,7 @@ export const AI_API = {
       let GROQ_KEY = (env.GROQ_API_KEY || "").trim();
       for (let model of ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile"]) {
         try {
-          let r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_KEY },
-            body: JSON.stringify({ model, messages: [{ role: "system", content: "KAMU: Rumah Gadang AI Padang, ramah Minang, singkat max 60 kata." }, { role: "user", content: prompt }], temperature: 0.7, max_tokens: 400 })
-          });
+          let r = await fetch("https://api.groq.com/openai/v1/chat/completions", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_KEY }, body: JSON.stringify({ model, messages: [{ role: "system", content: "KAMU: Rumah Gadang AI Padang, ramah Minang, singkat max 60 kata." }, { role: "user", content: prompt }], temperature: 0.7, max_tokens: 400 }) });
           let d = await r.json();
           if (d.choices?.[0]?.message?.content) return new Response(JSON.stringify({ reply: d.choices[0].message.content, model }), { headers: cors });
         } catch {}
@@ -61,11 +49,8 @@ export const AI_API = {
         let blob = await response.blob();
         let buf = await blob.arrayBuffer();
         let b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-        let dataUrl = `data:image/png;base64,${b64}`;
-        return new Response(JSON.stringify({ ok: true, prompt, model: "krea/Krea-2-Turbo", image: dataUrl }), { headers: cors });
-      } catch (e) {
-        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
-      }
+        return new Response(JSON.stringify({ ok: true, prompt, model: "krea/Krea-2-Turbo", image: `data:image/png;base64,${b64}` }), { headers: cors });
+      } catch (e) { return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 }); }
     }
     return null;
   }
@@ -100,8 +85,32 @@ function injectCanonical(html, canonicalUrl) {
 function htmlResponse(html, canonical) {
   let fixed = injectCanonical(html, canonical);
   const OBAT = `<script>(function(){
-var DARURAT=[{id:1,email:"lintas@rumahgadang.ai",isi:"Pemko Padang bersama BPTD Sumbar resmi meresmikan Terminal Anak Air guna mengoptimalkan fungsi terminal, menertibkan terminal bayangan, serta memperketat pengawasan transportasi publik.",time:1762290000000}];
-try{localStorage.setItem('rg_posts',JSON.stringify(DARURAT))}catch(e){}
+var DARURAT_HTML='<div style="padding:14px;border-bottom:1px solid #222;text-align:left"><div style="color:#22ff88;font-weight:700;font-size:13px">lintas@rumahgadang.ai</div><div style="color:#fff;font-size:14px;line-height:1.5;margin-top:6px">Pemko Padang bersama BPTD Sumbar resmi meresmikan Terminal Anak Air guna mengoptimalkan fungsi terminal, menertibkan terminal bayangan, serta memperketat pengawasan transportasi publik.</div></div>';
+function gantiKosong(){
+  try{
+    var els=document.querySelectorAll('*');
+    for(var i=0;i<els.length;i++){
+      var el=els[i];
+      if(el.children.length===0 && el.textContent && el.textContent.trim()==='Belum ada tulisan Bos'){
+        el.outerHTML=DARURAT_HTML;
+        return true;
+      }
+    }
+    if(document.body && document.body.innerText && document.body.innerText.includes('Belum ada tulisan Bos')){
+      var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+      var n;
+      while(n=walker.nextNode()){
+        if(n.nodeValue && n.nodeValue.includes('Belum ada tulisan Bos')){
+          var p=n.parentElement;
+          if(p){ p.innerHTML=DARURAT_HTML; return true; }
+        }
+      }
+    }
+  }catch(e){}
+  return false;
+}
+setInterval(gantiKosong,500);
+new MutationObserver(gantiKosong).observe(document.documentElement,{childList:true,subtree:true,characterData:true});
 var _f=window.fetch;
 window.fetch=function(u,o){
   var s=String(u);
@@ -109,27 +118,23 @@ window.fetch=function(u,o){
     return _f(u,o).then(function(r){
       return r.clone().json().then(function(j){
         var d=j.data||j.posts||j;
-        if(!d||!d.length){ return new Response(JSON.stringify({ok:true,data:DARURAT}),[STRIPPED]
+        if(!d||!d.length){ return new Response(JSON.stringify({ok:true,data:[{id:1,email:"lintas@rumahgadang.ai",isi:"Pemko Padang bersama BPTD Sumbar resmi meresmikan Terminal Anak Air guna mengoptimalkan fungsi terminal, menertibkan terminal bayangan, serta memperketat pengawasan transportasi publik."}]}),[STRIPPED]
         return r;
-      }).catch(function(){ return new Response(JSON.stringify({ok:true,data:DARURAT}),[STRIPPED]
+      }).catch(function(){ return new Response(JSON.stringify({ok:true,data:[{id:1,email:"lintas@rumahgadang.ai",isi:"Pemko Padang bersama BPTD Sumbar resmi meresmikan Terminal Anak Air."}]}),[STRIPPED]
   }
   return _f(u,o);
 };
-document.addEventListener('click',function(e){
-  var t=e.target.closest('a,button,div,span');
-  if(!t) return;
-  var txt=(t.innerText||'').trim().toLowerCase();
-  if(txt==='kantor' || txt.includes('kantor')){
-    e.preventDefault(); e.stopPropagation();
-    window.location.href='/kantor';
+function keKantor(e){
+  var t=e.target;
+  for(var k=0;k<5 && t;k++){ 
+    var txt=(t.innerText||t.textContent||'').trim().toLowerCase();
+    if(txt==='kantor' || txt.indexOf('kantor')===0){ e.preventDefault(); e.stopPropagation(); window.location.href='/kantor'; return; }
+    t=t.parentElement;
   }
-},true);
-setInterval(function(){
-  if(document.body && document.body.innerText && document.body.innerText.includes('Belum ada tulisan Bos')){
-    var feed=document.querySelector('#feed,#list,#homeFeed,#tulisList');
-    if(feed){ feed.innerHTML='<div style="padding:12px;border-bottom:1px solid #eee"><b>lintas@rumahgadang.ai</b><div>Pemko Padang bersama BPTD Sumbar resmi meresmikan Terminal Anak Air.</div></div>'; }
-  }
-},1000);
+}
+document.addEventListener('click',keKantor,true);
+document.addEventListener('touchstart',keKantor,true);
+document.addEventListener('touchend',keKantor,true);
 })();<\/script>`;
   if (fixed.includes('</body>')) fixed = fixed.replace('</body>', OBAT + '</body>');
   else fixed += OBAT;
@@ -168,17 +173,7 @@ export default {
     }
     if (path === "/sitemap.xml" || path === "/sitemap/" || path === "/sitemap") {
       const now = new Date().toISOString().split('T')[0];
-      const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://rumahgadang-ai.my.id/</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/foto</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/video</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/ai</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/kantor</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/luar</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/dalam</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/akun</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
-</urlset>`;
+      const xml = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://rumahgadang-ai.my.id/</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url><url><loc>https://rumahgadang-ai.my.id/foto</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url><url><loc>https://rumahgadang-ai.my.id/video</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url><url><loc>https://rumahgadang-ai.my.id/ai</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url><url><loc>https://rumahgadang-ai.my.id/kantor</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url></urlset>`;
       return new Response(xml.trim(), { status: 200, headers: { "Content-Type": "application/xml; charset=UTF-8", "Cache-Control": "no-cache", "Access-Control-Allow-Origin": "*" } });
     }
     if (path === "/robots.txt" || path === "/robots" || path === "/robots/") {

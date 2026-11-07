@@ -214,7 +214,13 @@ export default {
     if (path === "/robots.txt" || path === "/robots" || path === "/robots/") {
       const robots = `User-agent: *
 Allow: /
-
+Allow: /foto
+Allow: /video
+Allow: /ai
+Allow: /akun
+Allow: /kantor
+Disallow: /luar
+Disallow: /dalam
 Disallow: /api/akun/update
 Disallow: /api/akun/register
 Disallow: /api/register

@@ -1,5 +1,6 @@
 // ==========================================
 // KANTOR LUAR - INDEX.HTML (DENGAN NAMA DI ATAS KEPALA NPC)
+// FIX: LAMPU - JANGAN scene.add(.position.set) KARENA ITU VECTOR3, BOS
 // ==========================================
 export const KANTOR_LUAR_HTML = `<!DOCTYPE html>
 <html>
@@ -94,7 +95,10 @@ let camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 1000);
 let renderer = new THREE.WebGLRenderer({antialias:true}); renderer.setSize(innerWidth, innerHeight); document.body.appendChild(renderer.domElement);
 renderer.domElement.style.position='absolute'; renderer.domElement.style.top='0'; renderer.domElement.style.left='0'; renderer.domElement.style.zIndex='1'; renderer.domElement.style.touchAction='none';
 
-scene.add(new THREE.DirectionalLight(0xffffff, 1.2).position.set(20, 30, 20));
+// FIX BOS: JANGAN scene.add(.position.set) - ITU VECTOR3, BUKAN LAMPU
+let sun = new THREE.DirectionalLight(0xffffff, 1.2);
+sun.position.set(20, 30, 20);
+scene.add(sun);
 scene.add(new THREE.AmbientLight(0xffffff, 0.9));
 
 let ground = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshStandardMaterial({color: 0x3d6b3d}));
@@ -213,14 +217,11 @@ function spawnRobotNPCs(){
     if (!robotBase) return;
     NPC_OUT.forEach(d => {
         let o = robotBase.clone(true); 
-        o.scale.set(0.8, 0.8, 0.8); // Ukuran 0.8 
+        o.scale.set(0.8, 0.8, 0.8);
         o.position.set(d.x, 0, d.z); 
-        
-        // Tambahkan Nama di Atas Kepala
         let nameSprite = createTextSprite(d.nama);
-        nameSprite.position.set(0, 6.5, 0); // Posisi melayang di atas kepala robot
+        nameSprite.position.set(0, 6.5, 0);
         o.add(nameSprite);
-
         outG.add(o); 
         npcs.push({...d, group: o});
     });
@@ -300,13 +301,11 @@ window.handleInteract = function(){
 
 function animate(){
     requestAnimationFrame(animate); 
-
     npcs.forEach(n => {
         if (!n.group) return;
         let dx = n.targetX - n.group.position.x;
         let dz = n.targetZ - n.group.position.z;
         let dist = Math.hypot(dx, dz);
-        
         if (dist > 1.0) {
             n.group.position.x += (dx / dist) * n.speed;
             n.group.position.z += (dz / dist) * n.speed;
@@ -318,12 +317,10 @@ function animate(){
             n.targetX = tempX; n.targetZ = tempZ;
         }
     });
-
     if (!player){ renderer.render(scene, camera); return; }
     let moving = Math.hypot(keys.x, keys.y) > 0.15 && !isSit;
     if (moving){ walkTime += run ? 0.35 : 0.22; player.position.y = baseY + Math.abs(Math.sin(walkTime * 2)) * 0.18; player.rotation.z = Math.sin(walkTime) * 0.12; player.rotation.x = Math.sin(walkTime * 1.5) * 0.08; }
     else { player.position.y = THREE.MathUtils.lerp(player.position.y, baseY, 0.2); player.rotation.z = THREE.MathUtils.lerp(player.rotation.z, 0, 0.2); player.rotation.x = THREE.MathUtils.lerp(player.rotation.x, 0, 0.2); }
-    
     if (!isSit && player){
         let rad = camYaw * 0.01745, fw = keys.y, stt = keys.x, cs = run ? rspd : spd;
         let mx = (Math.sin(rad) * fw + Math.cos(rad) * stt) * cs, mz = (Math.cos(rad) * fw - Math.sin(rad) * stt) * cs;

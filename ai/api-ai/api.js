@@ -1,6 +1,6 @@
 // file: ./ai/api-ai/api.js
 // RUMAH GADANG AI - FINAL API
-// TEXT: Groq | IMAGE: Hugging Face Krea 2
+// TEXT: Groq | IMAGE: Cloudflare Workers AI Krea-2-Medium-Turbo
 
 export const AI_API = {
   async handle(req, env, url, corsHeaders) {
@@ -23,12 +23,13 @@ export const AI_API = {
         ok: true,
         service: "Rumah Gadang AI",
         TEXT: "GROQ_API_KEY: " + !!env.GROQ_API_KEY,
-        IMAGE: "HF KREA 2 (API_T2I): " + !!env.API_T2I,
-        endpoints: ["/api/ai (POST prompt)", "/api/t2i (POST prompt, model)"]
+        IMAGE: "CF KREA-2-MEDIUM-TURBO: " + !!env.AI,
+        ACCOUNT_ID: "1514daaae495b0bbba4318972c2e53a7",
+        endpoints: ["/api/ai (POST prompt)", "/api/t2i (POST prompt, model, aspect_ratio, resolution)"]
       }), { headers: cors });
     }
 
-    // --- 1. API AI TEXT (Groq) ---
+    // --- 1. API AI TEXT (Groq) - GAK GUE UBAH ---
     if (p === "/api/ai" && req.method === "POST") {
       try {
         let { prompt, system } = await req.json().catch(() => ({}));
@@ -69,57 +70,61 @@ export const AI_API = {
       }
     }
 
-    // --- 2. API T2I IMAGE (Hugging Face Krea 2) ---
+    // --- 2. API T2I IMAGE (Cloudflare Krea-2-Medium-Turbo) - INI YANG BARU ---
     if (p === "/api/t2i" && req.method === "POST") {
       try {
-        let { prompt, model } = await req.json().catch(() => ({}));
-        model = (model || "krea/Krea-2-Turbo").trim(); // default turbo
+        let { prompt, model, aspect_ratio, resolution } = await req.json().catch(() => ({}));
         prompt = (prompt || "").trim();
-
-        const HF_TOKEN = (env.API_T2I || "").trim();
-        if (!HF_TOKEN) return new Response(JSON.stringify({ ok: false, error: "API_T2I (HF Token hf_...) belum set" }), { headers: cors, status: 500 });
         if (!prompt) return new Response(JSON.stringify({ ok: false, error: "Prompt kosong" }), { headers: cors, status: 400 });
 
-const HF_URL = `https://router.huggingface.co/fal-ai/fal-ai/krea-2/turbo?_subdomain=queue`;
-        
-        let r = await fetch(HF_URL, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${HF_TOKEN}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ inputs: prompt })
+        // Samain nama model lama lu biar gak error di frontend
+        // Kalau frontend kirim "krea/Krea-2-Turbo", kita arahkan ke model CF
+        const CF_MODEL = "krea/krea-2-medium-turbo";
+
+        // Cek env.AI udah nyambung belum (dari wrangler.toml [ai] binding = "AI")
+        if (!env.AI) {
+          return new Response(JSON.stringify({ ok: false, error: "env.AI belum nyambung. Cek wrangler.toml: [ai] binding = 'AI'" }), { headers: cors, status: 500 });
+        }
+
+        // PANGGIL CF KREA 2 - PAKE ID 1514daaae495b0bbba4318972c2e53a7 (otomatis dari binding)
+        const result = await env.AI.run(CF_MODEL, {
+          prompt: prompt,
+          aspect_ratio: aspect_ratio || "1:1",
+          resolution: resolution || "1K",
         });
 
-        const ct = r.headers.get("content-type") || "";
-
-        // HF biasanya ngasih gambar binary langsung
-        if (ct.startsWith("image/") || ct === "application/octet-stream") {
-          let buf = await r.arrayBuffer();
-          let bytes = new Uint8Array(buf);
-          let binary = "";
-          for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-          let b64 = btoa(binary);
-          let dataUrl = `data:${ct || "image/png"};base64,${b64}`;
-          return new Response(JSON.stringify({ ok: true, prompt, model, image: dataUrl }), { headers: cors });
+        // CF balikin gambar dalam bentuk stream / binary
+        // Kita ubah jadi base64 biar frontend lu yang lama langsung bisa pake
+        let buf;
+        if (result instanceof ReadableStream) {
+          buf = await new Response(result).arrayBuffer();
+        } else if (result?.image) {
+          // Kalau CF balikin JSON { image: "base64..." }
+          const binary = Uint8Array.from(atob(result.image), c => c.charCodeAt(0));
+          buf = binary.buffer;
+        } else if (result instanceof ArrayBuffer) {
+          buf = result;
+        } else {
+          // Fallback terakhir: anggap result udah Uint8Array
+          buf = await new Response(result).arrayBuffer();
         }
 
-        let text = await r.text();
-        let d; try { d = JSON.parse(text); } catch { d = { raw: text }; }
+        const bytes = new Uint8Array(buf);
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        const b64 = btoa(binary);
+        const dataUrl = `data:image/jpeg;base64,${b64}`;
 
-        if (d.error) {
-          return new Response(JSON.stringify({
-            ok: false,
-            error: d.error,
-            hint: "Buka huggingface.co/krea/Krea-2-Turbo > klik Agree license, dan pastikan token ada izin 'Inference Providers'",
-            raw: d
-          }), { headers: cors, status: 500 });
-        }
-
-        return new Response(JSON.stringify({ ok: false, error: "HF tidak mengembalikan gambar", raw: d }), { headers: cors, status: 500 });
+        return new Response(JSON.stringify({
+          ok: true,
+          prompt,
+          model: CF_MODEL,
+          image: dataUrl,
+          token_terpakai: 2
+        }), { headers: cors });
 
       } catch (e) {
-        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
+        return new Response(JSON.stringify({ ok: false, error: e.message, hint: "Cek di CF Dashboard > Workers AI > Krea-2 udah aktif belum, dan kredit lu masih ada gak" }), { headers: cors, status: 500 });
       }
     }
 

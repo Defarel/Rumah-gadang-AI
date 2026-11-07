@@ -1,6 +1,10 @@
 name = "purple-firefly-d778"
 main = "worker.js"
 compatibility_date = "2024-01-01"
+account_id = "1514daaae495b0bbba4318972c2e53a7"
+
+[ai]
+binding = "AI"
 
 [[d1_databases]]
 binding = "DB"

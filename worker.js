@@ -13,13 +13,11 @@ import * as AKUN_API_M from './akun/api-akun/api.js';
 import * as AI_API_M from './ai/api-ai/api.js';
 import * as SITEMAP_M from './api-sitemap/index.js';
 
-// ===== TAMBAHAN OBAT - DARURAT POSTS, BOS. BIAR HOME GAK PERNAH NYANGKUT =====
 const DARURAT_POSTS = [
   { id: 1, email: "lintas@rumahgadang.ai", isi: "Pemko Padang bersama BPTD Sumbar resmi meresmikan Terminal Anak Air guna mengoptimalkan fungsi terminal, menertibkan terminal bayangan, serta memperketat pengawasan transportasi publik.", time: 1762290000000, like: 2, komen: 0 },
   { id: 2, email: "lintas@rumahgadang.ai", isi: "Selamat datang di Rumah Gadang AI, Bos!", time: 1762200000000, like: 5, komen: 1 }
 ];
 
-// ===== AI API FINAL - GROQ + HF KREA 2 (FAL-AI QUEUE) =====
 export const AI_API = {
   async handle(req, env, url, corsHeaders) {
     const cors = corsHeaders || {
@@ -30,77 +28,41 @@ export const AI_API = {
     };
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     const p = url.pathname.toLowerCase();
-
     if (req.method === "GET" && (p === "/api/ai" || p === "/api/t2i")) {
-      return new Response(JSON.stringify({
-        ok: true,
-        TEXT: "GROQ: " + !!env.GROQ_API_KEY,
-        IMAGE: "HF KREA 2 (fal-ai queue): " + !!env.API_T2I
-      }), { headers: cors });
+      return new Response(JSON.stringify({ ok: true, TEXT: "GROQ: " + !!env.GROQ_API_KEY, IMAGE: "HF KREA 2 (fal-ai queue): " + !!env.API_T2I }), { headers: cors });
     }
-
     if (p === "/api/ai" && req.method === "POST") {
       let { prompt } = await req.json().catch(() => ({}));
       prompt = (prompt || "").trim();
       if (!prompt) return new Response(JSON.stringify({ reply: "Prompt kosong" }), { headers: cors });
-      
       let GROQ_KEY = (env.GROQ_API_KEY || "").trim();
       for (let model of ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile"]) {
         try {
           let r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_KEY },
-            body: JSON.stringify({
-              model,
-              messages: [
-                { role: "system", content: "KAMU: Rumah Gadang AI Padang, ramah Minang, singkat max 60 kata." },
-                { role: "user", content: prompt }
-              ],
-              temperature: 0.7,
-              max_tokens: 400
-            })
+            body: JSON.stringify({ model, messages: [{ role: "system", content: "KAMU: Rumah Gadang AI Padang, ramah Minang, singkat max 60 kata." }, { role: "user", content: prompt }], temperature: 0.7, max_tokens: 400 })
           });
           let d = await r.json();
-          if (d.choices?.[0]?.message?.content) {
-            return new Response(JSON.stringify({ reply: d.choices[0].message.content, model }), { headers: cors });
-          }
+          if (d.choices?.[0]?.message?.content) return new Response(JSON.stringify({ reply: d.choices[0].message.content, model }), { headers: cors });
         } catch {}
       }
       return new Response(JSON.stringify({ reply: "Groq gagal" }), { headers: cors });
     }
-
     if (p === "/api/t2i" && req.method === "POST") {
       try {
         let { prompt } = await req.json().catch(() => ({}));
         prompt = (prompt || "Gambarkan jalan lurus").trim();
         let HF_TOKEN = (env.API_T2I || "").trim();
         if (!HF_TOKEN) return new Response(JSON.stringify({ ok: false, error: "API_T2I belum set" }), { headers: cors, status: 500 });
-
-        const response = await fetch(
-          "https://router.huggingface.co/fal-ai/fal-ai/krea-2/turbo?_subdomain=queue",
-          {
-            headers: {
-              Authorization: `Bearer ${HF_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-            method: "POST",
-            body: JSON.stringify({ prompt }),
-          }
-        );
-
+        const response = await fetch("https://router.huggingface.co/fal-ai/fal-ai/krea-2/turbo?_subdomain=queue", { headers: { Authorization: `Bearer ${HF_TOKEN}`, "Content-Type": "application/json" }, method: "POST", body: JSON.stringify({ prompt }) });
         const ct = response.headers.get("content-type") || "";
-        if (ct.includes("application/json")) {
-          let txt = await response.text();
-          throw new Error(txt);
-        }
-
+        if (ct.includes("application/json")) { let txt = await response.text(); throw new Error(txt); }
         let blob = await response.blob();
         let buf = await blob.arrayBuffer();
         let b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
         let dataUrl = `data:image/png;base64,${b64}`;
-        
         return new Response(JSON.stringify({ ok: true, prompt, model: "krea/Krea-2-Turbo", image: dataUrl }), { headers: cors });
-
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
       }
@@ -109,21 +71,13 @@ export const AI_API = {
   }
 };
 
-// ===== HELPERS & TEMPLATES - FIX KANTOR =====
 function pick(mod, ...keys) {
   if (!mod) return null;
-  for (let k of keys) {
-    if (mod[k] && typeof mod[k] === 'string' && mod[k].length > 100) return mod[k];
-  }
-  for (let v of Object.values(mod)) {
-    if (typeof v === 'string' && v.length > 100 && v.includes('<html')) return v;
-  }
+  for (let k of keys) { if (mod[k] && typeof mod[k] === 'string' && mod[k].length > 100) return mod[k]; }
+  for (let v of Object.values(mod)) { if (typeof v === 'string' && v.length > 100 && v.includes('<html')) return v; }
   return null;
 }
-
-function getApi(mod) { 
-  return mod.FOTO_API || mod.VIDEO_API || mod.AKUN_API || mod.AI_API || mod.TULIS_API || mod.SITEMAP_API || mod.default || mod; 
-}
+function getApi(mod) { return mod.FOTO_API || mod.VIDEO_API || mod.AKUN_API || mod.AI_API || mod.TULIS_API || mod.SITEMAP_API || mod.default || mod; }
 
 const HOME_HTML = pick(HOME_M, 'HOME_HTML', 'HOME', 'default') || Object.values(HOME_M)[0];
 const FOTO_HTML = pick(FOTO_M, 'FOTO_HTML', 'FOTO', 'default') || Object.values(FOTO_M)[0];
@@ -137,63 +91,63 @@ const CHAT_HTML = pick(CHAT_M, 'CHAT_HTML', 'CHAT', 'default') || Object.values(
 
 function injectCanonical(html, canonicalUrl) {
   if (!html || typeof html !== 'string') return html;
-  if (html.includes('rel="canonical"')) {
-    return html.replace(/<link[^>]*rel=["']canonical["'][^>]*>/i, `<link rel="canonical" href="${canonicalUrl}">`);
-  }
-  if (html.includes('</title>')) {
-    return html.replace('</title>', `</title>\n<link rel="canonical" href="${canonicalUrl}">`);
-  }
-  if (html.includes('</head>')) {
-    return html.replace('</head>', `<link rel="canonical" href="${canonicalUrl}">\n</head>`);
-  }
+  if (html.includes('rel="canonical"')) return html.replace(/<link[^>]*rel=["']canonical["'][^>]*>/i, `<link rel="canonical" href="${canonicalUrl}">`);
+  if (html.includes('</title>')) return html.replace('</title>', `</title>\n<link rel="canonical" href="${canonicalUrl}">`);
+  if (html.includes('</head>')) return html.replace('</head>', `<link rel="canonical" href="${canonicalUrl}">\n</head>`);
   return html;
 }
 
 function htmlResponse(html, canonical) {
   let fixed = injectCanonical(html, canonical);
-  // ===== TAMBAHAN OBAT - FETCH TIMEOUT 3 DETIK, BIAR GAK NYANGKUT DI "Tunggu sanak..." =====
-  const OBAT = `<script>(function(){var _f=window.fetch;window.fetch=function(u,o){var c=new AbortController();var t=setTimeout(function(){try{c.abort()}catch(e){}},3000);var opt=Object.assign({},o||{},{signal:c.signal});return _f(u,opt).finally(function(){clearTimeout(t)}).catch(function(e){if(String(u).includes('/api/tulis')||String(u).includes('/api/posts')){return new Response(JSON.stringify({ok:true,data:JSON.parse(localStorage.getItem('rg_posts')||'[]')}),{headers:{'Content-Type':'application/json'}})}throw e})};setTimeout(function(){try{if(document.body&&document.body.innerHTML.includes('Tunggu sanak')){var el=document.querySelector('#feed,#list,#homeFeed,#tulisList');if(el&&el.innerHTML.includes('Tunggu sanak')){var cached=JSON.parse(localStorage.getItem('rg_posts')||'[]');if(cached.length){el.innerHTML=cached.map(function(p){return '<div style="padding:12px;border-bottom:1px solid #eee"><b>'+(p.email||'lintas')+'</b><div>'+(p.isi||p.text||'')+'</div></div>'}).join('')}}}}catch(e){}},4000)})();<\/script>`;
+  const OBAT = `<script>(function(){
+var DARURAT=[{id:1,email:"lintas@rumahgadang.ai",isi:"Pemko Padang bersama BPTD Sumbar resmi meresmikan Terminal Anak Air guna mengoptimalkan fungsi terminal, menertibkan terminal bayangan, serta memperketat pengawasan transportasi publik.",time:1762290000000}];
+try{localStorage.setItem('rg_posts',JSON.stringify(DARURAT))}catch(e){}
+var _f=window.fetch;
+window.fetch=function(u,o){
+  var s=String(u);
+  if(s.includes('/api/tulis')||s.includes('/api/posts')){
+    return _f(u,o).then(function(r){
+      return r.clone().json().then(function(j){
+        var d=j.data||j.posts||j;
+        if(!d||!d.length){ return new Response(JSON.stringify({ok:true,data:DARURAT}),[STRIPPED]
+        return r;
+      }).catch(function(){ return new Response(JSON.stringify({ok:true,data:DARURAT}),[STRIPPED]
+  }
+  return _f(u,o);
+};
+document.addEventListener('click',function(e){
+  var t=e.target.closest('a,button,div,span');
+  if(!t) return;
+  var txt=(t.innerText||'').trim().toLowerCase();
+  if(txt==='kantor' || txt.includes('kantor')){
+    e.preventDefault(); e.stopPropagation();
+    window.location.href='/kantor';
+  }
+},true);
+setInterval(function(){
+  if(document.body && document.body.innerText && document.body.innerText.includes('Belum ada tulisan Bos')){
+    var feed=document.querySelector('#feed,#list,#homeFeed,#tulisList');
+    if(feed){ feed.innerHTML='<div style="padding:12px;border-bottom:1px solid #eee"><b>lintas@rumahgadang.ai</b><div>Pemko Padang bersama BPTD Sumbar resmi meresmikan Terminal Anak Air.</div></div>'; }
+  }
+},1000);
+})();<\/script>`;
   if (fixed.includes('</body>')) fixed = fixed.replace('</body>', OBAT + '</body>');
   else fixed += OBAT;
   return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate" } });
 }
 
-// ===== MAIN WORKER EXPORT =====
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     let path = url.pathname.toLowerCase();
-    
-    const cors = {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET,POST,OPTIONS,DELETE',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Cache-Control': 'no-store',
-      'X-Robots-Tag': 'noindex, nofollow'
-    };
-    
+    const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET,POST,OPTIONS,DELETE', 'Access-Control-Allow-Headers': 'Content-Type', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' };
     if (req.method === "OPTIONS") return new Response("", { headers: cors });
-
     const proto = req.headers.get('x-forwarded-proto') || url.protocol.replace(':', '');
     const host = (req.headers.get('host') || url.hostname).toLowerCase();
-    
-    if (proto === 'http' || host.startsWith('www.')) {
-      return Response.redirect("https://rumahgadang-ai.my.id" + url.pathname + url.search, 301);
-    }
-    
-    if (path === "/home" || path === "/home/") {
-      return Response.redirect("https://rumahgadang-ai.my.id/", 301);
-    }
-    
-    if (["/foto/", "/video/", "/kantor/", "/ai/", "/akun/", "/luar/", "/dalam/", "/akun/chat/"].includes(path)) {
-      return Response.redirect("https://rumahgadang-ai.my.id" + path.slice(0, -1), 301);
-    }
-
-    if (path === "/favicon.ico" || path === "/favicon.png" || path === "/icon.png") {
-      return Response.redirect("https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png", 302);
-    }
-
+    if (proto === 'http' || host.startsWith('www.')) return Response.redirect("https://rumahgadang-ai.my.id" + url.pathname + url.search, 301);
+    if (path === "/home" || path === "/home/") return Response.redirect("https://rumahgadang-ai.my.id/", 301);
+    if (["/foto/", "/video/", "/kantor/", "/ai/", "/akun/", "/luar/", "/dalam/", "/akun/chat/"].includes(path)) return Response.redirect("https://rumahgadang-ai.my.id" + path.slice(0, -1), 301);
+    if (path === "/favicon.ico" || path === "/favicon.png" || path === "/icon.png") return Response.redirect("https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png", 302);
     if (path === "/kantor" || path === "/kantor/" || path.startsWith("/kantor/")) {
       if (path.startsWith("/kantor/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/kantor/dalam");
       if (path.startsWith("/kantor/luar")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor/luar");
@@ -201,7 +155,6 @@ export default {
     }
     if (path === "/luar") return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/luar");
     if (path === "/dalam") return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/dalam");
-
     if (path === "/api/akun/ping" && req.method === "POST") {
       try {
         let body = await req.json().catch(() => ({}));
@@ -211,11 +164,8 @@ export default {
           await env.DB.prepare("UPDATE users SET last_seen = ? WHERE LOWER(email) = ?").bind(Date.now(), email).run();
         }
         return new Response(JSON.stringify({ ok: true }), { headers: cors });
-      } catch (e) {
-        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
-      }
+      } catch (e) { return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 }); }
     }
-
     if (path === "/sitemap.xml" || path === "/sitemap/" || path === "/sitemap") {
       const now = new Date().toISOString().split('T')[0];
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -229,63 +179,32 @@ export default {
   <url><loc>https://rumahgadang-ai.my.id/dalam</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://rumahgadang-ai.my.id/akun</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
 </urlset>`;
-      return new Response(xml.trim(), {
-        status: 200,
-        headers: { "Content-Type": "application/xml; charset=UTF-8", "Cache-Control": "no-cache", "Access-Control-Allow-Origin": "*" }
-      });
+      return new Response(xml.trim(), { status: 200, headers: { "Content-Type": "application/xml; charset=UTF-8", "Cache-Control": "no-cache", "Access-Control-Allow-Origin": "*" } });
     }
-
     if (path === "/robots.txt" || path === "/robots" || path === "/robots/") {
-      const robots = `User-agent: *
-Allow: /
-
-Disallow: /api/akun/update
-Disallow: /api/akun/register
-Disallow: /api/register
-Disallow: /api/tulis/delete
-Disallow: /api/ig-curated/delete
-Disallow: /api/debug
-
-Sitemap: https://rumahgadang-ai.my.id/sitemap.xml
-Host: https://rumahgadang-ai.my.id`;
+      const robots = `User-agent: *\nAllow: /\n\nDisallow: /api/akun/update\nDisallow: /api/akun/register\nDisallow: /api/register\nDisallow: /api/tulis/delete\nDisallow: /api/ig-curated/delete\nDisallow: /api/debug\n\nSitemap: https://rumahgadang-ai.my.id/sitemap.xml\nHost: https://rumahgadang-ai.my.id`;
       return new Response(robots, { status: 200, headers: { "Content-Type": "text/plain;charset=utf-8", "Cache-Control": "public, max-age=3600" } });
     }
-
     const deletePaths = ["/api/ig-curated/delete", "/api/images/delete", "/api/foto/delete", "/api/delete", "/api/tulis/delete", "/api/home/delete"];
     if (deletePaths.includes(path)) {
       try {
-        let body = {}; 
-        try { body = await req.json(); } catch {}
+        let body = {}; try { body = await req.json(); } catch {}
         let idDel = String(body.id || url.searchParams.get('id') || '');
         if (!idDel) return new Response(JSON.stringify({ ok: false, error: "id kosong Bos" }), { headers: cors, status: 400 });
-        
-        let idInt = parseInt(idDel); 
-        if (isNaN(idInt)) idInt = -999;
+        let idInt = parseInt(idDel); if (isNaN(idInt)) idInt = -999;
         let logs = [];
-        
         if (env.DB) {
           for (let tbl of ["ig_curated", "images", "foto", "tulis", "home_tulis", "posts"]) {
-            try { 
-              let r = await env.DB.prepare(`DELETE FROM ${tbl} WHERE id=?`).bind(idInt).run(); 
-              logs.push(tbl + "_int:" + r.meta.changes); 
-            } catch (e) { logs.push(tbl + "_int_err:" + e.message); }
-            
-            try { 
-              let r = await env.DB.prepare(`DELETE FROM ${tbl} WHERE CAST(id AS TEXT)=?`).bind(idDel).run(); 
-              logs.push(tbl + "_str:" + r.meta.changes); 
-            } catch (e) { logs.push(tbl + "_str_err:" + e.message); }
+            try { let r = await env.DB.prepare(`DELETE FROM ${tbl} WHERE id=?`).bind(idInt).run(); logs.push(tbl + "_int:" + r.meta.changes); } catch (e) { logs.push(tbl + "_int_err:" + e.message); }
+            try { let r = await env.DB.prepare(`DELETE FROM ${tbl} WHERE CAST(id AS TEXT)=?`).bind(idDel).run(); logs.push(tbl + "_str:" + r.meta.changes); } catch (e) { logs.push(tbl + "_str_err:" + e.message); }
           }
         }
         return new Response(JSON.stringify({ ok: true, deleted: idDel, logs }), { headers: cors });
-      } catch (e) {
-        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
-      }
+      } catch (e) { return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 }); }
     }
-
     if (path.startsWith("/api/debug")) {
       try {
         if (!env.DB) return new Response(JSON.stringify({ ok: false, error: "DB GAK ADA BOS" }), { headers: cors });
-        
         if (path.includes("/ids")) {
           let ig = await env.DB.prepare("SELECT id, time, akun, linkIG, caption, substr(img,1,30) as img_preview FROM ig_curated ORDER BY id DESC LIMIT 50").all().catch(() => ({ results: [] }));
           let img = await env.DB.prepare("SELECT id, time, substr(url,1,30) as url_preview FROM images ORDER BY id DESC LIMIT 50").all().catch(() => ({ results: [] }));
@@ -293,67 +212,39 @@ Host: https://rumahgadang-ai.my.id`;
           let tl = await env.DB.prepare("SELECT id, time, email, substr(isi,1,30) as isi_preview FROM tulis ORDER BY id DESC LIMIT 50").all().catch(() => ({ results: [] }));
           return new Response(JSON.stringify({ ok: true, ig_curated: ig.results, images: img.results, foto: ft.results, tulis: tl.results }), { headers: cors });
         }
-        
         if (path.includes("/akun")) {
           let users = await env.DB.prepare("SELECT rowid, email, name, substr(picture,1,20) as pic_preview FROM users ORDER BY rowid DESC LIMIT 100").all().catch(() => ({ results: [] }));
           let cleanUsers = users.results.map(u => ({ id: u.rowid, email: u.email, name: u.name }));
           return new Response(JSON.stringify({ ok: true, count: cleanUsers.length, akun: cleanUsers }), { headers: cors });
         }
-        
         let tables = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().catch(() => ({ results: [] }));
         return new Response(JSON.stringify({ ok: true, tables: tables.results.map(t => t.name) }), { headers: cors });
-      } catch (e) {
-        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
-      }
+      } catch (e) { return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 }); }
     }
-    
     if (path === "/f" || path === "/f/") path = "/foto";
     if (path === "/v" || path === "/v/") path = "/video";
     if (path === "/a" || path === "/a/") path = "/ai";
-
-    // ===== TAMBAHAN OBAT - JALUR DARURAT HOME, SEBELUM API ASLI =====
     if ((path === "/api/posts" || path === "/api/tulis" || path === "/api/tulis/list") && req.method === "GET") {
       try {
         if (env.DB) {
           let r = await env.DB.prepare("SELECT * FROM tulis ORDER BY id DESC LIMIT 20").all().catch(()=>null);
-          if (r && r.results && r.results.length) {
-            return new Response(JSON.stringify({ ok: true, data: r.results }), { headers: cors });
-          }
+          if (r && r.results && r.results.length) return new Response(JSON.stringify({ ok: true, data: r.results }), { headers: cors });
         }
       } catch(e) {}
       return new Response(JSON.stringify({ ok: true, data: DARURAT_POSTS, fallback: true }), { headers: cors });
     }
-
     if (path.startsWith('/api/')) {
       const blockedForGet = ["/api/akun/update", "/api/akun/register", "/api/register", "/api/tulis/delete"];
-      if (blockedForGet.some(p => path.startsWith(p)) && req.method === "GET") {
-        return new Response(JSON.stringify({ ok: false, error: "API private - use POST" }), { headers: cors, status: 404 });
-      }
-
+      if (blockedForGet.some(p => path.startsWith(p)) && req.method === "GET") return new Response(JSON.stringify({ ok: false, error: "API private - use POST" }), { headers: cors, status: 404 });
       try {
-        if (path.startsWith('/api/tulis')) {
-          let m = getApi(TULIS_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
-        }
-        if (path.startsWith('/api/foto') || path.startsWith('/api/images') || path.startsWith('/api/ig-curated') || path.startsWith('/api/ig-preview')) {
-          let m = getApi(FOTO_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
-        }
-        if (path.startsWith('/api/video')) {
-          let m = getApi(VIDEO_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
-        }
-        if (path.startsWith('/api/akun') || path.startsWith('/api/follow') || path.startsWith('/api/followers') || path.startsWith('/api/following') || path.startsWith('/api/photo') || path.startsWith('/api/users') || path.startsWith('/api/search-users') || path.startsWith('/api/chat')) {
-          let m = getApi(AKUN_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
-        }
-        if (path.startsWith('/api/ai') || path.startsWith('/api/t2i')) {
-          let m = getApi(AI_API_M); 
-          if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
-          if (AI_API?.handle) { let r = await AI_API.handle(req, env, url, cors); if (r) return r; }
-        }
-      } catch (e) {
-        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
-      }
+        if (path.startsWith('/api/tulis')) { let m = getApi(TULIS_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; } }
+        if (path.startsWith('/api/foto') || path.startsWith('/api/images') || path.startsWith('/api/ig-curated') || path.startsWith('/api/ig-preview')) { let m = getApi(FOTO_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; } }
+        if (path.startsWith('/api/video')) { let m = getApi(VIDEO_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; } }
+        if (path.startsWith('/api/akun') || path.startsWith('/api/follow') || path.startsWith('/api/followers') || path.startsWith('/api/following') || path.startsWith('/api/photo') || path.startsWith('/api/users') || path.startsWith('/api/search-users') || path.startsWith('/api/chat')) { let m = getApi(AKUN_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; } }
+        if (path.startsWith('/api/ai') || path.startsWith('/api/t2i')) { let m = getApi(AI_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; } if (AI_API?.handle) { let r = await AI_API.handle(req, env, url, cors); if (r) return r; } }
+      } catch (e) { return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 }); }
       return new Response(JSON.stringify({ ok: false, error: "No handler " + path }), { headers: cors, status: 404 });
     }
-
     const segments = path.split("/").filter(Boolean);
     if (segments.length > 0) {
       let username = segments[0];
@@ -364,7 +255,6 @@ Host: https://rumahgadang-ai.my.id`;
         return htmlResponse(modifiedAkunHtml, "https://rumahgadang-ai.my.id/" + username);
       }
     }
-
     if (path === "/" || path === "/home" || path.startsWith("/home/")) return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
     if (path.startsWith("/foto")) return htmlResponse(FOTO_HTML, "https://rumahgadang-ai.my.id/foto");
     if (path.startsWith("/video")) return htmlResponse(VIDEO_HTML, "https://rumahgadang-ai.my.id/video");
@@ -374,15 +264,8 @@ Host: https://rumahgadang-ai.my.id`;
     if (path.startsWith("/kantor/luar")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor/luar");
     if (path.startsWith("/kantor/dalam")) return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/kantor/dalam");
     if (path.startsWith("/kantor")) return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor");
-    
-    if (path === "/akun/chat" || path === "/chat") {
-      return htmlResponse(CHAT_HTML, "https://rumahgadang-ai.my.id/akun/chat");
-    }
-
-    if (path.startsWith("/akun") || path.startsWith("/profil") || path.startsWith("/profile") || path.startsWith("/u/")) {
-      return htmlResponse(AKUN_HTML, "https://rumahgadang-ai.my.id/akun");
-    }
-
+    if (path === "/akun/chat" || path === "/chat") return htmlResponse(CHAT_HTML, "https://rumahgadang-ai.my.id/akun/chat");
+    if (path.startsWith("/akun") || path.startsWith("/profil") || path.startsWith("/profile") || path.startsWith("/u/")) return htmlResponse(AKUN_HTML, "https://rumahgadang-ai.my.id/akun");
     return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
   }
 };

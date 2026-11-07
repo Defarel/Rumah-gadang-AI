@@ -79,15 +79,14 @@ function injectCanonical(html, canonicalUrl) {
 
 function htmlResponse(html, canonical) {
   let fixed = injectCanonical(html, canonical);
-  // ===== CONSOLE DI HP - BIAR KELIATAN ERROR MERAHNYA, BOS =====
-  const CONSOLE_HP = `<script src="https://cdn.jsdelivr.net/npm/eruda"></script><script>try{eruda.init();}catch(e){}<\/script>`;
-  if (fixed.includes('</body>')) fixed = fixed.replace('</body>', CONSOLE_HP + '</body>'); else fixed += CONSOLE_HP;
   let isKantor = (canonical || "").includes('/kantor') || (canonical || "").includes('/luar') || (canonical || "").includes('/dalam');
+  // ===== OBAT KANTOR: CUMA PAKSA HILANGIN LOADING - TANPA ERUDA / CONSOLE LAGI, BOS =====
   if (isKantor) {
-    const OBAT_KANTOR = `<script>setTimeout(function(){try{var l=document.getElementById('loading');if(l){l.style.display='none';}var g=document.getElementById('gpsText');if(g){g.innerText='Siap Bos! Area Luar Siap! (Mode Cepat)';}}catch(e){}},7000);<\/script>`;
+    const OBAT_KANTOR = `<script>setTimeout(function(){try{var l=document.getElementById('loading');if(l){l.style.display='none';}var g=document.getElementById('gpsText');if(g){g.innerText='Siap Bos! Area Luar Siap!';}}catch(e){}},7000);<\/script>`;
     if (fixed.includes('</body>')) fixed = fixed.replace('</body>', OBAT_KANTOR + '</body>'); else fixed += OBAT_KANTOR;
     return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate" } });
   }
+  // ===== OBAT HOME =====
   const OBAT = `<script>(function(){
 var DARURAT_HTML='<div style="padding:14px;border-bottom:1px solid #222;text-align:left"><div style="color:#22ff88;font-weight:700;font-size:13px">lintas@rumahgadang.ai</div><div style="color:#fff;font-size:14px;line-height:1.5;margin-top:6px">Pemko Padang bersama BPTD Sumbar resmi meresmikan Terminal Anak Air guna mengoptimalkan fungsi terminal, menertibkan terminal bayangan, serta memperketat pengawasan transportasi publik.</div></div>';
 function gantiKosong(){

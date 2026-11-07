@@ -141,7 +141,7 @@ function htmlResponse(html, canonical) {
   return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "public, max-age=300" } });
 }
 
-// ===== MAIN WORKER EXPORT - KANTOR HIDUP, SITEMAP CUMA 5 BUAT CONSOLE BOS! =====
+// ===== MAIN WORKER EXPORT =====
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -174,17 +174,13 @@ export default {
       return Response.redirect("https://rumahgadang-ai.my.id" + path.slice(0, -1), 301);
     }
 
-    // FAVICON - BIAR GAK BOLA DUNIA LAGI, BOS!
-    if (path === "/favicon.ico" || path === "/favicon.png" || path === "/icon.png") {
-      return Response.redirect("https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png", 302);
-    }
-
     // PING ONLINE (Global Handler Pendukung Status Aktif)
     if (path === "/api/akun/ping" && req.method === "POST") {
       try {
         let body = await req.json().catch(() => ({}));
         let email = (body.email || "").toLowerCase().trim();
         if (email && env.DB) {
+          // Otomatis buat tabel users dengan last_seen jika belum ada
           await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER, last_seen INTEGER)`).run();
           await env.DB.prepare("UPDATE users SET last_seen = ? WHERE LOWER(email) = ?").bind(Date.now(), email).run();
         }
@@ -194,7 +190,7 @@ export default {
       }
     }
 
-    // SITEMAP.XML - CUMA 5 BUAT CONSOLE, BOS! KANTOR GAK MASUK SITEMAP TAPI TETEP HIDUP!
+    // SITEMAP.XML
     if (path === "/sitemap.xml" || path === "/sitemap/" || path === "/sitemap") {
       const now = new Date().toISOString().split('T')[0];
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -203,7 +199,10 @@ export default {
   <url><loc>https://rumahgadang-ai.my.id/foto</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
   <url><loc>https://rumahgadang-ai.my.id/video</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
   <url><loc>https://rumahgadang-ai.my.id/ai</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/akun</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://rumahgadang-ai.my.id/kantor</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://rumahgadang-ai.my.id/luar</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://rumahgadang-ai.my.id/dalam</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://rumahgadang-ai.my.id/akun</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
 </urlset>`;
       return new Response(xml.trim(), {
         status: 200,
@@ -211,17 +210,10 @@ export default {
       });
     }
 
-    // ROBOTS.TXT - KANTOR TETEP BOLEH DI-CRAWL, CUMA GAK MASUK SITEMAP
+    // ROBOTS.TXT
     if (path === "/robots.txt" || path === "/robots" || path === "/robots/") {
       const robots = `User-agent: *
 Allow: /
-Allow: /foto
-Allow: /video
-Allow: /ai
-Allow: /akun
-Allow: /kantor
-Allow: /luar
-Allow: /dalam
 
 Disallow: /api/akun/update
 Disallow: /api/akun/register
@@ -341,7 +333,7 @@ Host: https://rumahgadang-ai.my.id`;
       }
     }
 
-    // STATIC / PAGE HTML ROUTING - KANTOR TETEP HIDUP BOS!
+    // STATIC / PAGE HTML ROUTING
     if (path === "/" || path === "/home" || path.startsWith("/home/")) return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
     if (path.startsWith("/foto")) return htmlResponse(FOTO_HTML, "https://rumahgadang-ai.my.id/foto");
     if (path.startsWith("/video")) return htmlResponse(VIDEO_HTML, "https://rumahgadang-ai.my.id/video");

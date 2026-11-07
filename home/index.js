@@ -1,5 +1,5 @@
 // ==========================================
-// RUMAH GADANG AI - HOME INDEX.HTML FINAL
+// RUMAH GADANG AI - HOME INDEX.HTML FINAL (WITH SCHEMA & FIXED NAV)
 // ==========================================
 export const HOME_HTML = `<!DOCTYPE html>
 <html><head>
@@ -9,6 +9,22 @@ export const HOME_HTML = `<!DOCTYPE html>
 <link rel="icon" href="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png">
 <link rel="canonical" href="https://rumahgadang-ai.my.id/">
 <meta name="description" content="Komunitas Minangkabau - Rumah Gadang AI, tempat dunsanak berbagi cerita">
+
+<!-- ✅ SCHEMA ORGANIZATION UNTUK LOGO DI GOOGLE SEARCH -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Rumah Gadang AI",
+  "url": "https://rumahgadang-ai.my.id",
+  "logo": "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png",
+  "image": "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png",
+  "sameAs": [
+    "https://rumahgadang-ai.my.id"
+  ]
+}
+</script>
+
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;color:#fff;font-family:system-ui,sans-serif}
@@ -121,7 +137,6 @@ function getAvatar(){return localStorage.getItem('rg_avatar')||LOGO_FALLBACK;}
 function isAdmin(){return ADMIN_EMAILS.includes(getEmail());}
 function clearImg(){selectedImg="";document.getElementById('preview').style.display='none';document.getElementById('prevImg').src="";document.getElementById('fileIn').value="";}
 
-// ✅ FIX: Fungsi openProfil mengarah ke /akun?profil=email dengan benar
 function openProfil(email){ 
   if(!email) return; 
   location.href='/akun?profil='+encodeURIComponent(email.toLowerCase().trim()); 
@@ -215,7 +230,7 @@ function komenInner(k, showBalas, replyCount){
   if(replyCount>0 && showBalas){
     replyInfo='<div class=k-reply-count onclick="renderBalasan(\\''+k.id+'\\')">↳ '+replyCount+' balasan • Lihat balasan</div>';
   }
-  return '<img class=k-av src="'+pic+'" onclick="openProfil(\\''+email+'\\')" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=k-body><div class=k-user><b onclick="openProfil(\\''+email+'\\')" style="cursor:pointer">@'+name+'</b><span> • '+time+'</span></div><div class=k-text>'+text+'</div><div class=k-actions><div class="k-act'+loved+'" onclick="loveKomen(\\''+k.id+'\\')"><span>❤️</span><span>'+(k.likes>0?k.likes:'Love')+'</span></div>'+balas+del+'</div>'+replyInfo+'</div>';
+  return '<img class=k-av src="'+pic+'" onclick="openProfil(\''+email+'\')" onerror="this.src=\''+LOGO_FALLBACK+'\'"><div class=k-body><div class=k-user><b onclick="openProfil(\''+email+'\')" style="cursor:pointer">@'+name+'</b><span> • '+time+'</span></div><div class=k-text>'+text+'</div><div class=k-actions><div class="k-act'+loved+'" onclick="loveKomen(\''+k.id+'\')"><span>❤️</span><span>'+(k.likes>0?k.likes:'Love')+'</span></div>'+balas+del+'</div>'+replyInfo+'</div>';
 }
 
 function handleBalas(komenId, name){
@@ -266,7 +281,7 @@ async function loadTulis(){
   let h=document.getElementById('homeFeed'); if(!list.length){h.innerHTML='<div class=empty>Belum ada tulisan Bos</div>';return;} let admin=isAdmin();
   h.innerHTML=list.map(x=>{
    let text=x.text||x.isi||x.judul||''; let img=x.tulisImg||x.img||''; let name=x.name||(x.email||'').split('@')[0]||'Dunsanak'; let email=x.user_email||x.email||''; let pic=x.picture||LOGO_FALLBACK; let time=x.time||x.created_at||Date.now(); let likedClass=x.isLiked?" liked":"";
-   return '<div class=post id="post-'+x.id+'"><img class=post-av src="'+pic+'" onclick="openProfil(\\''+email+'\\')" onerror="this.src=\\''+LOGO_FALLBACK+'\\'"><div class=post-body><div><span class=post-name onclick="openProfil(\\''+email+'\\')">'+name+'</span><span class=post-email>'+email+'</span><span class=post-time> • '+fmtTimeFull(time)+'</span></div><div class=post-text>'+text.replace(/</g,'&lt;')+'</div>'+(img?'<div class=post-img><img src="'+img+'" loading=lazy></div>':'')+'<div class=like-bar><button id="like-btn-'+x.id+'" class="btn-like'+likedClass+'" onclick="likeTulis(\\''+x.id+'\\')">❤️ '+(x.likes||0)+'</button><button class=btn-like onclick="openKomen(\\''+x.id+'\\')">💬 Komen '+(x.komen_count||0)+'</button>'+(admin?'<button class=del onclick="hapusPost('+x.id+')">HAPUS</button>':'')+'</div></div></div>';
+   return '<div class=post id="post-'+x.id+'"><img class=post-av src="'+pic+'" onclick="openProfil(\''+email+'\')" onerror="this.src=\''+LOGO_FALLBACK+'\'"><div class=post-body><div><span class=post-name onclick="openProfil(\''+email+'\')">'+name+'</span><span class=post-email>'+email+'</span><span class=post-time> • '+fmtTimeFull(time)+'</span></div><div class=post-text>'+text.replace(/</g,'&lt;')+'</div>'+(img?'<div class=post-img><img src="'+img+'" loading=lazy></div>':'')+'<div class=like-bar><button id="like-btn-'+x.id+'" class="btn-like'+likedClass+'" onclick="likeTulis(\''+x.id+'\')">❤️ '+(x.likes||0)+'</button><button class=btn-like onclick="openKomen(\''+x.id+'\')">💬 Komen '+(x.komen_count||0)+'</button>'+(admin?'<button class=del onclick="hapusPost('+x.id+')">HAPUS</button>':'')+'</div></div></div>';
   }).join('');
  }catch(e){document.getElementById('homeFeed').innerHTML='<div class=empty>Error: '+e.message+'</div>';}
 }
@@ -286,7 +301,18 @@ async function addTulis(){
 
 async function hapusPost(id){if(!confirm("Hapus Bos?"))return;await fetch('/api/tulis/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});location.reload();}
 loadTulis();
-<\/script></body></html>
+
+// ✅ FIX NAVIGASI BAWAH AGAR SUKSES BERPINDAH HALAMAN
+document.querySelectorAll('.bot a').forEach(el => {
+    el.addEventListener('click', (e) => {
+        let href = el.getAttribute('href');
+        if (href && href !== '#') {
+            e.preventDefault();
+            window.location.href = href;
+        }
+    });
+});
+</script></body></html>
 `;
 
 export default HOME_HTML;

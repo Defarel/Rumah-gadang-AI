@@ -141,30 +141,6 @@ function htmlResponse(html, canonical) {
   return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "public, max-age=300" } });
 }
 
-// ===== GABUNG PAKSA - OBAT TOMBOL =====
-const OBAT_NAV = `<script>(function(){
-document.addEventListener('click', function(e){
-  try{
-    var a = e.target.closest ? e.target.closest('a') : null;
-    if(!a) return;
-    var href = a.getAttribute('href') || '';
-    if(!href) return;
-    var h = href.toLowerCase().split('?')[0];
-    var NAV = ['/','/foto','/video','/kantor','/luar','/dalam','/ai','/akun'];
-    if(NAV.indexOf(h) !== -1){
-      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
-      var dest = href + (href.includes('?') ? '&' : '?') + 'v=' + Date.now();
-      window.location.href = dest;
-      return false;
-    }
-  }catch(err){}
-}, true);
-})();<\/script>`;
-
-function htmlResponse(html, canonical) {
-  let fixed = injectCanonical(html, canonical);
-  let isKantor = (canonical || "").includes('/kantor') || (canonical || "").includes('/luar') || (canonical || "").includes('/dalam');
-  let isHome = canonical === "https://rumahgadang-ai.my.id/"
 // ===== MAIN WORKER EXPORT =====
 export default {
   async fetch(req, env) {
@@ -333,7 +309,7 @@ Host: https://rumahgadang-ai.my.id`;
     const segments = path.split("/").filter(Boolean);
     if (segments.length > 0) {
       let username = segments[0];
-      const reserved = ["home", "foto", "video", "ai", "kantor", "luar", "dalam", "akun", "api", "sitemap", "robots", "profil", "profile", "icon.png", "favicon.ico"];
+      const reserved = ["home", "foto", "video", "ai", "kantor", "luar", "dalam", "akun", "api", "sitemap", "robots", "profil", "profile", "icon.png", "favicon.ico", "chat"];
       if (!reserved.includes(username) && !username.includes(".") && username.length >= 2) {
         let targetEmail = username.includes('@') ? username : username + '@rumahgadang-ai.my.id';
         let modifiedAkunHtml = AKUN_HTML.replace('window.location.search', `"?profil=${encodeURIComponent(targetEmail)}"`);

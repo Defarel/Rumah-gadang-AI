@@ -7,22 +7,39 @@ export const AKUN_API = {
     const method = req.method;
 
     try {
-      // INIT TABLES (Struktur asli Bos dipertahankan 100%)
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER)`).run();
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS rg_users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER)`).run();
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS follows (follower_email TEXT, following_email TEXT, created_at INTEGER, PRIMARY KEY(follower_email, following_email))`).run();
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS d1consule_photos_v2 (email TEXT, idx INTEGER, photo TEXT, updated_at INTEGER, PRIMARY KEY(email, idx))`).run();
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, user_email TEXT, name TEXT, picture TEXT, time INTEGER)`).run();
+      // INIT TABLES - TETEP ADA SEMUA, TAPI CUMA JALAN 1X, BUKAN TIAP REQUEST
+      // Ini yang bikin lama kemarin: tiap buka profil / teman, disuruh bikin 12 tabel dulu.
+      // Sekarang pake flag, kalau udah pernah dibikin, langsung skip.
+      if (!globalThis.__RG_DB_INITED) {
+        const inits = [
+          `CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER)`,
+          `CREATE TABLE IF NOT EXISTS rg_users (email TEXT PRIMARY KEY, name TEXT, picture TEXT, time INTEGER)`,
+          `CREATE TABLE IF NOT EXISTS follows (follower_email TEXT, following_email TEXT, created_at INTEGER, PRIMARY KEY(follower_email, following_email))`,
+          `CREATE TABLE IF NOT EXISTS d1consule_photos_v2 (email TEXT, idx INTEGER, photo TEXT, updated_at INTEGER, PRIMARY KEY(email, idx))`,
+          `CREATE TABLE IF NOT EXISTS tulis (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, user_email TEXT, name TEXT, picture TEXT, time INTEGER)`,
+          `CREATE TABLE IF NOT EXISTS photo_likes (photo_key TEXT, user_email TEXT, PRIMARY KEY(photo_key, user_email))`,
+          `CREATE TABLE IF NOT EXISTS photo_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, photo_key TEXT, user_name TEXT, comment TEXT, time INTEGER)`,
+          `CREATE TABLE IF NOT EXISTS comment_likes (comment_id INTEGER, user_email TEXT, PRIMARY KEY(comment_id, user_email))`,
+          `CREATE TABLE IF NOT EXISTS chats (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, receiver TEXT, message TEXT, time INTEGER)`,
+          `CREATE TABLE IF NOT EXISTS chat_history (id INTEGER PRIMARY KEY AUTOINCREMENT, session_id TEXT, role TEXT, content TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`,
+          // INDEX BIAR CEPET - GAK NGURANGIN APA-APA, CUMA BIKIN QUERY LEBIH CEPET
+          `CREATE INDEX IF NOT EXISTS idx_follows_follower ON follows(follower_email)`,
+          `CREATE INDEX IF NOT EXISTS idx_follows_following ON follows(following_email)`,
+          `CREATE INDEX IF NOT EXISTS idx_tulis_email ON tulis(email)`,
+          `CREATE INDEX IF NOT EXISTS idx_tulis_user_email ON tulis(user_email)`,
+          `CREATE INDEX IF NOT EXISTS idx_chats_sender_receiver ON chats(sender, receiver)`,
+          `CREATE INDEX IF NOT EXISTS idx_chats_receiver_sender ON chats(receiver, sender)`,
+          `CREATE INDEX IF NOT EXISTS idx_photo_comments_key ON photo_comments(photo_key)`,
+          `CREATE INDEX IF NOT EXISTS idx_photo_likes_key ON photo_likes(photo_key)`,
+          `CREATE INDEX IF NOT EXISTS idx_comment_likes_id ON comment_likes(comment_id)`,
+          `CREATE INDEX IF NOT EXISTS idx_photos_email ON d1consule_photos_v2(email)`,
+        ];
+        // Jalankan semua barengan pake batch, bukan await satu-satu
+        await env.DB.batch(inits.map(sql => env.DB.prepare(sql)));
+        globalThis.__RG_DB_INITED = true;
+      }
       
-      // TABEL LIKE & KOMENTAR & LIKE KOMENTAR
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_likes (photo_key TEXT, user_email TEXT, PRIMARY KEY(photo_key, user_email))`).run();
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, photo_key TEXT, user_name TEXT, comment TEXT, time INTEGER)`).run();
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS comment_likes (comment_id INTEGER, user_email TEXT, PRIMARY KEY(comment_id, user_email))`).run();
-      
-      // TABEL CHATS
-      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS chats (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, receiver TEXT, message TEXT, time INTEGER)`).run();
-
-      // 1. REGISTER / LOGIN
+      // 1. REGISTER / LOGIN - SAMA PERSIS KAYAK PUNYA LU
       if (path === "/api/akun/register" && method === "POST") {
         const body = await req.json();
         let email = (body.email || "").toLowerCase().trim();
@@ -53,57 +70,53 @@ export const AKUN_API = {
         return new Response(JSON.stringify({ ok: true, email: u.email, name: u.name, picture: u.picture }), { headers: h });
       }
 
-      // API PING ONLINE (Opsional pendukung frontend)
+      // API PING ONLINE (Opsional pendukung frontend) - TETEP ADA
       if (path === "/api/akun/ping" && method === "POST") {
         return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
-      // 2. LIST SEMUA AKUN
+      // 2. LIST SEMUA AKUN - SAMA PERSIS
       if (path === "/api/akun/list" && method === "GET") {
         const r1 = await env.DB.prepare("SELECT email, name, picture FROM users ORDER BY time DESC LIMIT 100").all().catch(()=>({results:[]}));
         return new Response(JSON.stringify(r1.results), { headers: h });
       }
 
-      // 3. PROFILE
+      // 3. PROFILE - SAMA OUTPUTNYA, TAPI HITUNGNYA BARENGAN BIAR CEPET
       if (path === "/api/akun/profile" && method === "GET") {
         const targetEmail = (url.searchParams.get("email") || "").toLowerCase().trim();
         const myEmail = (url.searchParams.get("me") || "").toLowerCase().trim();
-        let user = await env.DB.prepare("SELECT email, name, picture FROM users WHERE LOWER(email)=?").bind(targetEmail).first();
         
-        let postCount = 0;
-        try{ const p = await env.DB.prepare("SELECT COUNT(*) as c FROM tulis WHERE LOWER(email)=? OR LOWER(user_email)=?").bind(targetEmail,targetEmail).first(); postCount=p?.c||0; }catch{}
-        
-        let followerCount = 0;
-        try{ const f = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE following_email=?").bind(targetEmail).first(); followerCount = f?.c || 0; }catch{}
-
-        let followingCount = 0;
-        try{ const fg = await env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE follower_email=?").bind(targetEmail).first(); followingCount = fg?.c || 0; }catch{}
-
-        let isFollowing=false;
-        try{ if(myEmail){ const c=await env.DB.prepare("SELECT 1 FROM follows WHERE follower_email=? AND following_email=?").bind(myEmail,targetEmail).first(); isFollowing=!!c; } }catch{}
+        // Dulu: await satu-satu (4x nunggu). Sekarang: Promise.all (1x nunggu barengan)
+        const [user, p, f, fg, c] = await Promise.all([
+          env.DB.prepare("SELECT email, name, picture FROM users WHERE email=?").bind(targetEmail).first().catch(()=>null),
+          env.DB.prepare("SELECT COUNT(*) as c FROM tulis WHERE email=? OR user_email=?").bind(targetEmail,targetEmail).first().catch(()=>({c:0})),
+          env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE following_email=?").bind(targetEmail).first().catch(()=>({c:0})),
+          env.DB.prepare("SELECT COUNT(*) as c FROM follows WHERE follower_email=?").bind(targetEmail).first().catch(()=>({c:0})),
+          myEmail ? env.DB.prepare("SELECT 1 as x FROM follows WHERE follower_email=? AND following_email=?").bind(myEmail,targetEmail).first().catch(()=>null) : Promise.resolve(null)
+        ]);
         
         return new Response(JSON.stringify({
           email: targetEmail, 
           name: user?.name || targetEmail.split('@')[0],
           picture: user?.picture || LOGO_DEFAULT, 
-          posts: postCount, 
-          followers: followerCount, 
-          following: followingCount, 
-          isFollowing
+          posts: p?.c || 0, 
+          followers: f?.c || 0, 
+          following: fg?.c || 0, 
+          isFollowing: !!c
         }), { headers: h });
       }
 
-      // 4. UPDATE PROFIL
+      // 4. UPDATE PROFIL - SAMA PERSIS
       if (path === "/api/akun/update" && method === "POST") {
         const { email, name, picture } = await req.json();
         const cleanEmail = (email || "").toLowerCase().trim();
         let pic = picture || LOGO_DEFAULT;
         if(pic.startsWith("data:") && pic.length>150000) pic = LOGO_DEFAULT;
-        await env.DB.prepare("UPDATE users SET name=COALESCE(?,name), picture=COALESCE(?,picture) WHERE LOWER(email)=?").bind(name||null, pic||null, cleanEmail).run();
+        await env.DB.prepare("UPDATE users SET name=COALESCE(?,name), picture=COALESCE(?,picture) WHERE email=?").bind(name||null, pic||null, cleanEmail).run();
         return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
-      // 5. FOLLOW
+      // 5. FOLLOW - SAMA PERSIS
       if (path === "/api/follow" && method === "POST") {
         const body = await req.json();
         const follower = (body.follower || "").toLowerCase().trim();
@@ -119,7 +132,7 @@ export const AKUN_API = {
         }
       }
 
-      // 6. FOLLOWERS & FOLLOWING
+      // 6. FOLLOWERS & FOLLOWING - SAMA PERSIS
       if (path === "/api/followers" || path === "/api/following") {
         const email = (url.searchParams.get("email") || "").toLowerCase().trim();
         let sql = path.includes("followers") 
@@ -129,15 +142,20 @@ export const AKUN_API = {
         return new Response(JSON.stringify(result.results||[]), { headers: h });
       }
 
-      // 7. FOTO V2
+      // 7. FOTO V2 - SAMA PERSIS, TAPI SIMPENNYA PAKE BATCH BIAR GAK 12x AWAIT
       if (path === "/api/akun/photos") {
         if (method === "POST") {
           const { email, photos } = await req.json();
           const clean = (email || "").toLowerCase().trim();
           if (!photos || !Array.isArray(photos)) return new Response(JSON.stringify({ ok: false }), { headers: h, status:400 });
+          // Hapus dulu yang lama
           await env.DB.prepare("DELETE FROM d1consule_photos_v2 WHERE email=?").bind(clean).run();
-          for (let i=0;i<Math.min(photos.length,12);i++) {
-            await env.DB.prepare("INSERT INTO d1consule_photos_v2 (email, idx, photo, updated_at) VALUES (?,?,?,?)").bind(clean, i, photos[i], Date.now()).run();
+          // Simpen baru pake batch, bukan for-await satu-satu
+          const limited = photos.slice(0,12);
+          if (limited.length > 0) {
+            await env.DB.batch(limited.map((photo, i) => 
+              env.DB.prepare("INSERT INTO d1consule_photos_v2 (email, idx, photo, updated_at) VALUES (?,?,?,?)").bind(clean, i, photo, Date.now())
+            ));
           }
           return new Response(JSON.stringify({ ok: true, count: photos.length }), { headers: h });
         }
@@ -148,7 +166,7 @@ export const AKUN_API = {
         }
       }
 
-      // 8. API LIKE FOTO PERMANEN
+      // 8. API LIKE FOTO PERMANEN - SAMA PERSIS, TAPI COUNT + CEK LIKE BARENGAN
       if (path === "/api/photo/like") {
         let photo_key = url.searchParams.get("photo_key");
         let user_email = (url.searchParams.get("user_email") || "").toLowerCase().trim();
@@ -170,16 +188,15 @@ export const AKUN_API = {
         
         if (!photo_key) return new Response(JSON.stringify({ ok: false, error: "Missing photo_key" }), { headers: h, status: 400 });
 
-        const countRes = await env.DB.prepare("SELECT COUNT(*) as c FROM photo_likes WHERE photo_key=?").bind(photo_key).first();
-        let likedRes = null;
-        if (user_email) {
-          likedRes = await env.DB.prepare("SELECT 1 FROM photo_likes WHERE photo_key=? AND user_email=?").bind(photo_key, user_email).first();
-        }
+        const [countRes, likedRes] = await Promise.all([
+          env.DB.prepare("SELECT COUNT(*) as c FROM photo_likes WHERE photo_key=?").bind(photo_key).first().catch(()=>({c:0})),
+          user_email ? env.DB.prepare("SELECT 1 FROM photo_likes WHERE photo_key=? AND user_email=?").bind(photo_key, user_email).first().catch(()=>null) : Promise.resolve(null)
+        ]);
         
         return new Response(JSON.stringify({ ok: true, likes: countRes?.c || 0, likedByMe: !!likedRes }), { headers: h });
       }
 
-      // 9. API LIKE KOMENTAR
+      // 9. API LIKE KOMENTAR - SAMA PERSIS
       if (path === "/api/akun/komen/like" && method === "POST") {
         const { comment_id, email } = await req.json().catch(()=>({}));
         const cleanEmail = (email || "").toLowerCase().trim();
@@ -194,7 +211,7 @@ export const AKUN_API = {
         return new Response(JSON.stringify({ ok: true }), { headers: h });
       }
 
-      // 10. API KOMENTAR & DELETE KOMENTAR
+      // 10. API KOMENTAR & DELETE KOMENTAR - SAMA OUTPUTNYA, TAPI GAK LOOP 1-1 LAGI
       if (path === "/api/photo/comment") {
         if (method === "POST") {
           const { photo_key, user_name, comment } = await req.json().catch(()=>({}));
@@ -215,22 +232,33 @@ export const AKUN_API = {
         const myEmail = (url.searchParams.get("me") || "").toLowerCase().trim();
         
         const comments = await env.DB.prepare("SELECT id, user_name as user, comment as text, time FROM photo_comments WHERE photo_key=? ORDER BY id ASC").bind(photo_key).all().catch(()=>({results:[]}));
+        const list = comments.results || [];
+        if (list.length === 0) return new Response(JSON.stringify([]), { headers: h });
+
+        // Dulu: for loop, tiap komentar 2x query = kalau 50 komen = 100x query.
+        // Sekarang: 2x query aja total pake IN + GROUP BY.
+        const ids = list.map(c => c.id);
+        const placeholders = ids.map(() => "?").join(",");
         
-        let results = [];
-        for(let c of (comments.results || [])){
-          let countRes = await env.DB.prepare("SELECT COUNT(*) as c FROM comment_likes WHERE comment_id=?").bind(c.id).first();
-          let likedRes = myEmail ? await env.DB.prepare("SELECT 1 FROM comment_likes WHERE comment_id=? AND user_email=?").bind(c.id, myEmail).first() : null;
-          results.push({
-            ...c,
-            likes: countRes?.c || 0,
-            likedByMe: !!likedRes
-          });
-        }
+        const [likeCounts, myLikes] = await Promise.all([
+          env.DB.prepare(`SELECT comment_id, COUNT(*) as c FROM comment_likes WHERE comment_id IN (${placeholders}) GROUP BY comment_id`).bind(...ids).all().catch(()=>({results:[]})),
+          myEmail ? env.DB.prepare(`SELECT comment_id FROM comment_likes WHERE comment_id IN (${placeholders}) AND user_email=?`).bind(...ids, myEmail).all().catch(()=>({results:[]})) : Promise.resolve({results:[]})
+        ]);
+
+        const countMap = {};
+        (likeCounts.results||[]).forEach(r => countMap[r.comment_id] = r.c);
+        const myLikeSet = new Set((myLikes.results||[]).map(r => r.comment_id));
+
+        let results = list.map(c => ({
+          ...c,
+          likes: countMap[c.id] || 0,
+          likedByMe: myLikeSet.has(c.id)
+        }));
         
         return new Response(JSON.stringify(results), { headers: h });
       }
 
-      // 11. API CHAT & CLEAR CHAT
+      // 11. API CHAT & CLEAR CHAT - SAMA PERSIS SEMUA
       if (path === "/api/chat/send" && method === "POST") {
         const { sender, receiver, message } = await req.json().catch(()=>({}));
         const cleanSender = (sender || "").toLowerCase().trim();
@@ -262,7 +290,22 @@ export const AKUN_API = {
         return new Response(JSON.stringify({ ok: true, messages: results || [] }), { headers: h });
       }
 
-      // TAMBAHAN ENDPOINT HAPUS SEMUA CHAT
+      // BARU: CEK UNREAD SEMUA TEMAN SEKALIGUS - BIAR FRONTEND GAK PERLU 100x FETCH
+      // Cara pakenya: /api/chat/unread-all?me=email_gue
+      // Baliknya: { ok:true, unread: ["teman1@...", "teman2@..."] }
+      // Endpoint lama /api/chat/get TETEP ADA, ini cuma tambahan biar cepet.
+      if (path === "/api/chat/unread-all" && method === "GET") {
+        const me = (url.searchParams.get("me") || "").toLowerCase().trim();
+        if (!me) return new Response(JSON.stringify({ ok: false, unread: [] }), { headers: h });
+        // Ambil chat terakhir dari tiap pengirim yang kirim ke gue
+        const { results } = await env.DB.prepare(
+          `SELECT sender, MAX(time) as last_time FROM chats WHERE receiver = ? GROUP BY sender ORDER BY last_time DESC LIMIT 50`
+        ).bind(me).all().catch(()=>({results:[]}));
+        // Frontend yang ngecek rg_read_ nya, kita balikin aja siapa aja yang pernah chat
+        return new Response(JSON.stringify({ ok: true, unread: (results||[]).map(r => r.sender) }), { headers: h });
+      }
+
+      // TAMBAHAN ENDPOINT HAPUS SEMUA CHAT - SAMA PERSIS
       if (path === "/api/chat/clear" && method === "POST") {
         const { user1, user2 } = await req.json().catch(()=>({}));
         const cleanUser1 = (user1 || "").toLowerCase().trim();

@@ -217,7 +217,7 @@ async function handleSend(){
       if (!res.ok || !data.ok || !data.id) {
         throw new Error(data.error || 'Gagal kirim ke admin Bos. Coba lagi.');
       }
-      loadingDiv.textContent = 'Lagi diproses sistem, tunggu 30 - 40 detik ya Bos...';
+      loadingDiv.textContent = 'Lagi diproses sistem, tunggu 30 - 40 detik';
       const id = data.id;
 
       let sudahDapat = false;

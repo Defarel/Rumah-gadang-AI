@@ -1,3 +1,6 @@
+// file: ./ai/index.js - RUMAH GADANG AI - FULL AUTO
+// API OTOMATIS BIKIN ID ORANG ITU, BOS. LU CUMA KIRIM GAMBAR AJA
+
 export const AI_HTML = `<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
@@ -18,7 +21,8 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .chat-bubble{max-width:85%;padding:12px 16px;border-radius:18px;font-size:14px;line-height:1.4;word-wrap:break-word;backdrop-filter:blur(6px)}
 .chat-bubble.user{align-self:flex-end;background:rgba(0,255,136,0.85);color:#000;font-weight:600;border-bottom-right-radius:4px;box-shadow:0 0 10px rgba(0,255,136,0.4)}
 .chat-bubble.ai{align-self:flex-start;background:rgba(20,20,20,0.85);color:#fff;border:1px solid #00ff88;border-bottom-left-radius:4px;box-shadow:0 0 10px rgba(0,0,0,0.6)}
-.chat-bubble.ai img{max-width:100%;border-radius:12px;margin-top:8px;display:block}
+.chat-bubble.ai img{max-width:100%;border-radius:12px;margin-top:8px;display:block;cursor:pointer}
+.chat-bubble.ai a{color:#00ff88}
 .bottom-chat-bar{position:absolute;bottom:125px;left:0;width:100%;padding:12px 16px;display:flex;gap:10px;z-index:10;background:linear-gradient(to top, rgba(0,0,0,0.95), transparent)}
 .chat-input{flex:1;background:rgba(20,20,20,0.85);border:1px solid #333;border-radius:16px;padding:14px 16px;color:#fff;font-size:14px;outline:none;backdrop-filter:blur(6px)}
 .chat-input:focus{border-color:#00ff88}
@@ -63,12 +67,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const playOnInteraction = () => { audio.play(); document.removeEventListener('click', playOnInteraction); };
     document.addEventListener('click', playOnInteraction);
   });
+  // Sambutan awal, Bos
+  const chatBox = document.getElementById('chatBox');
+  if (chatBox.children.length === 0) {
+    appendMessage('Halo Bos! 👋\\nMau tanya apa? Atau mau gambar?\\n\\nKetik aja: "Gambarkan rumah gadang di Padang"', 'ai');
+  }
 });
 function toggleMusic(){
   if(audio.paused){ audio.play(); musicBtn.innerHTML = "🔊 RG Musik"; }
   else { audio.pause(); musicBtn.innerHTML = "📁 RG Musik"; }
 }
 function handleKeyPress(e){ if(e.key === 'Enter') handleSend(); }
+
+// === BIKIN ID ORANG ITU OTOMATIS, BOS. DISIMPEN DI HP-NYA, BIAR GAK GANTI-GANTI ===
+function getUserId(){
+  let uid = localStorage.getItem('rg_user_id');
+  if (!uid) {
+    uid = 'user-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+    localStorage.setItem('rg_user_id', uid);
+  }
+  return uid;
+}
 
 async function handleSend(){
   const inputEl = document.getElementById('userInput');
@@ -86,11 +105,12 @@ async function handleSend(){
 
   try {
     if (isImageRequest) {
-      // === 1. KIRIM KE ADMIN VIA /api/ai-request, BOS ===
+      // === 1. KIRIM KE ADMIN VIA /api/ai-request, BOS. BAWA user_id OTOMATIS ===
+      const user_id = getUserId();
       const res = await fetch('/api/ai-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: prompt })
+        body: JSON.stringify({ prompt: prompt, user_id: user_id })
       });
       const data = await res.json();
       if (!data.ok) {
@@ -102,14 +122,16 @@ async function handleSend(){
       const id = data.id;
 
       // === 2. POLLING TIAP 3 DETIK, BOS. NANYA UDAH JADI BELUM? ===
+      let sudahDapat = false;
       const cek = setInterval(async () => {
         try {
           const cekRes = await fetch('/api/ai-status?id=' + id);
           const hasil = await cekRes.json();
           if (hasil.status === 'selesai') {
+            sudahDapat = true;
             clearInterval(cek);
             if (hasil.gambar && hasil.gambar.startsWith('http')) {
-              loadingDiv.innerHTML = '<div>Gambar: ' + escapeHtml(prompt) + '</div><img src="' + hasil.gambar + '">';
+              loadingDiv.innerHTML = '<div>Gambar: ' + escapeHtml(prompt) + '</div><a href="' + hasil.gambar + '" target="_blank"><img src="' + hasil.gambar + '"></a><div style="font-size:11px;opacity:0.7;margin-top:6px">Klik gambar buat buka full Bos</div>';
             } else {
               loadingDiv.textContent = hasil.gambar || 'Selesai Bos.';
             }
@@ -117,7 +139,11 @@ async function handleSend(){
           }
         } catch(e) {}
       }, 3000);
-      setTimeout(() => clearInterval(cek), 300000);
+      // Berhenti polling kalau 5 menit gak ada balesan, Bos
+      setTimeout(() => {
+        clearInterval(cek);
+        if (!sudahDapat) loadingDiv.textContent = "Admin belum bales Bos, coba kirim lagi ya Bos. Mungkin admin lagi sibuk.";
+      }, 300000);
     } else {
       // === NANYA BIASA -> GROQ /api/ai, BOS ===
       const res = await fetch('/api/ai', {
@@ -153,3 +179,6 @@ function appendMessage(text, sender){
 </script>
 </body>
 </html>`;
+
+export const AI = AI_HTML;
+export default AI_HTML;

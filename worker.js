@@ -1,345 +1,319 @@
-import * as HOME_M from './home/index.js';
-import * as FOTO_M from './foto/index.js';
-import * as VIDEO_M from './video/index.js';
-import * as LUAR_M from './kantor/Luar/index.js';
-import * as DALAM_M from './kantor/Dalam/index.js';
-import * as AI_M from './ai/index.js';
-import * as AKUN_M from './akun/index.js';
-import * as CHAT_M from './akun/Chat/index.js';
-import * as TULIS_M from './home/api-tulis/api.js';
-import * as FOTO_API_M from './foto/api-foto/api.js';
-import * as VIDEO_API_M from './video/api-video/api.js';
-import * as AKUN_API_M from './akun/api-akun/api.js';
-import * as AI_API_M from './ai/api-ai/api.js';
-import * as SITEMAP_M from './api-sitemap/index.js';
+// ==========================================
+// RUMAH GADANG AI - HOME INDEX.HTML (CLEAN & OPTIMIZED)
+// ==========================================
+export const HOME_HTML = `<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rumah Gadang AI - Komunitas Minangkabau</title>
+<link rel="icon" href="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png">
+<link rel="canonical" href="https://rumahgadang-ai.my.id/">
+<meta name="description" content="Komunitas Minangkabau - Rumah Gadang AI, tempat dunsanak berbagi cerita">
 
-// ===== AI API FINAL - GROQ + HF KREA 2 (FAL-AI QUEUE) =====
-export const AI_API = {
-  async handle(req, env, url, corsHeaders) {
-    const cors = corsHeaders || {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "Content-Type": "application/json"
-    };
-    if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
-    const p = url.pathname.toLowerCase();
+<!-- SCHEMA ORGANIZATION UNTUK GOOGLE SEARCH -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Rumah Gadang AI",
+  "url": "https://rumahgadang-ai.my.id",
+  "logo": "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png",
+  "image": "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png",
+  "sameAs": [
+    "https://rumahgadang-ai.my.id"
+  ]
+}
+</script>
 
-    if (req.method === "GET" && (p === "/api/ai" || p === "/api/t2i")) {
-      return new Response(JSON.stringify({
-        ok: true,
-        TEXT: "GROQ: " + !!env.GROQ_API_KEY,
-        IMAGE: "HF KREA 2 (fal-ai queue): " + !!env.API_T2I
-      }), { headers: cors });
-    }
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#fff;font-family:system-ui,sans-serif}
+#app{max-width:520px;margin:0 auto;background:#000;min-height:100vh;padding-bottom:90px;border-left:1px solid #1a1a1a;border-right:1px solid #1a1a1a}
+.top{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #222;position:sticky;top:0;background:rgba(0,0,0,0.9);backdrop-filter:blur(8px);z-index:20}
+.logo{width:38px;height:38px;border-radius:50%;border:2px solid #00ff88;object-fit:cover}
+.brand{font-weight:900;font-size:15px;color:#fff}
+.btnLogin{background:#fff;color:#000;border:0;padding:7px 16px;border-radius:22px;font-weight:900;font-size:12px;cursor:pointer}
+.box{padding:14px;background:#080808;border-bottom:1px solid #222}
+.inputRow{display:flex;gap:8px;align-items:center}
+.txt{flex:1;background:#121212;border:1.5px solid #333;color:#fff;padding:12px 16px;border-radius:16px;font-size:15px;outline:none;transition:border-color .2s}
+.txt:focus{border-color:#00ff88}
+.btnPlus{width:48px;height:48px;background:#1a1a1a;border:1px solid #333;color:#fff;border-radius:14px;font-size:26px;font-weight:900;display:grid;place-items:center;cursor:pointer}
+.btnKirim{width:100%;margin-top:10px;background:#00ff88;color:#000;border:0;padding:13px;border-radius:16px;font-weight:900;font-size:15px;cursor:pointer}
+#preview{margin-top:12px;display:none;position:relative}
+#preview img{width:100%;border-radius:14px;max-height:400px;object-fit:cover;border:1px solid #333}
+#preview span{position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.85);color:#fff;padding:6px 11px;border-radius:22px;cursor:pointer;border:1px solid #333;font-size:12px}
+.post{padding:14px;display:flex;gap:12px;background:#0c0c0c;margin:12px 12px;border-radius:16px;border:1px solid #222;box-shadow:0 4px 12px rgba(0,0,0,0.5)}
+.post-av{width:42px;height:42px;border-radius:50%;object-fit:cover;border:1.5px solid #00ff88;flex-shrink:0;cursor:pointer}
+.post-body{flex:1;min-width:0}
+.post-name{font-weight:800;font-size:14px;color:#fff;cursor:pointer}
+.post-email{font-size:11px;color:#00ff88;margin-left:4px;pointer-events:none}
+.post-time{font-size:11px;color:#777;margin-left:6px}
+.post-text{margin-top:7px;font-size:14.5px;line-height:1.55;color:#f0f0f0;white-space:pre-wrap;word-break:break-word}
+.post-img{margin-top:11px;border-radius:12px;overflow:hidden;border:1px solid #222}
+.post-img img{width:100%;display:block}
+.like-bar{margin-top:11px;display:flex;gap:8px}
+.btn-like{background:#161616;border:1px solid #2a2a2a;color:#ddd;padding:7px 14px;border-radius:20px;font-size:13px;cursor:pointer;font-weight:700}
+.btn-like.liked{background:#00ff88;color:#000;border-color:#00ff88;font-weight:900}
+.del{background:#ff1a1a;color:#fff;border:0;padding:6px 12px;border-radius:20px;font-size:11px;margin-left:auto;cursor:pointer}
+.bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:1px solid #222;display:flex;z-index:99}
+.bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}
+.bot a.on{color:#00ff88}
+.bot a span{font-size:10px;display:block;margin-top:2px;font-weight:700}
+.empty{text-align:center;padding:50px 20px;color:#666}
+#komenSheet{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.7)}
+#komenSheet.show{display:block}
+.komen-panel{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#121212;border-top-left-radius:18px;border-top-right-radius:18px;max-height:85vh;display:flex;flex-direction:column;border-top:1px solid #333;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translate(-50%,100%)}to{transform:translate(-50%,0)}}
+.komen-handle{width:40px;height:4px;background:#333;border-radius:10px;margin:10px auto}
+.komen-head{padding:0 16px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #222}
+.komen-title{font-weight:900;font-size:18px;flex:1}
+.komen-back{font-size:22px;cursor:pointer;padding:4px 8px;display:none}
+.komen-close{font-size:22px;padding:6px 10px;cursor:pointer}
+.komen-list{flex:1;overflow-y:auto;padding:0;display:flex;flex-direction:column}
+.k-item{padding:14px 16px;display:flex;gap:10px}
+.k-av{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#222;border:1px solid #333}
+.k-body{flex:1;min-width:0}
+.k-user{font-size:13px;color:#aaa;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.k-user b{color:#fff}
+.k-text{margin-top:4px;font-size:14.5px;line-height:1.5;color:#f1f1f1;white-space:pre-wrap;word-break:break-word}
+.k-actions{margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.k-act{display:flex;gap:6px;align-items:center;font-size:13px;color:#aaa;cursor:pointer;padding:6px 14px;border-radius:20px;border:1px solid #2a2a2a;background:#1e1e1e}
+.k-act.loved{background:#ff2d55;color:#fff;border-color:#ff2d55;font-weight:900}
+.k-del{color:#ff4444;font-size:12px;cursor:pointer;padding:5px 10px;border-radius:12px;border:1px solid #331111;background:#1a1111;margin-left:auto}
+.k-reply-count{margin-top:10px;color:#00ff88;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px}
+.k-parent{padding:14px 16px;background:#161616;border-bottom:1px solid #222}
+.thread-wrap{position:relative;padding-left:0}
+.thread-wrap::before{content:"";position:absolute;left:33px;top:0;bottom:20px;width:2px;background:#2e2e2e}
+.thread-item{position:relative;padding:14px 16px 14px 54px;display:flex;gap:10px}
+.thread-item::before{content:"";position:absolute;left:33px;top:32px;width:20px;height:2px;background:#2e2e2e}
+.thread-dot{position:absolute;left:28px;top:31px;width:10px;height:10px;border-radius:50%;background:#00ff88;border:2px solid #121212;z-index:1}
+.k-input-bar{padding:10px 12px;border-top:1px solid #222;display:flex;gap:10px;align-items:center;background:#121212}
+.k-input{flex:1;background:#222;border:1px solid #333;color:#fff;padding:12px 16px;border-radius:24px;font-size:14px;outline:none}
+.k-send{width:40px;height:40px;background:#00ff88;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#000;font-weight:900;border:0;font-size:18px}
+</style></head><body>
+<div id=app>
+<div class=top><div style="display:flex;gap:10px;align-items:center"><img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png" class=logo><div class=brand>RUMAH GADANG AI</div></div><button class=btnLogin id=btnLoginTop onclick="location.href='/akun'">LOGIN</button></div>
+<div class=box>
+<div class=inputRow>
+<input id=tulisIn class=txt placeholder="Tulis disini sanak...">
+<button class=btnPlus onclick="document.getElementById('fileIn').click()">+</button>
+</div>
+<div id=preview><img id=prevImg><span onclick="clearImg()">✕ Hapus</span></div>
+<button class=btnKirim onclick="addTulis()">KIRIM</button>
+<input type=file id=fileIn accept="image/*" style="display:none">
+</div>
+<div id=homeFeed><div class=empty>Tunggu sanak...</div></div>
+</div>
+<div class=bot>
+<a href="/" class=on>🏠<br><span>Home</span></a>
+<a href="/foto">🖼️<br><span>Foto</span></a>
+<a href="/video">🎬<br><span>Video</span></a>
+<a href="/kantor">🏢<br><span>Kantor</span></a>
+<a href="/ai">🤖<br><span>AI</span></a>
+<a href="/akun">👤<br><span>Akun</span></a>
+</div>
 
-    if (p === "/api/ai" && req.method === "POST") {
-      let { prompt } = await req.json().catch(() => ({}));
-      prompt = (prompt || "").trim();
-      if (!prompt) return new Response(JSON.stringify({ reply: "Prompt kosong" }), { headers: cors });
-      
-      let GROQ_KEY = (env.GROQ_API_KEY || "").trim();
-      for (let model of ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile"]) {
-        try {
-          let r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_KEY },
-            body: JSON.stringify({
-              model,
-              messages: [
-                { role: "system", content: "KAMU: Rumah Gadang AI Padang, ramah Minang, singkat max 60 kata." },
-                { role: "user", content: prompt }
-              ],
-              temperature: 0.7,
-              max_tokens: 400
-            })
-          });
-          let d = await r.json();
-          if (d.choices?.[0]?.message?.content) {
-            return new Response(JSON.stringify({ reply: d.choices[0].message.content, model }), { headers: cors });
-          }
-        } catch {}
-      }
-      return new Response(JSON.stringify({ reply: "Groq gagal" }), { headers: cors });
-    }
+<div id=komenSheet onclick="if(event.target.id==='komenSheet') closeKomen()">
+<div class=komen-panel>
+<div class=komen-handle></div>
+<div class=komen-head><span id=backBtn class=komen-back onclick="showKomentar()">←</span><div id=komenTitle class=komen-title>Komentar</div><div class=komen-close onclick="closeKomen()">✕</div></div>
+<div id=komenList class=komen-list><div class=empty>Memuat komen...</div></div>
+<div class=k-input-bar><img id=kMyAv src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png" style="width:32px;height:32px;border-radius:50%;object-fit:cover"><input id=kInput class=k-input placeholder="Bagikan pemikiran Anda..."><button class=k-send onclick="sendKomen()">➤</button></div>
+</div>
+</div>
 
-    if (p === "/api/t2i" && req.method === "POST") {
-      try {
-        let { prompt } = await req.json().catch(() => ({}));
-        prompt = (prompt || "Gambarkan jalan lurus").trim();
-        let HF_TOKEN = (env.API_T2I || "").trim();
-        if (!HF_TOKEN) return new Response(JSON.stringify({ ok: false, error: "API_T2I belum set" }), { headers: cors, status: 500 });
-
-        const response = await fetch(
-          "https://router.huggingface.co/fal-ai/fal-ai/krea-2/turbo?_subdomain=queue",
-          {
-            headers: {
-              Authorization: `Bearer ${HF_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-            method: "POST",
-            body: JSON.stringify({ prompt }),
-          }
-        );
-
-        const ct = response.headers.get("content-type") || "";
-        if (ct.includes("application/json")) {
-          let txt = await response.text();
-          throw new Error(txt);
-        }
-
-        let blob = await response.blob();
-        let buf = await blob.arrayBuffer();
-        let b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-        let dataUrl = `data:image/png;base64,${b64}`;
-        
-        return new Response(JSON.stringify({ ok: true, prompt, model: "krea/Krea-2-Turbo", image: dataUrl }), { headers: cors });
-
-      } catch (e) {
-        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
-      }
-    }
-    return null;
-  }
-};
-
-// ===== HELPERS & TEMPLATES =====
-function getHtml(mod) { 
-  return mod.default || mod.HOME_HTML || mod.HOME || mod.FOTO_HTML || mod.FOTO || mod.VIDEO_HTML || mod.VIDEO || mod.AI_HTML || mod.AI || mod.KANTOR_HTML || mod.KANTOR || mod.LUAR_HTML || mod.LUAR || mod.DALAM_HTML || mod.DALAM || mod.AKUN_HTML || mod.AKUN || mod.CHAT_HTML || mod.CHAT || Object.values(mod)[0]; 
+<script>
+if(location.pathname.toLowerCase()==='/home' || location.pathname.toLowerCase()==='/home/'){
+  history.replaceState(null,'','/');
+  let link=document.querySelector('link[rel="canonical"]');
+  if(link) link.href='https://rumahgadang-ai.my.id/';
 }
 
-function getApi(mod) { 
-  return mod.FOTO_API || mod.VIDEO_API || mod.AKUN_API || mod.AI_API || mod.TULIS_API || mod.SITEMAP_API || mod.default || mod; 
+const LOGO_FALLBACK="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png";
+const ADMIN_EMAILS=["admin@rumahgadang-ai.my.id","naura@rumahgadang-ai.my.id","defarel@rumahgadang-ai.my.id"];
+let selectedImg=""; let activeTulisId=""; let activeKomen=[]; let mode="komentar"; let activeParent=null;
+function getEmail(){let e=(localStorage.getItem('rg_email')||"").toLowerCase().trim(); if(e && !e.includes('@')) e=e+'@rumahgadang-ai.my.id'; return e;}
+function getName(){return localStorage.getItem('rg_name')|| (getEmail()?getEmail().split('@')[0]:'Dunsanak');}
+function getAvatar(){return localStorage.getItem('rg_avatar')||LOGO_FALLBACK;}
+function isAdmin(){return ADMIN_EMAILS.includes(getEmail());}
+function clearImg(){selectedImg="";document.getElementById('preview').style.display='none';document.getElementById('prevImg').src="";document.getElementById('fileIn').value="";}
+
+function openProfil(email){ 
+  if(!email) return; 
+  location.href='/akun?profil='+encodeURIComponent(email.toLowerCase().trim()); 
 }
 
-const HOME_HTML = getHtml(HOME_M);
-const FOTO_HTML = getHtml(FOTO_M);
-const VIDEO_HTML = getHtml(VIDEO_M);
-const LUAR_HTML = getHtml(LUAR_M);
-const DALAM_HTML = getHtml(DALAM_M);
-const KANTOR_HTML = LUAR_HTML;
-const AI_HTML = getHtml(AI_M);
-const AKUN_HTML = getHtml(AKUN_M);
-const CHAT_HTML = getHtml(CHAT_M);
+document.getElementById('fileIn').addEventListener('change',function(e){
+ let f=e.target.files[0]; if(!f) return;
+ let r=new FileReader();
+ r.onload=function(ev){
+   let img=new Image();
+   img.onload=function(){
+     let canvas=document.createElement('canvas');
+     let maxW=900; let w=img.width,h=img.height;
+     if(w>maxW||h>maxW){ if(w>h){h*=maxW/w;w=maxW;} else {w*=maxW/h;h=maxW;} }
+     canvas.width=w; canvas.height=h;
+     canvas.getContext('2d').drawImage(img,0,0,w,h);
+     selectedImg=canvas.toDataURL('image/jpeg',0.65);
+     document.getElementById('prevImg').src=selectedImg;
+     document.getElementById('preview').style.display='block';
+   };
+   img.src=ev.target.result;
+ };
+ r.readAsDataURL(f);
+});
 
-function injectCanonical(html, canonicalUrl) {
-  if (!html || typeof html !== 'string') return html;
-  if (html.includes('rel="canonical"')) {
-    return html.replace(/<link[^>]*rel=["']canonical["'][^>]*>/i, `<link rel="canonical" href="${canonicalUrl}">`);
-  }
-  if (html.includes('</title>')) {
-    return html.replace('</title>', `</title>\n<link rel="canonical" href="${canonicalUrl}">`);
-  }
-  if (html.includes('</head>')) {
-    return html.replace('</head>', `<link rel="canonical" href="${canonicalUrl}">\n</head>`);
-  }
-  return html;
+function fmtTime(t){let diff=Date.now()-Number(t); if(diff<60000) return "baru"; if(diff<3600000) return Math.floor(diff/60000)+" mnt lalu"; if(diff<86400000) return Math.floor(diff/3600000)+" jam lalu"; if(diff<2592000000) return Math.floor(diff/86400000)+" hr lalu"; if(diff<31536000000) return Math.floor(diff/2592000000)+" bln lalu"; return Math.floor(diff/31536000000)+" thn lalu"; }
+function fmtTimeFull(t){let d=new Date(Number(t)||Date.now()); return d.toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
+
+async function likeTulis(id){
+  const email=getEmail(); if(!email){ alert("Login dulu Bos!"); location.href="/akun"; return; }
+  await fetch("/api/tulis/like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:String(id),email:email})});
+  loadTulis();
 }
 
-function htmlResponse(html, canonical) {
-  const fixed = injectCanonical(html, canonical);
-  return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "public, max-age=300" } });
+function openKomen(id){
+  activeTulisId=id; mode="komentar"; activeParent=null;
+  document.getElementById('kMyAv').src=getAvatar();
+  document.getElementById('komenSheet').classList.add('show');
+  document.getElementById('komenList').innerHTML='<div class=empty>Memuat...</div>';
+  loadKomen(id);
+}
+function closeKomen(){ document.getElementById('komenSheet').classList.remove('show'); activeTulisId=""; mode="komentar"; activeParent=null; }
+function showKomentar(){ mode="komentar"; activeParent=null; renderKomentar(); }
+
+async function loadKomen(id){
+  const me=getEmail();
+  let r=await fetch("/api/tulis/komen?id="+id+"&me="+encodeURIComponent(me)+"&t="+Date.now(),{cache:'no-store'});
+  activeKomen=await r.json(); renderKomentar();
 }
 
-// ===== MAIN WORKER EXPORT =====
-export default {
-  async fetch(req, env) {
-    const url = new URL(req.url);
-    let path = url.pathname.toLowerCase();
-    
-    const cors = {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET,POST,OPTIONS,DELETE',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Cache-Control': 'no-store',
-      'X-Robots-Tag': 'noindex, nofollow'
-    };
-    
-    if (req.method === "OPTIONS") return new Response("", { headers: cors });
+function renderKomentar(){
+  let parents=activeKomen.filter(k=>!k.parent_id||k.parent_id===""||k.parent_id==="null");
+  document.getElementById('komenTitle').innerText="Komentar • "+parents.length+" • "+activeKomen.length+" total";
+  document.getElementById('backBtn').style.display="none";
+  document.getElementById('kInput').placeholder="Bagikan pemikiran Anda...";
+  mode="komentar"; activeParent=null;
+  let h=document.getElementById('komenList');
+  if(!parents.length){ h.innerHTML='<div class=empty>Belum ada komentar. Jadi yang pertama Bos!</div>'; return; }
+  h.innerHTML=parents.map(k=>{
+    let replyCount=activeKomen.filter(c=>String(c.parent_id)===String(k.id)).length;
+    return '<div class=k-item>'+komenInner(k,true,replyCount)+'</div>';
+  }).join('');
+}
 
-    // Redirect HTTP ke HTTPS & www ke non-www
-    const proto = req.headers.get('x-forwarded-proto') || url.protocol.replace(':', '');
-    const host = (req.headers.get('host') || url.hostname).toLowerCase();
-    
-    if (proto === 'http' || host.startsWith('www.')) {
-      return Response.redirect("https://rumahgadang-ai.my.id" + url.pathname + url.search, 301);
-    }
-    
-    if (path === "/home" || path === "/home/") {
-      return Response.redirect("https://rumahgadang-ai.my.id/", 301);
-    }
-    
-    if (["/foto/", "/video/", "/kantor/", "/ai/", "/akun/", "/luar/", "/dalam/", "/akun/chat/"].includes(path)) {
-      return Response.redirect("https://rumahgadang-ai.my.id" + path.slice(0, -1), 301);
-    }
+function renderBalasan(parentId){
+  let parent=activeKomen.find(k=>String(k.id)===String(parentId)); if(!parent) return;
+  activeParent=parent; mode="balasan";
+  let children=activeKomen.filter(k=>String(k.parent_id)===String(parentId));
+  document.getElementById('komenTitle').innerText="Balasan • "+children.length+" balasan";
+  document.getElementById('backBtn').style.display="block";
+  document.getElementById('kInput').placeholder="Balas @"+(parent.name||parent.email.split('@')[0])+"...";
+  let h=document.getElementById('komenList');
+  let parentHtml='<div class=k-parent>'+komenInner(parent,false,children.length)+'</div>';
+  let threadHtml='<div class=thread-wrap>'+(children.length?children.map(c=>'<div class=thread-item><div class=thread-dot></div>'+komenInner(c,true,0)+'</div>').join(''):'<div class=empty style="padding:18px">Belum ada balasan</div>')+'</div>';
+  h.innerHTML=parentHtml+threadHtml;
+}
 
-    // SITEMAP.XML
-    if (path === "/sitemap.xml" || path === "/sitemap/" || path === "/sitemap") {
-      const now = new Date().toISOString().split('T')[0];
-      const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://rumahgadang-ai.my.id/</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/foto</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/video</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/ai</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/kantor</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/luar</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/dalam</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://rumahgadang-ai.my.id/akun</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
-</urlset>`;
-      return new Response(xml.trim(), {
-        status: 200,
-        headers: { "Content-Type": "application/xml; charset=UTF-8", "Cache-Control": "no-cache", "Access-Control-Allow-Origin": "*" }
-      });
-    }
-
-    // ROBOTS.TXT
-    if (path === "/robots.txt" || path === "/robots" || path === "/robots/") {
-      const robots = `User-agent: *
-Allow: /
-
-Disallow: /api/akun/update
-Disallow: /api/akun/register
-Disallow: /api/register
-Disallow: /api/tulis/delete
-Disallow: /api/ig-curated/delete
-Disallow: /api/debug
-
-Sitemap: https://rumahgadang-ai.my.id/sitemap.xml
-Host: https://rumahgadang-ai.my.id`;
-      return new Response(robots, { status: 200, headers: { "Content-Type": "text/plain;charset=utf-8", "Cache-Control": "public, max-age=3600" } });
-    }
-
-    // GLOBAL DELETE HANDLER
-    const deletePaths = ["/api/ig-curated/delete", "/api/images/delete", "/api/foto/delete", "/api/delete", "/api/tulis/delete", "/api/home/delete"];
-    if (deletePaths.includes(path)) {
-      try {
-        let body = {}; 
-        try { body = await req.json(); } catch {}
-        let idDel = String(body.id || url.searchParams.get('id') || '');
-        if (!idDel) return new Response(JSON.stringify({ ok: false, error: "id kosong Bos" }), { headers: cors, status: 400 });
-        
-        let idInt = parseInt(idDel); 
-        if (isNaN(idInt)) idInt = -999;
-        let logs = [];
-        
-        if (env.DB) {
-          for (let tbl of ["ig_curated", "images", "foto", "tulis", "home_tulis", "posts"]) {
-            try { 
-              let r = await env.DB.prepare(`DELETE FROM ${tbl} WHERE id=?`).bind(idInt).run(); 
-              logs.push(tbl + "_int:" + r.meta.changes); 
-            } catch (e) { logs.push(tbl + "_int_err:" + e.message); }
-            
-            try { 
-              let r = await env.DB.prepare(`DELETE FROM ${tbl} WHERE CAST(id AS TEXT)=?`).bind(idDel).run(); 
-              logs.push(tbl + "_str:" + r.meta.changes); 
-            } catch (e) { logs.push(tbl + "_str_err:" + e.message); }
-          }
-        }
-        return new Response(JSON.stringify({ ok: true, deleted: idDel, logs }), { headers: cors });
-      } catch (e) {
-        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
-      }
-    }
-
-    // DEBUG ENDPOINTS
-    if (path.startsWith("/api/debug")) {
-      try {
-        if (!env.DB) return new Response(JSON.stringify({ ok: false, error: "DB GAK ADA BOS" }), { headers: cors });
-        
-        if (path.includes("/ids")) {
-          let ig = await env.DB.prepare("SELECT id, time, akun, linkIG, caption, substr(img,1,30) as img_preview FROM ig_curated ORDER BY id DESC LIMIT 50").all().catch(() => ({ results: [] }));
-          let img = await env.DB.prepare("SELECT id, time, substr(url,1,30) as url_preview FROM images ORDER BY id DESC LIMIT 50").all().catch(() => ({ results: [] }));
-          let ft = await env.DB.prepare("SELECT id, time, email FROM foto ORDER BY id DESC LIMIT 50").all().catch(() => ({ results: [] }));
-          let tl = await env.DB.prepare("SELECT id, time, email, substr(isi,1,30) as isi_preview FROM tulis ORDER BY id DESC LIMIT 50").all().catch(() => ({ results: [] }));
-          return new Response(JSON.stringify({ ok: true, ig_curated: ig.results, images: img.results, foto: ft.results, tulis: tl.results }), { headers: cors });
-        }
-        
-        if (path.includes("/akun")) {
-          let users = await env.DB.prepare("SELECT rowid, email, name, substr(picture,1,20) as pic_preview FROM users ORDER BY rowid DESC LIMIT 100").all().catch(() => ({ results: [] }));
-          let cleanUsers = users.results.map(u => ({ id: u.rowid, email: u.email, name: u.name }));
-          return new Response(JSON.stringify({ ok: true, count: cleanUsers.length, akun: cleanUsers }), { headers: cors });
-        }
-        
-        let tables = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().catch(() => ({ results: [] }));
-        return new Response(JSON.stringify({ ok: true, tables: tables.results.map(t => t.name) }), { headers: cors });
-      } catch (e) {
-        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
-      }
-    }
-    
-    // Shortcut Aliases
-    if (path === "/f" || path === "/f/") path = "/foto";
-    if (path === "/v" || path === "/v/") path = "/video";
-    if (path === "/a" || path === "/a/") path = "/ai";
-
-    // API ROUTING
-    if (path.startsWith('/api/')) {
-      const blockedForGet = ["/api/akun/update", "/api/akun/register", "/api/register", "/api/tulis/delete"];
-      if (blockedForGet.some(p => path.startsWith(p)) && req.method === "GET") {
-        return new Response(JSON.stringify({ ok: false, error: "API private - use POST" }), { headers: cors, status: 404 });
-      }
-
-      try {
-        if (path.startsWith('/api/tulis')) {
-          let m = getApi(TULIS_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
-        }
-        if (path.startsWith('/api/foto') || path.startsWith('/api/images') || path.startsWith('/api/ig-curated') || path.startsWith('/api/ig-preview')) {
-          let m = getApi(FOTO_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
-        }
-        if (path.startsWith('/api/video')) {
-          let m = getApi(VIDEO_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
-        }
-        if (path.startsWith('/api/akun') || path.startsWith('/api/follow') || path.startsWith('/api/followers') || path.startsWith('/api/following') || path.startsWith('/api/photo') || path.startsWith('/api/users') || path.startsWith('/api/search-users') || path.startsWith('/api/chat')) {
-          let m = getApi(AKUN_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
-        }
-        if (path.startsWith('/api/ai') || path.startsWith('/api/t2i')) {
-          let m = getApi(AI_API_M); 
-          if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
-          if (AI_API?.handle) { let r = await AI_API.handle(req, env, url, cors); if (r) return r; }
-        }
-      } catch (e) {
-        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
-      }
-      return new Response(JSON.stringify({ ok: false, error: "No handler " + path }), { headers: cors, status: 404 });
-    }
-
-    // ✅ 1. TANGKAP RUTE KANTOR, LUAR, & DALAM PALING UTAMA DI ATAS
-    if (path === "/kantor" || path.startsWith("/kantor/") || path === "/luar" || path.startsWith("/luar/")) {
-      return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor");
-    }
-    if (path === "/dalam" || path.startsWith("/dalam/")) {
-      return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/dalam");
-    }
-
-    // ✅ 2. USER PROFILE ROUTING (e.g. /username)
-    const segments = path.split("/").filter(Boolean);
-    if (segments.length > 0) {
-      let username = segments[0];
-      const reserved = ["home", "foto", "video", "ai", "kantor", "luar", "dalam", "akun", "api", "sitemap", "robots", "profil", "profile", "icon.png", "favicon.ico", "chat"];
-      if (!reserved.includes(username) && !username.includes(".") && username.length >= 2) {
-        let targetEmail = username.includes('@') ? username : username + '@rumahgadang-ai.my.id';
-        let modifiedAkunHtml = AKUN_HTML.replace('window.location.search', `"?profil=${encodeURIComponent(targetEmail)}"`);
-        return htmlResponse(modifiedAkunHtml, "https://rumahgadang-ai.my.id/" + username);
-      }
-    }
-
-    // STATIC / PAGE HTML ROUTING
-    if (path === "/" || path === "/home" || path.startsWith("/home/")) return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
-    if (path.startsWith("/foto")) return htmlResponse(FOTO_HTML, "https://rumahgadang-ai.my.id/foto");
-    if (path.startsWith("/video")) return htmlResponse(VIDEO_HTML, "https://rumahgadang-ai.my.id/video");
-    if (path.startsWith("/ai")) return htmlResponse(AI_HTML, "https://rumahgadang-ai.my.id/ai");
-    
-    // Routing untuk halaman Chat
-    if (path === "/akun/chat" || path === "/chat") {
-      return htmlResponse(CHAT_HTML, "https://rumahgadang-ai.my.id/akun/chat");
-    }
-
-    if (path.startsWith("/akun") || path.startsWith("/profil") || path.startsWith("/profile") || path.startsWith("/u/")) {
-      return htmlResponse(AKUN_HTML, "https://rumahgadang-ai.my.id/akun");
-    }
-
-    return htmlResponse(HOME_HTML, "https://rumahgadang-ai.my.id/");
+function komenInner(k, showBalas, replyCount){
+  let me=getEmail().toLowerCase();
+  let email=k.email||'';
+  let name=k.name||email.split('@')[0]||'Dunsanak';
+  let pic=k.picture||LOGO_FALLBACK;
+  let time=fmtTime(k.time||Date.now());
+  let text=(k.text||'').replace(/</g,'&lt;');
+  let loved=k.isLiked?" loved":"";
+  let isOwner=email.toLowerCase()===me;
+  let canDel=isOwner||isAdmin();
+  let del=canDel?'<span class=k-del onclick="hapusKomen(\''+k.id+'\')">🗑️ Hapus</span>':'';
+  let balas=showBalas?'<div class=k-act onclick="handleBalas(\''+k.id+'\',\''+name+'\')"><span>💬</span><span>Balas</span></div>':'';
+  let replyInfo='';
+  if(replyCount>0 && showBalas){
+    replyInfo='<div class=k-reply-count onclick="renderBalasan(\''+k.id+'\')">↳ '+replyCount+' balasan • Lihat balasan</div>';
   }
-};
+  return '<img class=k-av src="'+pic+'" onclick="openProfil(\''+email+'\')" onerror="this.src=\''+LOGO_FALLBACK+'\'"><div class=k-body><div class=k-user><b onclick="openProfil(\''+email+'\')" style="cursor:pointer">@'+name+'</b><span> • '+time+'</span></div><div class=k-text>'+text+'</div><div class=k-actions><div class="k-act'+loved+'" onclick="loveKomen(\''+k.id+'\')"><span>❤️</span><span>'+(k.likes>0?k.likes:'Love')+'</span></div>'+balas+del+'</div>'+replyInfo+'</div>';
+}
+
+function handleBalas(komenId, name){
+  renderBalasan(komenId);
+  document.getElementById('kInput').value="@"+name+" ";
+  document.getElementById('kInput').focus();
+}
+
+async function loveKomen(komen_id){
+  const email=getEmail(); if(!email){ alert("Login dulu Bos!"); return; }
+  await fetch("/api/tulis/komen/like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({komen_id:String(komen_id),email:email})});
+  const me=getEmail(); let r=await fetch("/api/tulis/komen?id="+activeTulisId+"&me="+encodeURIComponent(me)+"&t="+Date.now(),{cache:'no-store'});
+  activeKomen=await r.json();
+  if(mode==="komentar") renderKomentar(); else renderBalasan(activeParent.id);
+}
+
+async function hapusKomen(komen_id){
+  if(!confirm("Hapus komen ini Bos?")) return;
+  const email=getEmail(); if(!email) return;
+  let res=await fetch("/api/tulis/komen/delete",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:komen_id,email:email})});
+  let j=await res.json().catch(()=>({ok:false}));
+  if(!j.ok){ alert(j.error||"Gagal hapus"); return; }
+  const me=getEmail();
+  let r=await fetch("/api/tulis/komen?id="+activeTulisId+"&me="+encodeURIComponent(me)+"&t="+Date.now(),{cache:'no-store'});
+  activeKomen=await r.json();
+  if(mode==="komentar") renderKomentar();
+  else { if(activeParent && String(activeParent.id)===String(komen_id)) showKomentar(); else renderBalasan(activeParent.id); }
+  loadTulis();
+}
+
+async function sendKomen(){
+  let input=document.getElementById('kInput'); let text=input.value.trim(); if(!text) return;
+  const email=getEmail(); if(!email){ alert("Login dulu Bos!"); location.href="/akun"; return; }
+  input.value=""; let parent_id=mode==="balasan"&&activeParent?String(activeParent.id):"";
+  await fetch("/api/tulis/komen",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:String(activeTulisId),email:email,text:text,name:getName(),picture:getAvatar(),parent_id:parent_id})});
+  const me=getEmail(); let r=await fetch("/api/tulis/komen?id="+activeTulisId+"&me="+encodeURIComponent(me)+"&t="+Date.now(),{cache:'no-store'});
+  activeKomen=await r.json();
+  if(mode==="komentar") renderKomentar(); else renderBalasan(activeParent.id);
+  loadTulis();
+}
+document.getElementById('kInput').addEventListener('keydown',e=>{ if(e.key==='Enter') sendKomen(); });
+
+async function loadTulis(){
+ try{
+  const me=getEmail(); if(me) document.getElementById('btnLoginTop').innerText=me.split('@')[0].toUpperCase().slice(0,8);
+  let r=await fetch('/api/tulis?me='+encodeURIComponent(me)+'&t='+Date.now(),{cache:'no-store'}); 
+  let d=await r.json(); let list=Array.isArray(d)?d:(d.results||[]);
+  let h=document.getElementById('homeFeed'); if(!list.length){h.innerHTML='<div class=empty>Belum ada tulisan Bos</div>';return;} let admin=isAdmin();
+  h.innerHTML=list.map(x=>{
+   let text=x.text||x.isi||x.judul||''; let img=x.tulisImg||x.img||''; let name=x.name||(x.email||'').split('@')[0]||'Dunsanak'; let email=x.user_email||x.email||''; let pic=x.picture||LOGO_FALLBACK; let time=x.time||x.created_at||Date.now(); let likedClass=x.isLiked?" liked":"";
+   return '<div class=post id="post-'+x.id+'"><img class=post-av src="'+pic+'" onclick="openProfil(\''+email+'\')" onerror="this.src=\''+LOGO_FALLBACK+'\'"><div class=post-body><div><span class=post-name onclick="openProfil(\''+email+'\')">'+name+'</span><span class=post-email>'+email+'</span><span class=post-time> • '+fmtTimeFull(time)+'</span></div><div class=post-text>'+text.replace(/</g,'&lt;')+'</div>'+(img?'<div class=post-img><img src="'+img+'" loading=lazy></div>':'')+'<div class=like-bar><button id="like-btn-'+x.id+'" class="btn-like'+likedClass+'" onclick="likeTulis(\''+x.id+'\')">❤️ '+(x.likes||0)+'</button><button class=btn-like onclick="openKomen(\''+x.id+'\')">💬 Komen '+(x.komen_count||0)+'</button>'+(admin?'<button class=del onclick="hapusPost('+x.id+')">HAPUS</button>':'')+'</div></div></div>';
+  }).join('');
+ }catch(e){document.getElementById('homeFeed').innerHTML='<div class=empty>Error: '+e.message+'</div>';}
+}
+
+async function addTulis(){
+ let txt=document.getElementById('tulisIn').value.trim(); if(!txt&&!selectedImg){alert("Tulis dulu sanak!");return;}
+ let btn=document.querySelector('.btnKirim');btn.innerText="MENGIRIM...";btn.disabled=true;
+ try{
+  let email=getEmail()||'anon@rumahgadang-ai.my.id'; if(!email.includes('@'))email=email+'@rumahgadang-ai.my.id';
+  let payload={text:txt,email:email,user_email:email,name:getName(),picture:getAvatar(),tulisImg:selectedImg,isi:txt,img:selectedImg};
+  let r=await fetch('/api/tulis/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  let j=await r.json(); if(j.ok===false)throw new Error(j.error||'Gagal');
+  document.getElementById('tulisIn').value='';clearImg();await loadTulis();
+ }catch(e){alert("Gagal Bos: "+e.message);}
+ btn.innerText="KIRIM";btn.disabled=false;
+}
+
+async function hapusPost(id){if(!confirm("Hapus Bos?"))return;await fetch('/api/tulis/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});location.reload();}
+loadTulis();
+
+// FIX NAVIGASI BAWAH AGAR SUKSES BERPINDAH HALAMAN
+document.querySelectorAll('.bot a').forEach(el => {
+    el.addEventListener('click', (e) => {
+        let href = el.getAttribute('href');
+        if (href && href !== '#') {
+            e.preventDefault();
+            window.location.href = href;
+        }
+    });
+});
+</script></body></html>
+`;
+
+export default HOME_HTML;

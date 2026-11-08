@@ -1,4 +1,4 @@
-// file: ./ai/index.js - RUMAH GADANG AI - TANPA SAMBUTAN, BOS
+// file: ./ai/index.js - RUMAH GADANG AI - FULLSCREEN, GAK LANGSUNG DOWNLOAD, BOS
 export const AI_HTML = `<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
@@ -20,7 +20,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .chat-bubble.user{align-self:flex-end;background:rgba(0,255,136,0.85);color:#000;font-weight:600;border-bottom-right-radius:4px;box-shadow:0 0 10px rgba(0,255,136,0.4)}
 .chat-bubble.ai{align-self:flex-start;background:rgba(20,20,20,0.85);color:#fff;border:1px solid #00ff88;border-bottom-left-radius:4px;box-shadow:0 0 10px rgba(0,0,0,0.6)}
 .chat-bubble.ai.error{border-color:#ff4444;background:rgba(40,10,10,0.9)}
-.chat-bubble.ai img{max-width:100%;border-radius:12px;margin-top:8px;display:block;cursor:pointer}
+.chat-bubble.ai img{max-width:100%;border-radius:12px;margin-top:8px;display:block;cursor:zoom-in}
 .chat-bubble.ai a{color:#00ff88}
 .bottom-chat-bar{position:absolute;bottom:125px;left:0;width:100%;padding:12px 16px;display:flex;gap:10px;z-index:10;background:linear-gradient(to top, rgba(0,0,0,0.95), transparent)}
 .chat-input{flex:1;background:rgba(20,20,20,0.85);border:1px solid #333;border-radius:16px;padding:14px 16px;color:#fff;font-size:14px;outline:none;backdrop-filter:blur(6px)}
@@ -32,6 +32,17 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99}
 .bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}
 .bot a.on{color:#fff}
+/* === LIGHTBOX FULL LAYAR, BOS. BIAR GAK LANGSUNG DOWNLOAD === */
+#lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:9999;display:none;flex-direction:column}
+#lightbox.open{display:flex}
+.lb-top{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;gap:10px}
+.lb-title{font-size:13px;font-weight:700;opacity:0.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.lb-actions{display:flex;gap:8px;flex-shrink:0}
+.lb-btn{background:#00ff88;color:#000;border:none;padding:9px 14px;border-radius:20px;font-size:13px;font-weight:900;cursor:pointer}
+.lb-btn.close{background:#222;color:#fff;border:1px solid #555}
+.lb-body{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 12px 16px;overflow:hidden}
+.lb-body img{max-width:100%;max-height:100%;object-fit:contain;border-radius:12px;touch-action:pinch-zoom}
+.lb-hint{text-align:center;font-size:11px;opacity:0.6;padding:0 0 12px}
 </style>
 </head>
 <body>
@@ -51,6 +62,22 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
     <button class="btn-kirim" id="sendBtn" onclick="handleSend()">KIRIM &rarr;</button>
   </div>
 </div>
+
+<!-- LIGHTBOX FULL LAYAR, BOS -->
+<div id="lightbox" onclick="if(event.target.id==='lightbox') tutupGambar()">
+  <div class="lb-top">
+    <div class="lb-title" id="lbTitle">Gambar dari Admin</div>
+    <div class="lb-actions">
+      <button class="lb-btn" onclick="downloadGambar()">⬇ Download</button>
+      <button class="lb-btn close" onclick="tutupGambar()">✕ Tutup</button>
+    </div>
+  </div>
+  <div class="lb-body">
+    <img id="lbImg" src="" alt="Gambar full">
+  </div>
+  <div class="lb-hint">Cubit / pinch buat zoom Bos. Pencet di luar gambar buat tutup.</div>
+</div>
+
 <div class="bot">
   <a href="/">🏠<br><span style="font-size:10px">Home</span></a>
   <a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a>
@@ -63,6 +90,8 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 const audio = document.getElementById('bgMusic');
 const musicBtn = document.getElementById('musicBtn');
 let sedangKirim = false;
+let gambarAktif = '';
+let judulAktif = 'Gambar dari Admin';
 
 document.addEventListener('DOMContentLoaded', () => {
   audio.play().catch(() => {
@@ -76,6 +105,44 @@ function toggleMusic(){
   else { audio.pause(); musicBtn.innerHTML = "📁 RG Musik"; }
 }
 function handleKeyPress(e){ if(e.key === 'Enter') handleSend(); }
+
+// === BUKA FULL LAYAR, BOS. BUKAN DOWNLOAD, BOS ===
+function bukaGambar(url, judul){
+  gambarAktif = url || '';
+  judulAktif = judul || 'Gambar dari Admin';
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lbImg');
+  const title = document.getElementById('lbTitle');
+  img.src = gambarAktif;
+  title.textContent = judulAktif;
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function tutupGambar(){
+  const lb = document.getElementById('lightbox');
+  lb.classList.remove('open');
+  document.getElementById('lbImg').src = '';
+  document.body.style.overflow = '';
+}
+// === DOWNLOAD BARU JALAN KALAU PENCET TOMBOL DOWNLOAD DI ATAS, BOS ===
+async function downloadGambar(){
+  if (!gambarAktif) return;
+  try {
+    const res = await fetch(gambarAktif);
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'rumah-gadang-ai-' + Date.now() + '.jpg';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  } catch(e) {
+    // Kalau gagal fetch, baru buka link-nya, Bos. Biar HP yang handle download-nya.
+    window.open(gambarAktif, '_blank');
+  }
+}
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') tutupGambar(); });
 
 function getUserId(){
   try {
@@ -145,7 +212,9 @@ async function handleSend(){
             clearInterval(cek);
             clearTimeout(timeoutPolling);
             if (hasil.gambar && typeof hasil.gambar === 'string' && hasil.gambar.startsWith('http')) {
-              loadingDiv.innerHTML = '<div>Gambar: ' + escapeHtml(prompt) + '</div><a href="' + escapeHtml(hasil.gambar) + '" target="_blank" rel="noopener"><img src="' + escapeHtml(hasil.gambar) + '" alt="Gambar dari admin"></a><div style="font-size:11px;opacity:0.7;margin-top:6px">Klik gambar buat buka full Bos</div>';
+              const safeUrl = escapeHtml(hasil.gambar);
+              const safePrompt = escapeHtml(prompt);
+              loadingDiv.innerHTML = '<div>Gambar: ' + safePrompt + '</div><img src="' + safeUrl + '" alt="Gambar dari admin" onclick="bukaGambar(\\'' + safeUrl + '\\', \\'Gambar: ' + safePrompt + '\\')"><div style="font-size:11px;opacity:0.7;margin-top:6px">Klik gambar buat liat full Bos</div>';
             } else if (hasil.gambar) {
               loadingDiv.textContent = hasil.gambar;
             } else {

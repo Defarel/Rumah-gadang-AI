@@ -1,3 +1,6 @@
+// file: worker.js - RUMAH GADANG AI - FULL AUTO
+// ADMIN CUMA KIRIM GAMBAR AJA BOS. API YANG BIKIN ID + ANTRIAN
+
 import * as HOME_M from './home/index.js';
 import * as FOTO_M from './foto/index.js';
 import * as VIDEO_M from './video/index.js';
@@ -13,10 +16,7 @@ import * as AKUN_API_M from './akun/api-akun/api.js';
 import * as AI_API_M from './ai/api-ai/api.js';
 import * as SITEMAP_M from './api-sitemap/index.js';
 
-// ===== TEMPAT NYIMPEN HASIL MANUAL LU, BOS. BIAR WEB BISA NGINTIP =====
-let HASIL_MANUAL = {};
-
-// ===== AI API FINAL - GROQ TEXT ONLY, KREA 2 / T2I UDAH DIHAPUS =====
+// ===== AI API FINAL - GROQ + MANUAL AUTO VIA DB, T2I UDAH DIHAPUS, BOS =====
 export const AI_API = {
   async handle(req, env, url, corsHeaders) {
     const cors = corsHeaders || {
@@ -29,14 +29,17 @@ export const AI_API = {
     const p = url.pathname.toLowerCase();
 
     if (req.method === "GET" && p === "/api/ai") {
+      let antrian = 0;
+      if (env.DB) { try { let r = await env.DB.prepare("SELECT COUNT(*) as c FROM manual_hasil WHERE status='menunggu'").first(); antrian = r?.c || 0; } catch {} }
       return new Response(JSON.stringify({
         ok: true,
         TEXT: "GROQ: " + !!env.GROQ_API_KEY,
-        IMAGE: "MANUAL - via Telegram Bot"
+        IMAGE: "MANUAL AUTO - Admin cuma kirim gambar",
+        DB: !!env.DB,
+        antrian_menunggu: antrian
       }), { headers: cors });
     }
 
-    // T2I UDAH DIHAPUS, BOS. KASIH PESAN JELAS, BIAR GAK ERROR "No handler"
     if (p === "/api/t2i") {
       return new Response(JSON.stringify({ ok: false, error: "T2I udah dihapus Bos. Gambar sekarang manual by Admin via Telegram." }), { headers: cors, status: 410 });
     }
@@ -45,7 +48,6 @@ export const AI_API = {
       let { prompt } = await req.json().catch(() => ({}));
       prompt = (prompt || "").trim();
       if (!prompt) return new Response(JSON.stringify({ reply: "Prompt kosong" }), { headers: cors });
-      
       let GROQ_KEY = (env.GROQ_API_KEY || "").trim();
       for (let model of ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile"]) {
         try {
@@ -74,7 +76,19 @@ export const AI_API = {
   }
 };
 
-// ===== TELEGRAM BOT - MANUAL, KREA 2 UDAH DIHAPUS =====
+// ===== HELPER DB - GANTI HASIL_MANUAL, BOS. BIAR WEB + TELEGRAM NYAMBUNG =====
+async function ambilAntrianPalingAtas(env) {
+  if (!env.DB) return null;
+  try { return await env.DB.prepare("SELECT * FROM manual_hasil WHERE status='menunggu' ORDER BY created_at ASC LIMIT 1").first(); }
+  catch (e) { return null; }
+}
+async function selesaikanAntrian(env, id, gambar) {
+  if (!env.DB) return false;
+  try { await env.DB.prepare("UPDATE manual_hasil SET status='selesai', gambar=? WHERE id=?").bind(gambar || '', String(id)).run(); return true; }
+  catch (e) { return false; }
+}
+
+// ===== TELEGRAM BOT - AUTO, BOS. ADMIN CUMA KIRIM GAMBAR AJA =====
 async function handleTelegram(req, env) {
   const token = (env.TELE_BOT_GAMBAR || "").trim();
   const ADMIN_ID = (env.ADMIN_TELE_ID || env.TELE_ADMIN_ID || "").trim();
@@ -89,6 +103,7 @@ async function handleTelegram(req, env) {
   const nama = msg.from?.first_name || "Orang";
   const username = msg.from?.username ? "@" + msg.from.username : "-";
   const api = `https://api.telegram.org/bot${token}`;
+  const isAdmin = ADMIN_ID && String(chatId) === String(ADMIN_ID);
 
   const kirim = async (ke, teks) => {
     await fetch(api + "/sendMessage", {
@@ -97,7 +112,6 @@ async function handleTelegram(req, env) {
       body: JSON.stringify({ chat_id: ke, text: teks })
     });
   };
-
   const kirimFoto = async (ke, foto, caption) => {
     await fetch(api + "/sendPhoto", {
       method: "POST",
@@ -107,86 +121,122 @@ async function handleTelegram(req, env) {
   };
 
   if (text === "/start") {
-    await kirim(chatId, "Halo Bos! Mau gambar apa? Ketik aja. Nanti diterusin ke admin, admin yang bikinin manual.");
+    if (isAdmin) {
+      await kirim(chatId, "Halo Bos! Bot Admin aktif ✅\n\nCara baru Bos, gampang:\n1. Orang minta di Web /ai\n2. Lu CUMA KIRIM FOTO aja di sini, gak usah ketik apa-apa\n3. Otomatis masuk ke Web Bos!\n\nCek antrian: /antrian");
+    } else {
+      await kirim(chatId, `Halo ${nama}! 👋\n\nMau gambar? Buka aja:\nhttps://rumahgadang-ai.my.id/ai\n\nKetik di sana "Gambarkan rumah" Bos, nanti admin yang bikinin.`);
+    }
     return new Response("ok");
   }
 
-  // ADMIN KIRIM FOTO + CAPTION ID WEB, BOS. BIAR FOTO LANGSUNG MASUK WEB
-  if (ADMIN_ID && String(chatId) === String(ADMIN_ID) && msg.photo) {
-    let targetId = text.replace("/balas", "").trim().split(" ")[0];
-    if (targetId && HASIL_MANUAL[targetId]) {
-      let fileId = msg.photo[msg.photo.length - 1].file_id;
-      let fileRes = await fetch(`${api}/getFile?file_id=${fileId}`).then(r => r.json());
-      let linkFoto = `https://api.telegram.org/file/bot${token}/${fileRes.result.file_path}`;
-      HASIL_MANUAL[targetId] = { status: 'selesai', gambar: linkFoto };
-      await kirim(chatId, "Beres Bos! Foto udah dikirim ke Web /ai ID " + targetId);
-      return new Response("ok");
-    }
+  if (isAdmin && text === "/antrian") {
+    let rows = await env.DB.prepare("SELECT * FROM manual_hasil WHERE status='menunggu' ORDER BY created_at ASC LIMIT 10").all().catch(() => ({ results: [] }));
+    let list = rows.results || [];
+    if (list.length === 0) { await kirim(chatId, "Antrian kosong Bos. Gak ada yang nunggu."); return new Response("ok"); }
+    let pesan = `ANTRIAN BOS (${list.length}):\n\n`;
+    for (let r of list) pesan += `ID: ${r.id}\nUser: ${r.user_id || '-'}\n---\n`;
+    pesan += `\nLu cuma kirim foto aja Bos, nanti otomatis ke yang paling atas.`;
+    await kirim(chatId, pesan);
+    return new Response("ok");
   }
 
-  // ADMIN BALES MANUAL
-  // Format: /balas ID_ORANG pesan / link gambar
-  // Kalau ID-nya ID Web (angka panjang Date.now), masuk ke Web. Kalau ID Telegram user, masuk ke user.
-  if (ADMIN_ID && String(chatId) === String(ADMIN_ID) && text.startsWith("/balas ")) {
+  // === 1. ADMIN KIRIM FOTO DOANG, BOS. INI YANG LU MAU, BOS ===
+  // Gak usah /balas, gak usah ID. Foto doang -> Otomatis ke antrian paling atas
+  if (isAdmin && msg.photo) {
+    let fileId = msg.photo[msg.photo.length - 1].file_id;
+    let fileRes = await fetch(`${api}/getFile?file_id=${fileId}`).then(r => r.json()).catch(() => null);
+    if (!fileRes?.result?.file_path) { await kirim(chatId, "Gagal ambil foto Bos, kirim ulang Bos."); return new Response("ok"); }
+    let linkFoto = `https://api.telegram.org/file/bot${token}/${fileRes.result.file_path}`;
+
+    // Kalau caption ada /balas ID, pakai ID itu. Kalau gak ada, OTOMATIS Bos
+    if (text.startsWith("/balas")) {
+      let targetId = text.replace("/balas", "").trim().split(" ")[0];
+      if (targetId) {
+        await selesaikanAntrian(env, targetId, linkFoto);
+        await kirim(chatId, "Beres Bos! Foto udah masuk ke Web ID " + targetId);
+        return new Response("ok");
+      }
+    }
+    let row = await ambilAntrianPalingAtas(env);
+    if (row) {
+      await selesaikanAntrian(env, row.id, linkFoto);
+      await kirim(chatId, `Beres Bos! Foto lu otomatis masuk ke Web.\nID: ${row.id}\nUser: ${row.user_id || '-'}\nUdah muncul di Web Bos!`);
+    } else {
+      await kirim(chatId, "Gak ada antrian Bos. Belum ada yang minta gambar di Web.");
+    }
+    return new Response("ok");
+  }
+
+  // === 2. ADMIN KIRIM LINK DOANG, BOS. JUGA OTOMATIS ===
+  if (isAdmin && text.startsWith("http")) {
+    let row = await ambilAntrianPalingAtas(env);
+    if (row) {
+      await selesaikanAntrian(env, row.id, text);
+      await kirim(chatId, "Beres Bos! Link lu otomatis masuk ke Web ID " + row.id);
+    } else {
+      await kirim(chatId, "Gak ada antrian Bos.");
+    }
+    return new Response("ok");
+  }
+
+  // === 3. ADMIN MASIH PAKAI /balas ID + PESAN, BOS. MASIH BISA ===
+  if (isAdmin && text.startsWith("/balas ")) {
     let sisa = text.replace("/balas ", "");
     let spasi = sisa.indexOf(" ");
-    if (spasi === -1) {
-      await kirim(chatId, "Format salah Bos. Pakai: /balas ID pesan");
-      return new Response("ok");
-    }
+    if (spasi === -1) { await kirim(chatId, "Format salah Bos. Pakai: /balas ID pesan"); return new Response("ok"); }
     let targetId = sisa.slice(0, spasi);
     let pesan = sisa.slice(spasi + 1);
-
-    // 1. KE WEB, BOS
-    if (HASIL_MANUAL[targetId]) {
-      HASIL_MANUAL[targetId] = { status: 'selesai', gambar: pesan };
-      await kirim(chatId, "Udah terkirim ke Web /ai ID " + targetId + " Bos.");
-      return new Response("ok");
-    }
-
-    // 2. KE TELEGRAM USER, BOS
-    if (pesan.startsWith("http") && (pesan.includes(".jpg") || pesan.includes(".png") || pesan.includes(".jpeg") || pesan.includes(".webp"))) {
-      await kirimFoto(targetId, pesan, "Nih Bos, gambar dari admin Rumah Gadang AI 🙏");
-    } else {
-      await kirim(targetId, "Dari Admin Rumah Gadang AI:\n" + pesan);
+    await selesaikanAntrian(env, targetId, pesan);
+    // Kalau ID-nya ID Telegram user (pendek), kirim juga ke user-nya, Bos
+    if (targetId.length < 13) {
+      if (pesan.startsWith("http")) await kirimFoto(targetId, pesan, "Nih Bos, gambar dari admin Rumah Gadang AI 🙏");
+      else await kirim(targetId, "Dari Admin Rumah Gadang AI:\n" + pesan);
     }
     await kirim(chatId, "Udah terkirim ke " + targetId + " Bos.");
     return new Response("ok");
   }
 
-  // ORANG BIASA -> TERUSIN KE ADMIN
-  // Kalau cuma nanya biasa, jawab Groq. Kalau minta gambar, terusin ke lu.
-  let kataGambar = ['gambar', 'gambarkan', 'buatkan', 'bikin', 'foto', 'lukis', 'desain'];
-  let mintaGambar = kataGambar.some(k => text.toLowerCase().includes(k));
-
-  if (!mintaGambar && text && !text.startsWith("/")) {
-    // Nanya biasa -> Groq otomatis, gak usah ganggu lu, Bos
-    let reply = "Halo Bos, mau gambar apa?";
-    try {
-      let groqRes = await AI_API.handle(new Request("https://rumahgadang-ai.my.id/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: text }) }), env, new URL("https://rumahgadang-ai.my.id/api/ai"), {});
-      let groqData = await groqRes.json();
-      if (groqData.reply) reply = groqData.reply;
-    } catch {}
-    await kirim(chatId, reply);
+  // === 4. ADMIN NGETIK BIASA, BOS. JANGAN MASUK ANTRIAN ===
+  if (isAdmin && text && !text.startsWith("/")) {
+    await kirim(chatId, "Siap Bos, dicatat. Kalau mau kirim gambar ke Web, tinggal kirim foto aja Bos, gak usah ketik apa-apa.\n\nCek antrian: /antrian");
     return new Response("ok");
   }
 
-  await kirim(chatId, "Siap Bos, permintaan lu udah diterusin ke admin. Tunggu dibikinin manual ya Bos.");
-  if (ADMIN_ID) {
-    await kirim(ADMIN_ID, `ADA REQUEST BARU BOS!\n\nDari: ${nama} (${username})\nID: ${chatId}\nMinta: ${text}\n\nBalas pakai:\n/balas ${chatId} <pesan / link gambar lu>`);
+  // === 5. ORANG BIASA DI TELEGRAM, BOS. JANGAN MASUK ANTRIAN WEB ===
+  // Dulu ini yang bikin nyasar, Bos. Yang "Dari: Yongky" itu, Bos. Sekarang udah dipisah, Bos.
+  if (!isAdmin) {
+    if (msg.photo) {
+      await kirim(chatId, "Foto lu udah diterima Bos, tapi kalau mau minta gambar, bukanya di Web ya Bos:\nhttps://rumahgadang-ai.my.id/ai");
+      return new Response("ok");
+    }
+    let kataGambar = ['gambar', 'gambarkan', 'buatkan', 'bikin', 'foto', 'lukis', 'desain'];
+    let mintaGambar = kataGambar.some(k => text.toLowerCase().includes(k));
+    if (mintaGambar) {
+      await kirim(chatId, `Siap Bos, minta gambarnya di Web aja ya Bos:\nhttps://rumahgadang-ai.my.id/ai\n\nDi sana ketik aja: ${text}`);
+      return new Response("ok");
+    }
+    if (text && !text.startsWith("/")) {
+      let reply = "Halo Bos, mau gambar apa?";
+      try {
+        let groqRes = await AI_API.handle(new Request("https://rumahgadang-ai.my.id/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: text }) }), env, new URL("https://rumahgadang-ai.my.id/api/ai"), {});
+        let groqData = await groqRes.json();
+        if (groqData.reply) reply = groqData.reply;
+      } catch {}
+      await kirim(chatId, reply);
+      return new Response("ok");
+    }
   }
+
   return new Response("ok");
 }
 
 // ===== HELPERS & TEMPLATES =====
-function getHtml(mod) { 
-  return mod.default || mod.HOME_HTML || mod.HOME || mod.FOTO_HTML || mod.FOTO || mod.VIDEO_HTML || mod.VIDEO || mod.AI_HTML || mod.AI || mod.KANTOR_HTML || mod.KANTOR || mod.LUAR_HTML || mod.LUAR || mod.DALAM_HTML || mod.DALAM || mod.AKUN_HTML || mod.AKUN || mod.CHAT_HTML || mod.CHAT || Object.values(mod)[0]; 
+function getHtml(mod) {
+  return mod.default || mod.HOME_HTML || mod.HOME || mod.FOTO_HTML || mod.FOTO || mod.VIDEO_HTML || mod.VIDEO || mod.AI_HTML || mod.AI || mod.KANTOR_HTML || mod.KANTOR || mod.LUAR_HTML || mod.LUAR || mod.DALAM_HTML || mod.DALAM || mod.AKUN_HTML || mod.AKUN || mod.CHAT_HTML || mod.CHAT || Object.values(mod)[0];
 }
-
-function getApi(mod) { 
-  return mod.FOTO_API || mod.VIDEO_API || mod.AKUN_API || mod.AI_API || mod.TULIS_API || mod.SITEMAP_API || mod.default || mod; 
+function getApi(mod) {
+  return mod.FOTO_API || mod.VIDEO_API || mod.AKUN_API || mod.AI_API || mod.TULIS_API || mod.SITEMAP_API || mod.default || mod;
 }
-
 const HOME_HTML = getHtml(HOME_M);
 const FOTO_HTML = getHtml(FOTO_M);
 const VIDEO_HTML = getHtml(VIDEO_M);
@@ -202,15 +252,10 @@ function injectCanonical(html, canonicalUrl) {
   if (html.includes('rel="canonical"')) {
     return html.replace(/<link[^>]*rel=["']canonical["'][^>]*>/i, `<link rel="canonical" href="${canonicalUrl}">`);
   }
-  if (html.includes('</title>')) {
-    return html.replace('</title>', `</title>\n<link rel="canonical" href="${canonicalUrl}">`);
-  }
-  if (html.includes('</head>')) {
-    return html.replace('</head>', `<link rel="canonical" href="${canonicalUrl}">\n</head>`);
-  }
+  if (html.includes('</title>')) return html.replace('</title>', `</title>\n<link rel="canonical" href="${canonicalUrl}">`);
+  if (html.includes('</head>')) return html.replace('</head>', `<link rel="canonical" href="${canonicalUrl}">\n</head>`);
   return html;
 }
-
 function htmlResponse(html, canonical) {
   const fixed = injectCanonical(html, canonical);
   return new Response(fixed, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "public, max-age=300" } });
@@ -221,7 +266,7 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     let path = url.pathname.toLowerCase();
-    
+
     // WEBHOOK TELEGRAM - HARUS PALING ATAS, SEBELUM REDIRECT
     if (path === "/api/telegram" && req.method === "POST") {
       return handleTelegram(req, env);
@@ -235,50 +280,67 @@ export default {
       'Cache-Control': 'no-store',
       'X-Robots-Tag': 'noindex, nofollow'
     };
-    
+
     if (req.method === "OPTIONS") return new Response("", { headers: cors });
 
-    // ===== WEB /ai MINTA GAMBAR -> KIRIM KE TELEGRAM ADMIN, BOS. PENGGANTI T2I =====
+    // ===== WEB /ai MINTA GAMBAR -> API OTOMATIS BIKIN ID + MASUK ANTRIAN DB, BOS =====
     if (path === "/api/ai-request" && req.method === "POST") {
       try {
-        let { prompt } = await req.json().catch(() => ({}));
-        prompt = (prompt || "").trim();
+        let body = await req.json().catch(() => ({}));
+        let prompt = (body.prompt || "").trim();
         if (!prompt) return new Response(JSON.stringify({ ok: false, error: "Prompt kosong" }), { headers: cors, status: 400 });
+        // ID OTOMATIS, BOS. API YANG BIKININ
         let id = Date.now().toString();
-        HASIL_MANUAL[id] = { status: 'menunggu', gambar: '' };
+        let user_id = (body.user_id || "").trim() || ("user-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6));
+        if (env.DB) {
+          try {
+            await env.DB.prepare("INSERT INTO manual_hasil (id, status, gambar, created_at, user_id) VALUES (?, 'menunggu', '', ?, ?)").bind(id, Date.now(), user_id).run();
+          } catch (e) {
+            // Tabel lama belum ada user_id, Bos. Pakai cara lama
+            await env.DB.prepare("INSERT INTO manual_hasil (id, status, gambar, created_at) VALUES (?, 'menunggu', '', ?)").bind(id, Date.now()).run();
+          }
+        }
         let token = (env.TELE_BOT_GAMBAR || "").trim();
         let adminId = (env.ADMIN_TELE_ID || env.TELE_ADMIN_ID || "").trim();
         if (token && adminId) {
           await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ chat_id: adminId, text: `ADA REQUEST BARU BOS!\n\nDari: Web /ai\nID: ${id}\nMinta: ${prompt}\n\nBalas pakai:\n/balas ${id} <link gambar lu>` })
+            body: JSON.stringify({ chat_id: adminId, text: `ADA REQUEST BARU BOS!\n\nDari: Web /ai\nUser: ${user_id}\nID: ${id}\nMinta: ${prompt}\n\nLu cuma kirim gambar aja Bos, gak usah ketik /balas. Nanti otomatis masuk ke Web.` })
           });
         }
-        return new Response(JSON.stringify({ ok: true, id }), { headers: cors });
+        return new Response(JSON.stringify({ ok: true, id, user_id }), { headers: cors });
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
       }
     }
 
-    // ===== WEB NANYA "UDAH JADI BELUM?", BOS =====
+    // ===== WEB NANYA "UDAH JADI BELUM?", BOS. CEK DB, BOS =====
     if (path === "/api/ai-status" && req.method === "GET") {
       let id = url.searchParams.get('id');
-      return new Response(JSON.stringify(HASIL_MANUAL[id] || { status: 'gak ketemu' }), { headers: cors });
+      if (!id) return new Response(JSON.stringify({ status: 'id kosong' }), { headers: cors });
+      if (!env.DB) return new Response(JSON.stringify({ status: 'gak ketemu' }), { headers: cors });
+      let row = await env.DB.prepare("SELECT * FROM manual_hasil WHERE id=?").bind(id).first().catch(() => null);
+      if (!row) return new Response(JSON.stringify({ status: 'gak ketemu' }), { headers: cors });
+      return new Response(JSON.stringify({ ok: true, id: row.id, status: row.status, gambar: row.gambar || '', user_id: row.user_id || '' }), { headers: cors });
+    }
+
+    // ===== LIHAT ANTRIAN, BOS =====
+    if (path === "/api/ai-antrian" && req.method === "GET") {
+      if (!env.DB) return new Response(JSON.stringify({ ok: false, error: "DB belum di-set" }), { headers: cors });
+      let rows = await env.DB.prepare("SELECT id, user_id, status, created_at FROM manual_hasil WHERE status='menunggu' ORDER BY created_at ASC LIMIT 20").all().catch(() => ({ results: [] }));
+      return new Response(JSON.stringify({ ok: true, antrian: rows.results || [] }), { headers: cors });
     }
 
     // Redirect HTTP ke HTTPS & www ke non-www
     const proto = req.headers.get('x-forwarded-proto') || url.protocol.replace(':', '');
     const host = (req.headers.get('host') || url.hostname).toLowerCase();
-    
     if (proto === 'http' || host.startsWith('www.')) {
       return Response.redirect("https://rumahgadang-ai.my.id" + url.pathname + url.search, 301);
     }
-    
     if (path === "/home" || path === "/home/") {
       return Response.redirect("https://rumahgadang-ai.my.id/", 301);
     }
-    
     if (["/foto/", "/video/", "/kantor/", "/ai/", "/akun/", "/luar/", "/dalam/", "/akun/chat/"].includes(path)) {
       return Response.redirect("https://rumahgadang-ai.my.id" + path.slice(0, -1), 301);
     }
@@ -324,25 +386,22 @@ Host: https://rumahgadang-ai.my.id`;
     const deletePaths = ["/api/ig-curated/delete", "/api/images/delete", "/api/foto/delete", "/api/delete", "/api/tulis/delete", "/api/home/delete"];
     if (deletePaths.includes(path)) {
       try {
-        let body = {}; 
+        let body = {};
         try { body = await req.json(); } catch {}
         let idDel = String(body.id || url.searchParams.get('id') || '');
         if (!idDel) return new Response(JSON.stringify({ ok: false, error: "id kosong Bos" }), { headers: cors, status: 400 });
-        
-        let idInt = parseInt(idDel); 
+        let idInt = parseInt(idDel);
         if (isNaN(idInt)) idInt = -999;
         let logs = [];
-        
         if (env.DB) {
           for (let tbl of ["ig_curated", "images", "foto", "tulis", "home_tulis", "posts"]) {
-            try { 
-              let r = await env.DB.prepare(`DELETE FROM ${tbl} WHERE id=?`).bind(idInt).run(); 
-              logs.push(tbl + "_int:" + r.meta.changes); 
+            try {
+              let r = await env.DB.prepare(`DELETE FROM ${tbl} WHERE id=?`).bind(idInt).run();
+              logs.push(tbl + "_int:" + r.meta.changes);
             } catch (e) { logs.push(tbl + "_int_err:" + e.message); }
-            
-            try { 
-              let r = await env.DB.prepare(`DELETE FROM ${tbl} WHERE CAST(id AS TEXT)=?`).bind(idDel).run(); 
-              logs.push(tbl + "_str:" + r.meta.changes); 
+            try {
+              let r = await env.DB.prepare(`DELETE FROM ${tbl} WHERE CAST(id AS TEXT)=?`).bind(idDel).run();
+              logs.push(tbl + "_str:" + r.meta.changes);
             } catch (e) { logs.push(tbl + "_str_err:" + e.message); }
           }
         }
@@ -356,7 +415,6 @@ Host: https://rumahgadang-ai.my.id`;
     if (path.startsWith("/api/debug")) {
       try {
         if (!env.DB) return new Response(JSON.stringify({ ok: false, error: "DB GAK ADA BOS" }), { headers: cors });
-        
         if (path.includes("/ids")) {
           let ig = await env.DB.prepare("SELECT id, time, akun, linkIG, caption, substr(img,1,30) as img_preview FROM ig_curated ORDER BY id DESC LIMIT 50").all().catch(() => ({ results: [] }));
           let img = await env.DB.prepare("SELECT id, time, substr(url,1,30) as url_preview FROM images ORDER BY id DESC LIMIT 50").all().catch(() => ({ results: [] }));
@@ -364,20 +422,18 @@ Host: https://rumahgadang-ai.my.id`;
           let tl = await env.DB.prepare("SELECT id, time, email, substr(isi,1,30) as isi_preview FROM tulis ORDER BY id DESC LIMIT 50").all().catch(() => ({ results: [] }));
           return new Response(JSON.stringify({ ok: true, ig_curated: ig.results, images: img.results, foto: ft.results, tulis: tl.results }), { headers: cors });
         }
-        
         if (path.includes("/akun")) {
           let users = await env.DB.prepare("SELECT rowid, email, name, substr(picture,1,20) as pic_preview FROM users ORDER BY rowid DESC LIMIT 100").all().catch(() => ({ results: [] }));
           let cleanUsers = users.results.map(u => ({ id: u.rowid, email: u.email, name: u.name }));
           return new Response(JSON.stringify({ ok: true, count: cleanUsers.length, akun: cleanUsers }), { headers: cors });
         }
-        
         let tables = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().catch(() => ({ results: [] }));
         return new Response(JSON.stringify({ ok: true, tables: tables.results.map(t => t.name) }), { headers: cors });
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
       }
     }
-    
+
     // Shortcut Aliases
     if (path === "/f" || path === "/f/") path = "/foto";
     if (path === "/v" || path === "/v/") path = "/video";
@@ -389,7 +445,6 @@ Host: https://rumahgadang-ai.my.id`;
       if (blockedForGet.some(p => path.startsWith(p)) && req.method === "GET") {
         return new Response(JSON.stringify({ ok: false, error: "API private - use POST" }), { headers: cors, status: 404 });
       }
-
       try {
         if (path.startsWith('/api/tulis')) {
           let m = getApi(TULIS_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
@@ -404,11 +459,10 @@ Host: https://rumahgadang-ai.my.id`;
           let m = getApi(AKUN_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
         }
         if (path.startsWith('/api/ai')) {
-          let m = getApi(AI_API_M); 
+          let m = getApi(AI_API_M);
           if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
           if (AI_API?.handle) { let r = await AI_API.handle(req, env, url, cors); if (r) return r; }
         }
-        // T2I udah dihapus, Bos. Kasih pesan jelas, jangan 404
         if (path.startsWith('/api/t2i')) {
           return new Response(JSON.stringify({ ok: false, error: "T2I udah dihapus Bos. Gambar sekarang manual by Admin via Telegram." }), { headers: cors, status: 410 });
         }
@@ -443,12 +497,9 @@ Host: https://rumahgadang-ai.my.id`;
     if (path.startsWith("/foto")) return htmlResponse(FOTO_HTML, "https://rumahgadang-ai.my.id/foto");
     if (path.startsWith("/video")) return htmlResponse(VIDEO_HTML, "https://rumahgadang-ai.my.id/video");
     if (path.startsWith("/ai")) return htmlResponse(AI_HTML, "https://rumahgadang-ai.my.id/ai");
-    
-    // Routing untuk halaman Chat
     if (path === "/akun/chat" || path === "/chat") {
       return htmlResponse(CHAT_HTML, "https://rumahgadang-ai.my.id/akun/chat");
     }
-
     if (path.startsWith("/akun") || path.startsWith("/profil") || path.startsWith("/profile") || path.startsWith("/u/")) {
       return htmlResponse(AKUN_HTML, "https://rumahgadang-ai.my.id/akun");
     }

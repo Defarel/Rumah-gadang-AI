@@ -13,7 +13,10 @@ import * as AKUN_API_M from './akun/api-akun/api.js';
 import * as AI_API_M from './ai/api-ai/api.js';
 import * as SITEMAP_M from './api-sitemap/index.js';
 
-// ===== AI API FINAL - GROQ TEXT ONLY, KREA 2 UDAH DIHAPUS =====
+// ===== TEMPAT NYIMPEN HASIL MANUAL LU, BOS. BIAR WEB BISA NGINTIP =====
+let HASIL_MANUAL = {};
+
+// ===== AI API FINAL - GROQ TEXT ONLY, KREA 2 / T2I UDAH DIHAPUS =====
 export const AI_API = {
   async handle(req, env, url, corsHeaders) {
     const cors = corsHeaders || {
@@ -31,6 +34,11 @@ export const AI_API = {
         TEXT: "GROQ: " + !!env.GROQ_API_KEY,
         IMAGE: "MANUAL - via Telegram Bot"
       }), { headers: cors });
+    }
+
+    // T2I UDAH DIHAPUS, BOS. KASIH PESAN JELAS, BIAR GAK ERROR "No handler"
+    if (p === "/api/t2i") {
+      return new Response(JSON.stringify({ ok: false, error: "T2I udah dihapus Bos. Gambar sekarang manual by Admin via Telegram." }), { headers: cors, status: 410 });
     }
 
     if (p === "/api/ai" && req.method === "POST") {
@@ -69,15 +77,15 @@ export const AI_API = {
 // ===== TELEGRAM BOT - MANUAL, KREA 2 UDAH DIHAPUS =====
 async function handleTelegram(req, env) {
   const token = (env.TELE_BOT_GAMBAR || "").trim();
-  const ADMIN_ID = (env.ADMIN_TELE_ID || "").trim();
+  const ADMIN_ID = (env.ADMIN_TELE_ID || env.TELE_ADMIN_ID || "").trim();
   if (!token) return new Response("token belum set Bos", { status: 500 });
 
   const update = await req.json().catch(() => ({}));
   const msg = update.message;
-  if (!msg || !msg.text) return new Response("ok");
+  if (!msg) return new Response("ok");
 
   const chatId = msg.chat.id;
-  const text = msg.text.trim();
+  const text = (msg.text || msg.caption || "").trim();
   const nama = msg.from?.first_name || "Orang";
   const username = msg.from?.username ? "@" + msg.from.username : "-";
   const api = `https://api.telegram.org/bot${token}`;
@@ -90,14 +98,35 @@ async function handleTelegram(req, env) {
     });
   };
 
+  const kirimFoto = async (ke, foto, caption) => {
+    await fetch(api + "/sendPhoto", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: ke, photo: foto, caption })
+    });
+  };
+
   if (text === "/start") {
     await kirim(chatId, "Halo Bos! Mau gambar apa? Ketik aja. Nanti diterusin ke admin, admin yang bikinin manual.");
     return new Response("ok");
   }
 
+  // ADMIN KIRIM FOTO + CAPTION ID WEB, BOS. BIAR FOTO LANGSUNG MASUK WEB
+  if (ADMIN_ID && String(chatId) === String(ADMIN_ID) && msg.photo) {
+    let targetId = text.replace("/balas", "").trim().split(" ")[0];
+    if (targetId && HASIL_MANUAL[targetId]) {
+      let fileId = msg.photo[msg.photo.length - 1].file_id;
+      let fileRes = await fetch(`${api}/getFile?file_id=${fileId}`).then(r => r.json());
+      let linkFoto = `https://api.telegram.org/file/bot${token}/${fileRes.result.file_path}`;
+      HASIL_MANUAL[targetId] = { status: 'selesai', gambar: linkFoto };
+      await kirim(chatId, "Beres Bos! Foto udah dikirim ke Web /ai ID " + targetId);
+      return new Response("ok");
+    }
+  }
+
   // ADMIN BALES MANUAL
   // Format: /balas ID_ORANG pesan / link gambar
-  // Contoh: /balas 123456 Ini gambarnya Bos: https://...
+  // Kalau ID-nya ID Web (angka panjang Date.now), masuk ke Web. Kalau ID Telegram user, masuk ke user.
   if (ADMIN_ID && String(chatId) === String(ADMIN_ID) && text.startsWith("/balas ")) {
     let sisa = text.replace("/balas ", "");
     let spasi = sisa.indexOf(" ");
@@ -107,12 +136,41 @@ async function handleTelegram(req, env) {
     }
     let targetId = sisa.slice(0, spasi);
     let pesan = sisa.slice(spasi + 1);
-    await kirim(targetId, "Dari Admin Rumah Gadang AI:\n" + pesan);
+
+    // 1. KE WEB, BOS
+    if (HASIL_MANUAL[targetId]) {
+      HASIL_MANUAL[targetId] = { status: 'selesai', gambar: pesan };
+      await kirim(chatId, "Udah terkirim ke Web /ai ID " + targetId + " Bos.");
+      return new Response("ok");
+    }
+
+    // 2. KE TELEGRAM USER, BOS
+    if (pesan.startsWith("http") && (pesan.includes(".jpg") || pesan.includes(".png") || pesan.includes(".jpeg") || pesan.includes(".webp"))) {
+      await kirimFoto(targetId, pesan, "Nih Bos, gambar dari admin Rumah Gadang AI 🙏");
+    } else {
+      await kirim(targetId, "Dari Admin Rumah Gadang AI:\n" + pesan);
+    }
     await kirim(chatId, "Udah terkirim ke " + targetId + " Bos.");
     return new Response("ok");
   }
 
   // ORANG BIASA -> TERUSIN KE ADMIN
+  // Kalau cuma nanya biasa, jawab Groq. Kalau minta gambar, terusin ke lu.
+  let kataGambar = ['gambar', 'gambarkan', 'buatkan', 'bikin', 'foto', 'lukis', 'desain'];
+  let mintaGambar = kataGambar.some(k => text.toLowerCase().includes(k));
+
+  if (!mintaGambar && text && !text.startsWith("/")) {
+    // Nanya biasa -> Groq otomatis, gak usah ganggu lu, Bos
+    let reply = "Halo Bos, mau gambar apa?";
+    try {
+      let groqRes = await AI_API.handle(new Request("https://rumahgadang-ai.my.id/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: text }) }), env, new URL("https://rumahgadang-ai.my.id/api/ai"), {});
+      let groqData = await groqRes.json();
+      if (groqData.reply) reply = groqData.reply;
+    } catch {}
+    await kirim(chatId, reply);
+    return new Response("ok");
+  }
+
   await kirim(chatId, "Siap Bos, permintaan lu udah diterusin ke admin. Tunggu dibikinin manual ya Bos.");
   if (ADMIN_ID) {
     await kirim(ADMIN_ID, `ADA REQUEST BARU BOS!\n\nDari: ${nama} (${username})\nID: ${chatId}\nMinta: ${text}\n\nBalas pakai:\n/balas ${chatId} <pesan / link gambar lu>`);
@@ -179,6 +237,35 @@ export default {
     };
     
     if (req.method === "OPTIONS") return new Response("", { headers: cors });
+
+    // ===== WEB /ai MINTA GAMBAR -> KIRIM KE TELEGRAM ADMIN, BOS. PENGGANTI T2I =====
+    if (path === "/api/ai-request" && req.method === "POST") {
+      try {
+        let { prompt } = await req.json().catch(() => ({}));
+        prompt = (prompt || "").trim();
+        if (!prompt) return new Response(JSON.stringify({ ok: false, error: "Prompt kosong" }), { headers: cors, status: 400 });
+        let id = Date.now().toString();
+        HASIL_MANUAL[id] = { status: 'menunggu', gambar: '' };
+        let token = (env.TELE_BOT_GAMBAR || "").trim();
+        let adminId = (env.ADMIN_TELE_ID || env.TELE_ADMIN_ID || "").trim();
+        if (token && adminId) {
+          await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: adminId, text: `ADA REQUEST BARU BOS!\n\nDari: Web /ai\nID: ${id}\nMinta: ${prompt}\n\nBalas pakai:\n/balas ${id} <link gambar lu>` })
+          });
+        }
+        return new Response(JSON.stringify({ ok: true, id }), { headers: cors });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
+      }
+    }
+
+    // ===== WEB NANYA "UDAH JADI BELUM?", BOS =====
+    if (path === "/api/ai-status" && req.method === "GET") {
+      let id = url.searchParams.get('id');
+      return new Response(JSON.stringify(HASIL_MANUAL[id] || { status: 'gak ketemu' }), { headers: cors });
+    }
 
     // Redirect HTTP ke HTTPS & www ke non-www
     const proto = req.headers.get('x-forwarded-proto') || url.protocol.replace(':', '');
@@ -320,6 +407,10 @@ Host: https://rumahgadang-ai.my.id`;
           let m = getApi(AI_API_M); 
           if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
           if (AI_API?.handle) { let r = await AI_API.handle(req, env, url, cors); if (r) return r; }
+        }
+        // T2I udah dihapus, Bos. Kasih pesan jelas, jangan 404
+        if (path.startsWith('/api/t2i')) {
+          return new Response(JSON.stringify({ ok: false, error: "T2I udah dihapus Bos. Gambar sekarang manual by Admin via Telegram." }), { headers: cors, status: 410 });
         }
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });

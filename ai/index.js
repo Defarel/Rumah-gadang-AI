@@ -67,12 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const playOnInteraction = () => { audio.play(); document.removeEventListener('click', playOnInteraction); };
     document.addEventListener('click', playOnInteraction);
   });
-  // Sambutan awal, Bos
-  const chatBox = document.getElementById('chatBox');
-  if (chatBox.children.length === 0) {
-    appendMessage('Halo Bos! 👋\\nMau tanya apa? Atau mau gambar?\\n\\nKetik aja: "Gambarkan rumah gadang di Padang"', 'ai');
-  }
-});
+  
 function toggleMusic(){
   if(audio.paused){ audio.play(); musicBtn.innerHTML = "🔊 RG Musik"; }
   else { audio.pause(); musicBtn.innerHTML = "📁 RG Musik"; }
@@ -118,7 +113,7 @@ async function handleSend(){
         sendBtn.disabled = false;
         return;
       }
-      loadingDiv.textContent = "Siap Bos, udah diterusin ke admin. Lagi dibikinin manual ya Bos, tunggu bentar...";
+      loadingDiv.textContent = " Lagi diproses sistem, tunggu 30 - 40 detik";
       const id = data.id;
 
       // === 2. POLLING TIAP 3 DETIK, BOS. NANYA UDAH JADI BELUM? ===

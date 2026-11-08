@@ -1,4 +1,4 @@
-// file: ./ai/index.js - RUMAH GADANG AI - FULL AUTO - UDAH DIRAPIIN ERORNYA, BOS
+// file: ./ai/index.js - RUMAH GADANG AI - TANPA SAMBUTAN, BOS
 export const AI_HTML = `<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
@@ -69,10 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const playOnInteraction = () => { audio.play().catch(()=>{}); document.removeEventListener('click', playOnInteraction); };
     document.addEventListener('click', playOnInteraction);
   });
-  const chatBox = document.getElementById('chatBox');
-  if (chatBox.children.length === 0) {
-    appendMessage('Halo Bos! 👋\\nMau tanya apa? Atau mau gambar?\\n\\nKetik aja: "Gambarkan rumah gadang di Padang"', 'ai');
-  }
 });
 
 function toggleMusic(){
@@ -118,7 +114,6 @@ async function handleSend(){
 
   try {
     if (isImageRequest) {
-      // === 1. KIRIM KE ADMIN ===
       let res;
       try {
         res = await fetch('/api/ai-request', {
@@ -137,7 +132,6 @@ async function handleSend(){
       loadingDiv.textContent = 'Lagi diproses sistem, tunggu 30 - 40 detik ya Bos...';
       const id = data.id;
 
-      // === 2. POLLING ===
       let sudahDapat = false;
       let gagalBeruntun = 0;
       const cek = setInterval(async () => {
@@ -187,10 +181,8 @@ async function handleSend(){
           setLoading(false);
         }
       }, 300000);
-      // Jangan matiin tombol di sini, Bos. Tunggu polling selesai. Jadi return, biar finally gak matiin.
       return;
     } else {
-      // === NANYA BIASA -> GROQ ===
       let res;
       try {
         res = await fetch('/api/ai', {
@@ -213,7 +205,6 @@ async function handleSend(){
     loadingDiv.textContent = e.message || 'Terjadi kesalahan Bos.';
     loadingDiv.classList.add('error');
   } finally {
-    // Kalau gambar, tombol baru dibuka pas polling selesai / timeout. Kalau text, langsung buka.
     if (!isImageRequest) setLoading(false);
     chatBox.scrollTop = chatBox.scrollHeight;
   }

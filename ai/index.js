@@ -1,6 +1,4 @@
-// file: ./ai/index.js - RUMAH GADANG AI - FULL AUTO
-// API OTOMATIS BIKIN ID ORANG ITU, BOS. LU CUMA KIRIM GAMBAR AJA
-
+// file: ./ai/index.js - RUMAH GADANG AI - FULL AUTO - UDAH DIRAPIIN ERORNYA, BOS
 export const AI_HTML = `<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
@@ -18,14 +16,16 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .app-title{font-size:18px;font-weight:900;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.8)}
 .floating-btn{background:rgba(0,0,0,0.75);color:#fff;border:1px solid #00ff88;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;backdrop-filter:blur(4px);box-shadow:0 0 8px rgba(0,255,136,0.4)}
 .chat-container{position:relative;z-index:5;flex:1;overflow-y:auto;padding:70px 16px 150px 16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
-.chat-bubble{max-width:85%;padding:12px 16px;border-radius:18px;font-size:14px;line-height:1.4;word-wrap:break-word;backdrop-filter:blur(6px)}
+.chat-bubble{max-width:85%;padding:12px 16px;border-radius:18px;font-size:14px;line-height:1.4;word-wrap:break-word;backdrop-filter:blur(6px);white-space:pre-wrap}
 .chat-bubble.user{align-self:flex-end;background:rgba(0,255,136,0.85);color:#000;font-weight:600;border-bottom-right-radius:4px;box-shadow:0 0 10px rgba(0,255,136,0.4)}
 .chat-bubble.ai{align-self:flex-start;background:rgba(20,20,20,0.85);color:#fff;border:1px solid #00ff88;border-bottom-left-radius:4px;box-shadow:0 0 10px rgba(0,0,0,0.6)}
+.chat-bubble.ai.error{border-color:#ff4444;background:rgba(40,10,10,0.9)}
 .chat-bubble.ai img{max-width:100%;border-radius:12px;margin-top:8px;display:block;cursor:pointer}
 .chat-bubble.ai a{color:#00ff88}
 .bottom-chat-bar{position:absolute;bottom:125px;left:0;width:100%;padding:12px 16px;display:flex;gap:10px;z-index:10;background:linear-gradient(to top, rgba(0,0,0,0.95), transparent)}
 .chat-input{flex:1;background:rgba(20,20,20,0.85);border:1px solid #333;border-radius:16px;padding:14px 16px;color:#fff;font-size:14px;outline:none;backdrop-filter:blur(6px)}
 .chat-input:focus{border-color:#00ff88}
+.chat-input:disabled{opacity:0.6}
 .chat-input::placeholder{color:#aaa}
 .btn-kirim{background:#00ff88;color:#000;border:none;padding:0 20px;border-radius:16px;font-weight:900;font-size:14px;cursor:pointer;box-shadow:0 0 10px rgba(0,255,136,0.6);display:grid;place-items:center;transition:0.2s}
 .btn-kirim:disabled{background:#555;color:#888;cursor:not-allowed;box-shadow:none}
@@ -36,7 +36,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 </head>
 <body>
 <div id="app">
-  <audio id="bgMusic" src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/19966ec207201871dcc41fb70cbe82365d42d07d/ai/RumahGadangV1.m4a" autoplay loop></audio>
+  <audio id="bgMusic" src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/19966ec207201871dcc41fb70cbe82365d42d07d/ai/RumahGadangV1.m4a" loop></audio>
   <div class="bg-container">
     <img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg" alt="Rumah Gadang AI Background">
     <div class="overlay-dark"></div>
@@ -62,104 +62,166 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 <script>
 const audio = document.getElementById('bgMusic');
 const musicBtn = document.getElementById('musicBtn');
+let sedangKirim = false;
+
 document.addEventListener('DOMContentLoaded', () => {
   audio.play().catch(() => {
-    const playOnInteraction = () => { audio.play(); document.removeEventListener('click', playOnInteraction); };
+    const playOnInteraction = () => { audio.play().catch(()=>{}); document.removeEventListener('click', playOnInteraction); };
     document.addEventListener('click', playOnInteraction);
   });
-  
+  const chatBox = document.getElementById('chatBox');
+  if (chatBox.children.length === 0) {
+    appendMessage('Halo Bos! 👋\\nMau tanya apa? Atau mau gambar?\\n\\nKetik aja: "Gambarkan rumah gadang di Padang"', 'ai');
+  }
+});
+
 function toggleMusic(){
-  if(audio.paused){ audio.play(); musicBtn.innerHTML = "🔊 RG Musik"; }
+  if(audio.paused){ audio.play().catch(()=>{}); musicBtn.innerHTML = "🔊 RG Musik"; }
   else { audio.pause(); musicBtn.innerHTML = "📁 RG Musik"; }
 }
 function handleKeyPress(e){ if(e.key === 'Enter') handleSend(); }
 
-// === BIKIN ID ORANG ITU OTOMATIS, BOS. DISIMPEN DI HP-NYA, BIAR GAK GANTI-GANTI ===
 function getUserId(){
-  let uid = localStorage.getItem('rg_user_id');
-  if (!uid) {
-    uid = 'user-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
-    localStorage.setItem('rg_user_id', uid);
+  try {
+    let uid = localStorage.getItem('rg_user_id');
+    if (!uid) {
+      uid = 'user-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+      localStorage.setItem('rg_user_id', uid);
+    }
+    return uid;
+  } catch(e) {
+    return 'user-' + Date.now().toString(36);
   }
-  return uid;
+}
+
+function setLoading(isLoading){
+  const inputEl = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
+  sedangKirim = isLoading;
+  sendBtn.disabled = isLoading;
+  inputEl.disabled = isLoading;
+  if (!isLoading) inputEl.focus();
 }
 
 async function handleSend(){
+  if (sedangKirim) return;
   const inputEl = document.getElementById('userInput');
-  const sendBtn = document.getElementById('sendBtn');
   const chatBox = document.getElementById('chatBox');
   const prompt = inputEl.value.trim();
   if(!prompt) return;
+
   appendMessage(prompt, 'user');
   inputEl.value = '';
-  sendBtn.disabled = true;
+  setLoading(true);
   const loadingDiv = appendMessage('Saratonyo mandengarkan...', 'ai');
-
-  // Deteksi gambar - TANPA T2I, BOS. MANUAL VIA TELEGRAM ADMIN
   const isImageRequest = /(gambarkan|buatkan gambar|bikin gambar|lukis|foto|image|generate|gambar|desain|buatkan|bikinin)/i.test(prompt);
 
   try {
     if (isImageRequest) {
-      // === 1. KIRIM KE ADMIN VIA /api/ai-request, BOS. BAWA user_id OTOMATIS ===
-      const user_id = getUserId();
-      const res = await fetch('/api/ai-request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: prompt, user_id: user_id })
-      });
-      const data = await res.json();
-      if (!data.ok) {
-        loadingDiv.textContent = "Gagal kirim ke admin Bos: " + (data.error || 'Coba lagi Bos');
-        sendBtn.disabled = false;
-        return;
+      // === 1. KIRIM KE ADMIN ===
+      let res;
+      try {
+        res = await fetch('/api/ai-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: prompt, user_id: getUserId() })
+        });
+      } catch(e) {
+        throw new Error('Server gak bisa dihubungi Bos. Cek internet lu.');
       }
-      loadingDiv.textContent = " Lagi diproses sistem, tunggu 30 - 40 detik";
+      let data = {};
+      try { data = await res.json(); } catch(e) { throw new Error('Server ngasih respon aneh Bos. Coba lagi.'); }
+      if (!res.ok || !data.ok || !data.id) {
+        throw new Error(data.error || 'Gagal kirim ke admin Bos. Coba lagi.');
+      }
+      loadingDiv.textContent = 'Lagi diproses sistem, tunggu 30 - 40 detik ya Bos...';
       const id = data.id;
 
-      // === 2. POLLING TIAP 3 DETIK, BOS. NANYA UDAH JADI BELUM? ===
+      // === 2. POLLING ===
       let sudahDapat = false;
+      let gagalBeruntun = 0;
       const cek = setInterval(async () => {
         try {
-          const cekRes = await fetch('/api/ai-status?id=' + id);
+          const cekRes = await fetch('/api/ai-status?id=' + encodeURIComponent(id));
+          if (!cekRes.ok) throw new Error('status gagal');
           const hasil = await cekRes.json();
+          gagalBeruntun = 0;
           if (hasil.status === 'selesai') {
             sudahDapat = true;
             clearInterval(cek);
-            if (hasil.gambar && hasil.gambar.startsWith('http')) {
-              loadingDiv.innerHTML = '<div>Gambar: ' + escapeHtml(prompt) + '</div><a href="' + hasil.gambar + '" target="_blank"><img src="' + hasil.gambar + '"></a><div style="font-size:11px;opacity:0.7;margin-top:6px">Klik gambar buat buka full Bos</div>';
+            clearTimeout(timeoutPolling);
+            if (hasil.gambar && typeof hasil.gambar === 'string' && hasil.gambar.startsWith('http')) {
+              loadingDiv.innerHTML = '<div>Gambar: ' + escapeHtml(prompt) + '</div><a href="' + escapeHtml(hasil.gambar) + '" target="_blank" rel="noopener"><img src="' + escapeHtml(hasil.gambar) + '" alt="Gambar dari admin"></a><div style="font-size:11px;opacity:0.7;margin-top:6px">Klik gambar buat buka full Bos</div>';
+            } else if (hasil.gambar) {
+              loadingDiv.textContent = hasil.gambar;
             } else {
-              loadingDiv.textContent = hasil.gambar || 'Selesai Bos.';
+              loadingDiv.textContent = 'Selesai Bos, tapi gambarnya kosong. Coba kirim lagi ya Bos.';
+              loadingDiv.classList.add('error');
             }
             chatBox.scrollTop = chatBox.scrollHeight;
+            setLoading(false);
+          } else if (hasil.status === 'gak ketemu') {
+            clearInterval(cek);
+            clearTimeout(timeoutPolling);
+            loadingDiv.textContent = 'ID-nya gak ketemu di server Bos. Coba kirim lagi ya Bos.';
+            loadingDiv.classList.add('error');
+            setLoading(false);
           }
-        } catch(e) {}
+        } catch(e) {
+          gagalBeruntun++;
+          if (gagalBeruntun >= 3) {
+            clearInterval(cek);
+            clearTimeout(timeoutPolling);
+            loadingDiv.textContent = 'Koneksi putus pas nunggu gambar Bos. Coba kirim lagi ya Bos.';
+            loadingDiv.classList.add('error');
+            setLoading(false);
+          }
+        }
       }, 3000);
-      // Berhenti polling kalau 5 menit gak ada balesan, Bos
-      setTimeout(() => {
+
+      const timeoutPolling = setTimeout(() => {
         clearInterval(cek);
-        if (!sudahDapat) loadingDiv.textContent = "Admin belum bales Bos, coba kirim lagi ya Bos. Mungkin admin lagi sibuk.";
+        if (!sudahDapat) {
+          loadingDiv.textContent = 'Admin belum bales Bos, coba kirim lagi ya Bos. Mungkin admin lagi sibuk.';
+          loadingDiv.classList.add('error');
+          setLoading(false);
+        }
       }, 300000);
+      // Jangan matiin tombol di sini, Bos. Tunggu polling selesai. Jadi return, biar finally gak matiin.
+      return;
     } else {
-      // === NANYA BIASA -> GROQ /api/ai, BOS ===
-      const res = await fetch('/api/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: prompt })
-      });
-      const data = await res.json();
-      if (data.reply) { loadingDiv.textContent = data.reply; }
-      else { loadingDiv.textContent = "Respon tidak diketahui Bos: " + JSON.stringify(data); }
+      // === NANYA BIASA -> GROQ ===
+      let res;
+      try {
+        res = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: prompt })
+        });
+      } catch(e) {
+        throw new Error('Server gak bisa dihubungi Bos. Cek internet lu.');
+      }
+      let data = {};
+      try { data = await res.json(); } catch(e) { throw new Error('Server ngasih respon aneh Bos.'); }
+      if (data.reply) {
+        loadingDiv.textContent = data.reply;
+      } else {
+        throw new Error(data.error || 'Respon tidak diketahui Bos.');
+      }
     }
   } catch(e) {
-    loadingDiv.textContent = "Gagal terhubung ke AI Bos: " + e.message;
+    loadingDiv.textContent = e.message || 'Terjadi kesalahan Bos.';
+    loadingDiv.classList.add('error');
   } finally {
-    sendBtn.disabled = false;
+    // Kalau gambar, tombol baru dibuka pas polling selesai / timeout. Kalau text, langsung buka.
+    if (!isImageRequest) setLoading(false);
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 }
 
 function escapeHtml(s){
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 function appendMessage(text, sender){

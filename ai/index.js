@@ -73,7 +73,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
   <div class="lb-body" onclick="tutupGambar()">
     <img id="lbImg" src="" alt="Gambar full" onclick="event.stopPropagation()">
   </div>
-  <div class="lb-hint">Cubit / pinch buat zoom Bos. Pencet Back / luar gambar buat tutup.</div>
+  <div class="lb-hint">rumah gadang AI</div>
 </div>
 
 <div class="bot">
@@ -235,7 +235,7 @@ async function handleSend(){
             if (hasil.gambar && typeof hasil.gambar === 'string' && hasil.gambar.startsWith('http')) {
               const safeUrl = escapeHtml(hasil.gambar);
               const safePrompt = escapeHtml(prompt);
-              loadingDiv.innerHTML = '<div>Gambar: ' + safePrompt + '</div><img src="' + safeUrl + '" alt="Gambar dari admin" onclick="bukaGambar(\\'' + safeUrl + '\\', \\'Gambar: ' + safePrompt + '\\')"><div style="font-size:11px;opacity:0.7;margin-top:6px">Klik gambar buat liat full Bos</div>';
+              loadingDiv.innerHTML = '<div>Gambar: ' + safePrompt + '</div><img src="' + safeUrl + '" alt="Gambar dari admin" onclick="bukaGambar(\\'' + safeUrl + '\\', \\'Gambar: ' + safePrompt + '\\')"><div style="font-size:11px;opacity:0.7;margin-top:6px">Klik gambar buat liat full</div>';
             } else if (hasil.gambar) {
               loadingDiv.textContent = hasil.gambar;
             } else {

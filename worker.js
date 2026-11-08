@@ -13,7 +13,7 @@ import * as AKUN_API_M from './akun/api-akun/api.js';
 import * as AI_API_M from './ai/api-ai/api.js';
 import * as SITEMAP_M from './api-sitemap/index.js';
 
-// ===== AI API FINAL - GROQ + HF KREA 2 (FAL-AI QUEUE) =====
+// ===== AI API FINAL - GROQ TEXT ONLY, KREA 2 UDAH DIHAPUS =====
 export const AI_API = {
   async handle(req, env, url, corsHeaders) {
     const cors = corsHeaders || {
@@ -25,11 +25,11 @@ export const AI_API = {
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     const p = url.pathname.toLowerCase();
 
-    if (req.method === "GET" && (p === "/api/ai" || p === "/api/t2i")) {
+    if (req.method === "GET" && p === "/api/ai") {
       return new Response(JSON.stringify({
         ok: true,
         TEXT: "GROQ: " + !!env.GROQ_API_KEY,
-        IMAGE: "HF KREA 2 (fal-ai queue): " + !!env.API_T2I
+        IMAGE: "MANUAL - via Telegram Bot"
       }), { headers: cors });
     }
 
@@ -62,46 +62,63 @@ export const AI_API = {
       }
       return new Response(JSON.stringify({ reply: "Groq gagal" }), { headers: cors });
     }
-
-    if (p === "/api/t2i" && req.method === "POST") {
-      try {
-        let { prompt } = await req.json().catch(() => ({}));
-        prompt = (prompt || "Gambarkan jalan lurus").trim();
-        let HF_TOKEN = (env.API_T2I || "").trim();
-        if (!HF_TOKEN) return new Response(JSON.stringify({ ok: false, error: "API_T2I belum set" }), { headers: cors, status: 500 });
-
-        const response = await fetch(
-          "https://router.huggingface.co/fal-ai/fal-ai/krea-2/turbo?_subdomain=queue",
-          {
-            headers: {
-              Authorization: `Bearer ${HF_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-            method: "POST",
-            body: JSON.stringify({ prompt }),
-          }
-        );
-
-        const ct = response.headers.get("content-type") || "";
-        if (ct.includes("application/json")) {
-          let txt = await response.text();
-          throw new Error(txt);
-        }
-
-        let blob = await response.blob();
-        let buf = await blob.arrayBuffer();
-        let b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-        let dataUrl = `data:image/png;base64,${b64}`;
-        
-        return new Response(JSON.stringify({ ok: true, prompt, model: "krea/Krea-2-Turbo", image: dataUrl }), { headers: cors });
-
-      } catch (e) {
-        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
-      }
-    }
     return null;
   }
 };
+
+// ===== TELEGRAM BOT - MANUAL, KREA 2 UDAH DIHAPUS =====
+async function handleTelegram(req, env) {
+  const token = (env.TELE_BOT_GAMBAR || "").trim();
+  const ADMIN_ID = (env.ADMIN_TELE_ID || "").trim();
+  if (!token) return new Response("token belum set Bos", { status: 500 });
+
+  const update = await req.json().catch(() => ({}));
+  const msg = update.message;
+  if (!msg || !msg.text) return new Response("ok");
+
+  const chatId = msg.chat.id;
+  const text = msg.text.trim();
+  const nama = msg.from?.first_name || "Orang";
+  const username = msg.from?.username ? "@" + msg.from.username : "-";
+  const api = `https://api.telegram.org/bot${token}`;
+
+  const kirim = async (ke, teks) => {
+    await fetch(api + "/sendMessage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: ke, text: teks })
+    });
+  };
+
+  if (text === "/start") {
+    await kirim(chatId, "Halo Bos! Mau gambar apa? Ketik aja. Nanti diterusin ke admin, admin yang bikinin manual.");
+    return new Response("ok");
+  }
+
+  // ADMIN BALES MANUAL
+  // Format: /balas ID_ORANG pesan / link gambar
+  // Contoh: /balas 123456 Ini gambarnya Bos: https://...
+  if (ADMIN_ID && String(chatId) === String(ADMIN_ID) && text.startsWith("/balas ")) {
+    let sisa = text.replace("/balas ", "");
+    let spasi = sisa.indexOf(" ");
+    if (spasi === -1) {
+      await kirim(chatId, "Format salah Bos. Pakai: /balas ID pesan");
+      return new Response("ok");
+    }
+    let targetId = sisa.slice(0, spasi);
+    let pesan = sisa.slice(spasi + 1);
+    await kirim(targetId, "Dari Admin Rumah Gadang AI:\n" + pesan);
+    await kirim(chatId, "Udah terkirim ke " + targetId + " Bos.");
+    return new Response("ok");
+  }
+
+  // ORANG BIASA -> TERUSIN KE ADMIN
+  await kirim(chatId, "Siap Bos, permintaan lu udah diterusin ke admin. Tunggu dibikinin manual ya Bos.");
+  if (ADMIN_ID) {
+    await kirim(ADMIN_ID, `ADA REQUEST BARU BOS!\n\nDari: ${nama} (${username})\nID: ${chatId}\nMinta: ${text}\n\nBalas pakai:\n/balas ${chatId} <pesan / link gambar lu>`);
+  }
+  return new Response("ok");
+}
 
 // ===== HELPERS & TEMPLATES =====
 function getHtml(mod) { 
@@ -147,6 +164,11 @@ export default {
     const url = new URL(req.url);
     let path = url.pathname.toLowerCase();
     
+    // WEBHOOK TELEGRAM - HARUS PALING ATAS, SEBELUM REDIRECT
+    if (path === "/api/telegram" && req.method === "POST") {
+      return handleTelegram(req, env);
+    }
+
     const cors = {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
@@ -294,7 +316,7 @@ Host: https://rumahgadang-ai.my.id`;
         if (path.startsWith('/api/akun') || path.startsWith('/api/follow') || path.startsWith('/api/followers') || path.startsWith('/api/following') || path.startsWith('/api/photo') || path.startsWith('/api/users') || path.startsWith('/api/search-users') || path.startsWith('/api/chat')) {
           let m = getApi(AKUN_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
         }
-        if (path.startsWith('/api/ai') || path.startsWith('/api/t2i')) {
+        if (path.startsWith('/api/ai')) {
           let m = getApi(AI_API_M); 
           if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
           if (AI_API?.handle) { let r = await AI_API.handle(req, env, url, cors); if (r) return r; }
@@ -305,7 +327,7 @@ Host: https://rumahgadang-ai.my.id`;
       return new Response(JSON.stringify({ ok: false, error: "No handler " + path }), { headers: cors, status: 404 });
     }
 
-    // ✅ 1. TANGKAP RUTE KANTOR, LUAR, & DALAM PALING UTAMA DI ATAS
+    // 1. TANGKAP RUTE KANTOR, LUAR, & DALAM PALING UTAMA DI ATAS
     if (path === "/kantor" || path.startsWith("/kantor/") || path === "/luar" || path.startsWith("/luar/")) {
       return htmlResponse(LUAR_HTML, "https://rumahgadang-ai.my.id/kantor");
     }
@@ -313,7 +335,7 @@ Host: https://rumahgadang-ai.my.id`;
       return htmlResponse(DALAM_HTML, "https://rumahgadang-ai.my.id/dalam");
     }
 
-    // ✅ 2. USER PROFILE ROUTING (e.g. /username)
+    // 2. USER PROFILE ROUTING (e.g. /username)
     const segments = path.split("/").filter(Boolean);
     if (segments.length > 0) {
       let username = segments[0];

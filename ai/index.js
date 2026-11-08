@@ -1,4 +1,4 @@
-// file: ./ai/index.js - RUMAH GADANG AI - FULLSCREEN, GAK LANGSUNG DOWNLOAD, BOS
+// file: ./ai/index.js - BACK DARI FOTO CUMA NUTUP FOTO, GAK PINDAH MENU, BOS
 export const AI_HTML = `<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
@@ -32,7 +32,6 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99}
 .bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}
 .bot a.on{color:#fff}
-/* === LIGHTBOX FULL LAYAR, BOS. BIAR GAK LANGSUNG DOWNLOAD === */
 #lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:9999;display:none;flex-direction:column}
 #lightbox.open{display:flex}
 .lb-top{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;gap:10px}
@@ -63,8 +62,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
   </div>
 </div>
 
-<!-- LIGHTBOX FULL LAYAR, BOS -->
-<div id="lightbox" onclick="if(event.target.id==='lightbox') tutupGambar()">
+<div id="lightbox">
   <div class="lb-top">
     <div class="lb-title" id="lbTitle">Gambar dari Admin</div>
     <div class="lb-actions">
@@ -72,10 +70,10 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
       <button class="lb-btn close" onclick="tutupGambar()">✕ Tutup</button>
     </div>
   </div>
-  <div class="lb-body">
-    <img id="lbImg" src="" alt="Gambar full">
+  <div class="lb-body" onclick="tutupGambar()">
+    <img id="lbImg" src="" alt="Gambar full" onclick="event.stopPropagation()">
   </div>
-  <div class="lb-hint">Cubit / pinch buat zoom Bos. Pencet di luar gambar buat tutup.</div>
+  <div class="lb-hint">Cubit / pinch buat zoom Bos. Pencet Back / luar gambar buat tutup.</div>
 </div>
 
 <div class="bot">
@@ -92,6 +90,7 @@ const musicBtn = document.getElementById('musicBtn');
 let sedangKirim = false;
 let gambarAktif = '';
 let judulAktif = 'Gambar dari Admin';
+let lightboxKebuka = false;
 
 document.addEventListener('DOMContentLoaded', () => {
   audio.play().catch(() => {
@@ -106,7 +105,7 @@ function toggleMusic(){
 }
 function handleKeyPress(e){ if(e.key === 'Enter') handleSend(); }
 
-// === BUKA FULL LAYAR, BOS. BUKAN DOWNLOAD, BOS ===
+// === BUKA FULL + TAMBAH 1 HISTORY PALSU, BOS. BIAR BACK HP CUMA NUTUP FOTO ===
 function bukaGambar(url, judul){
   gambarAktif = url || '';
   judulAktif = judul || 'Gambar dari Admin';
@@ -117,14 +116,37 @@ function bukaGambar(url, judul){
   title.textContent = judulAktif;
   lb.classList.add('open');
   document.body.style.overflow = 'hidden';
+  if (!lightboxKebuka) {
+    lightboxKebuka = true;
+    try { history.pushState({ lightbox: true }, '', location.href); } catch(e) {}
+  }
 }
+// === TUTUP FOTO, BOS. KALAU DARI TOMBOL TUTUP, BALIKIN HISTORY-NYA BIAR GAK NUMPUK ===
 function tutupGambar(){
+  if (!lightboxKebuka) return;
+  // Kalau kita yang nutup lewat tombol / klik luar, kita mundur 1 history, Bos.
+  // Nanti popstate yang beneran nutup layarnya, Bos. Biar Back HP & Tombol Tutup sama aja.
+  if (history.state && history.state.lightbox) {
+    history.back();
+    return;
+  }
+  // Kalau udah dari Back HP, langsung tutup aja, Bos.
+  tutupGambarLangsung();
+}
+function tutupGambarLangsung(){
+  lightboxKebuka = false;
   const lb = document.getElementById('lightbox');
   lb.classList.remove('open');
   document.getElementById('lbImg').src = '';
   document.body.style.overflow = '';
 }
-// === DOWNLOAD BARU JALAN KALAU PENCET TOMBOL DOWNLOAD DI ATAS, BOS ===
+// === INI KUNCINYA, BOS. BACK HP CUMA NUTUP FOTO, GAK PINDAH MENU ===
+window.addEventListener('popstate', () => {
+  if (lightboxKebuka) {
+    tutupGambarLangsung();
+  }
+});
+
 async function downloadGambar(){
   if (!gambarAktif) return;
   try {
@@ -138,7 +160,6 @@ async function downloadGambar(){
     a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
   } catch(e) {
-    // Kalau gagal fetch, baru buka link-nya, Bos. Biar HP yang handle download-nya.
     window.open(gambarAktif, '_blank');
   }
 }

@@ -274,21 +274,6 @@ Host: https://rumahgadang-ai.my.id`;
     if (path === "/v" || path === "/v/") path = "/video";
     if (path === "/a" || path === "/a/") path = "/ai";
 
-    // ===== CUKUP CARI D1 20 AJA, BOS - INI AJA YANG DITAMBAH, YANG LAIN GAK DIGANTI =====
-    // Cuma buat list Home, Bos. Yang /like, /komen, /add jangan ditangkap, biar lolos ke bawah.
-    if ((path === "/api/tulis" || path === "/api/posts" || path === "/api/tulis/list") && req.method === "GET") {
-      try {
-        if (env.DB) {
-          let r = await env.DB.prepare("SELECT * FROM tulis ORDER BY id DESC LIMIT 20").all();
-          if (r && r.results && r.results.length) {
-            return new Response(JSON.stringify({ ok: true, results: r.results, data: r.results, posts: r.results }), { headers: cors });
-          }
-        }
-      } catch (e) {}
-      // Kalau D1 kosong, balikin kosong aja, Bos. Biar Home yang nampilin "Belum ada tulisan Bos" kayak aslinya.
-      return new Response(JSON.stringify({ ok: true, results: [], data: [], posts: [] }), { headers: cors });
-    }
-
     // API ROUTING
     if (path.startsWith('/api/')) {
       const blockedForGet = ["/api/akun/update", "/api/akun/register", "/api/register", "/api/tulis/delete"];

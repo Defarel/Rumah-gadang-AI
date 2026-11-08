@@ -18,7 +18,6 @@ export const HOME_HTML = `<!DOCTYPE html>
   "name": "Rumah Gadang AI",
   "url": "https://rumahgadang-ai.my.id",
   "logo": "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png",
-  "image": "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png",
   "sameAs": [
     "https://rumahgadang-ai.my.id"
   ]

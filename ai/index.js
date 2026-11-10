@@ -1,11 +1,12 @@
 // file: ./ai/index.js - SEMUA MENU PINDAH KE ROBOT, BOS
 // Musik OFF dulu. Robot di bawah kanan. Otomatis: diem -> AI balas.
+// Tombol robot = logo_RG_asisten.png, Bos
 export const AI_HTML = `<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Rumah Gadang AI - AI Assistant</title>
-<link rel="icon" href="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png">
+<link rel="icon" href="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/aset/logo_RG_asisten.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
@@ -32,9 +33,10 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .chat-input::placeholder{color:#aaa}
 .btn-kirim{background:#00ff88;color:#000;border:none;padding:0 20px;border-radius:16px;font-weight:900;font-size:14px;cursor:pointer;box-shadow:0 0 10px rgba(0,255,136,0.6);display:grid;place-items:center}
 .btn-kirim:disabled{background:#555;color:#888;cursor:not-allowed;box-shadow:none}
-/* ROBOT ASISTEN - DI ATAS KIRIM, KANAN BAWAH, BOS */
-#robotBtn{position:absolute;bottom:182px;right:16px;width:64px;height:64px;border-radius:50%;background:#7b2ff7;border:3px solid #fff;font-size:34px;cursor:pointer;z-index:20;box-shadow:0 0 18px rgba(123,47,247,.9);display:grid;place-items:center}
-#robotBtn.aktif{background:#ff4444;animation:blink 1s infinite}
+/* ROBOT ASISTEN - DI ATAS KIRIM, KANAN BAWAH, BOS - UDAH PAKE LOGO RG ASISTEN, BOS */
+#robotBtn{position:absolute;bottom:182px;right:16px;width:68px;height:68px;border-radius:50%;background:#fff;border:3px solid #00ff88;cursor:pointer;z-index:20;box-shadow:0 0 18px rgba(0,255,136,.9);display:grid;place-items:center;overflow:hidden;padding:0}
+#robotBtn img{width:100%;height:100%;object-fit:cover;display:block}
+#robotBtn.aktif{border-color:#ff4444;animation:blink 1s infinite}
 @keyframes blink{50%{opacity:.7}}
 #robotDot{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#00ff88;border:2px solid #000;display:none}
 #robotDot.on{display:block}
@@ -44,6 +46,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .rp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .rp-head b{font-size:16px}
 .rp-close{background:#222;color:#fff;border:1px solid #555;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer}
+.rp-logo{width:76px;height:76px;border-radius:50%;border:2px solid #00ff88;object-fit:cover;display:block;margin:0 auto 10px;background:#fff}
 .rp-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222;gap:10px}
 .rp-row:last-child{border-bottom:none}
 .rp-row span{font-size:14px;font-weight:700}
@@ -60,6 +63,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99}
 .bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}
 .bot a.on{color:#fff}
+.bot a img{width:22px;height:22px;border-radius:50%;object-fit:cover;display:block;margin:0 auto}
 #lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:9999;display:none;flex-direction:column}
 #lightbox.open{display:flex}
 .lb-top{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;gap:10px}
@@ -83,12 +87,13 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
   <div class="top-bar"><div class="app-title">Rumah Gadang AI</div></div>
   <div class="chat-container" id="chatBox"></div>
 
-  <!-- ROBOT ASISTEN, BOS -->
-  <button id="robotBtn" onclick="toggleRobotPanel()">🤖<span id="robotDot"></span></button>
+  <!-- ROBOT ASISTEN, BOS - UDAH PAKE LOGO RG ASISTEN, BUKAN UNGU LAGI, BOS -->
+  <button id="robotBtn" onclick="toggleRobotPanel()"><img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/aset/logo_RG_asisten.png" alt="RG Asisten"><span id="robotDot"></span></button>
 
   <!-- MENU DALAM ROBOT, BOS. SEMUA FOLDER PINDAH KE SINI, BOS -->
   <div id="robotPanel">
-    <div class="rp-head"><b>🤖 Asisten Rumah Gadang</b><button class="rp-close" onclick="toggleRobotPanel()">✕</button></div>
+    <img class="rp-logo" src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/aset/logo_RG_asisten.png" alt="RG Asisten">
+    <div class="rp-head"><b>Asisten Rumah Gadang</b><button class="rp-close" onclick="toggleRobotPanel()">✕</button></div>
 
     <div class="rp-row">
       <span>🎵 RG Musik<small>Lagu OFF dulu. Klik ON baru bunyi.</small></span>
@@ -140,7 +145,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
   <a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a>
   <a href="/video">🎬<br><span style="font-size:10px">Video</span></a>
   <a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a>
-  <a href="/ai" class="on">🤖<br><span style="font-size:10px">AI</span></a>
+  <a href="/ai" class="on"><img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/aset/logo_RG_asisten.png" alt="AI"><span style="font-size:10px">AI</span></a>
   <a href="/akun">👤<br><span style="font-size:10px">Akun</span></a>
 </div>
 <script>
@@ -152,28 +157,25 @@ let judulAktif = 'Gambar dari Admin';
 let lightboxKebuka = false;
 
 // === STATE ROBOT, BOS ===
-let autoSpeak = false; // AI jawab pakai suara
-let modeBicara = 'otomatis'; // otomatis | manual
-let musikOn = false; // LAGU OFF DULU, BOS
-let sedangBicara = false; // lagi rekam
+let autoSpeak = false;
+let modeBicara = 'otomatis';
+let musikOn = false;
+let sedangBicara = false;
 let sedangNgomongAI = false;
 let mediaRecorder = null;
 let rekamanChunks = [];
 let audioCtx = null, analyser = null, micStream = null, silenceTimer = null, rafId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-  // JANGAN AUTOPLAY LAGU, BOS. OFF DULU.
   loadVoices();
 });
 
 function setStatus(t){ document.getElementById('rpStatus').textContent = t; }
 
-// === PANEL ROBOT ===
 function toggleRobotPanel(){
   document.getElementById('robotPanel').classList.toggle('open');
 }
 
-// === 1. MUSIK - OFF DULU, BARU ON KALAU DIKLIK, BOS ===
 function toggleMusikPanel(){
   musikOn = !musikOn;
   const btn = document.getElementById('musikToggle');
@@ -183,7 +185,6 @@ function toggleMusikPanel(){
   else { audio.pause(); setStatus('🎵 Musik OFF.'); }
 }
 
-// === 2. OTOMATIS BICARA - AI JAWAB PAKAI SUARA ===
 function toggleAutoSpeak(){
   autoSpeak = !autoSpeak;
   const btn = document.getElementById('autoToggle');
@@ -192,13 +193,11 @@ function toggleAutoSpeak(){
   setStatus(autoSpeak ? '🔊 Otomatis Bicara ON. AI akan jawab pakai suara.' : '🔊 Otomatis Bicara OFF.');
 }
 
-// === 3. MODE OTOMATIS / MANUAL ===
 function setMode(m){
   modeBicara = m;
   document.getElementById('modeOtomatisBtn').classList.toggle('on', m==='otomatis');
   document.getElementById('modeManualBtn').classList.toggle('on', m==='manual');
   setStatus(m==='otomatis' ? 'Mode Otomatis: ngomong aja, diem -> AI balas.' : 'Mode Manual: Klik Bicara, ngomong, Klik Berhenti.');
-  // Kalau lagi rekam, stop dulu biar ganti mode bersih
   if(sedangBicara) stopRekam(false);
 }
 
@@ -209,7 +208,6 @@ function getVoiceId(){
 
 async function loadVoices(){
   const sel = document.getElementById('voiceSelect');
-  // NAMA BARU BUAT WEB LU, BOS. GANTI DI SINI AJA, BOS.
   const namaBaru = {
     "Harry": "Uda Haris - Cowok Tegas",
     "Liam": "Uda Liam - Cowok Semangat",
@@ -234,7 +232,6 @@ async function loadVoices(){
       d.voices.slice(0,20).forEach(v=>{
         const o = document.createElement('option');
         o.value = v.voice_id;
-        // Kalau nama ada di daftar di atas, pakai nama baru. Kalau gak ada, pakai nama asli.
         o.textContent = namaBaru[v.name] || v.name;
         sel.appendChild(o);
       });
@@ -244,7 +241,6 @@ async function loadVoices(){
   }
 }
 
-// === AI NGOMONG ===
 async function ngomong(teks, btn){
   if(!teks) return;
   const musikJalan = !audio.paused;
@@ -267,7 +263,6 @@ async function ngomong(teks, btn){
       if(musikJalan && musikOn) audio.play().catch(()=>{});
       if(btn){ btn.disabled = false; btn.classList.remove('playing'); btn.textContent = '🔊 Dengarkan'; }
       URL.revokeObjectURL(url);
-      // OTOMATIS: AI selesai ngomong -> langsung dengerin lagi, Bos
       if(modeBicara==='otomatis' && sedangBicaraModeAktif){
         setTimeout(()=>{ if(sedangBicaraModeAktif) startRekam(); }, 300);
       }
@@ -279,13 +274,11 @@ async function ngomong(teks, btn){
   }
 }
 
-let sedangBicaraModeAktif = false; // tombol besar lagi aktif
+let sedangBicaraModeAktif = false;
 
-// === TOMBOL BESAR DI PANEL - KLIK BICARA / KLIK OFF, BOS ===
 function klikBicaraUtama(){
   const big = document.getElementById('bicaraBigBtn');
   if(sedangBicaraModeAktif){
-    // KLIK OFF, BOS
     sedangBicaraModeAktif = false;
     big.textContent = '🎤 Klik Bicara';
     big.classList.remove('stop');
@@ -295,13 +288,11 @@ function klikBicaraUtama(){
     setStatus('Bicara OFF. Robot berhenti dengerin.');
     return;
   }
-  // KLIK ON, BOS
   sedangBicaraModeAktif = true;
   big.textContent = '⏹️ Klik OFF - Berhenti';
   big.classList.add('stop');
   document.getElementById('robotBtn').classList.add('aktif');
   document.getElementById('robotDot').classList.add('on');
-  // Kalau mode otomatis, langsung nyalain autoSpeak juga biar AI balas pakai suara, Bos
   if(modeBicara==='otomatis' && !autoSpeak) toggleAutoSpeak();
   setStatus(modeBicara==='otomatis' ? '🎤 Dengerin... Ngomong aja, diem dikit AI langsung balas.' : '🎤 Dengerin... Ngomong, lalu Klik OFF.');
   startRekam();
@@ -317,11 +308,9 @@ async function startRekam(){
     mediaRecorder.onstop = async ()=>{
       stopAnalyser();
       if(micStream) micStream.getTracks().forEach(t=>t.stop());
-      // Kalau user pencet OFF di tengah jalan & gak ada suara, jangan kirim
       if(!sedangBicaraModeAktif && rekamanChunks.length===0) return;
       const blob = new Blob(rekamanChunks, { type: 'audio/webm' });
       if(blob.size < 800) {
-        // Suara terlalu pendek, di mode otomatis langsung dengerin lagi
         if(sedangBicaraModeAktif && modeBicara==='otomatis') setTimeout(()=>startRekam(), 200);
         return;
       }
@@ -344,7 +333,6 @@ function stopRekam(kirim){
   try{ if(mediaRecorder && mediaRecorder.state!=='inactive') mediaRecorder.stop(); }catch(e){}
 }
 
-// === DETEKSI DIEM 1,5 DETIK - OTOMATIS BALAS, BOS ===
 function mulaiDeteksiDiem(){
   try{
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -360,8 +348,7 @@ function mulaiDeteksiDiem(){
       let sum = 0;
       for(let i=0;i<data.length;i++){ let v = (data[i]-128)/128; sum += v*v; }
       let vol = Math.sqrt(sum / data.length);
-      if(vol > 0.02) lastSuara = Date.now(); // masih ngomong
-      // Diem 1500ms -> otomatis stop & kirim, Bos
+      if(vol > 0.02) lastSuara = Date.now();
       if(Date.now() - lastSuara > 1500){
         stopRekam(true);
         return;
@@ -398,7 +385,6 @@ async function kirimSuaraKeAI(blob){
 
 function handleKeyPress(e){ if(e.key === 'Enter') handleSend(); }
 
-// === LIGHTBOX, BOS ===
 function bukaGambar(url, judul){
   gambarAktif = url || ''; judulAktif = judul || 'Gambar dari Admin';
   const lb = document.getElementById('lightbox');
@@ -504,7 +490,6 @@ async function handleSend(){
   } finally {
     if (!isImageRequest) setLoading(false);
     chatBox.scrollTop = chatBox.scrollHeight;
-    // Kalau mode otomatis & masih aktif, tapi AI gak ngomong (autoSpeak OFF), dengerin lagi
     if(!isImageRequest && sedangBicaraModeAktif && modeBicara==='otomatis' && !autoSpeak){
       setTimeout(()=>{ if(sedangBicaraModeAktif && !sedangBicara) startRekam(); }, 500);
     }

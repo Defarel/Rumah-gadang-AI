@@ -34,7 +34,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .btn-kirim{background:#00ff88;color:#000;border:none;padding:0 20px;border-radius:16px;font-weight:900;font-size:14px;cursor:pointer;box-shadow:0 0 10px rgba(0,255,136,0.6);display:grid;place-items:center}
 .btn-kirim:disabled{background:#555;color:#888;cursor:not-allowed;box-shadow:none}
 /* ROBOT ASISTEN - DI ATAS KIRIM, KANAN BAWAH, BOS - UDAH PAKE LOGO RG ASISTEN, BOS */
-#robotBtn{position:absolute;bottom:182px;right:16px;width:68px;height:68px;border-radius:50%;background:#fff;border:3px solid #00ff88;cursor:pointer;z-index:20;box-shadow:0 0 18px rgba(0,255,136,.9);display:grid;place-items:center;overflow:hidden;padding:0}
+#robotBtn{position:absolute;bottom:215px;right:16px;width:68px;height:68px;border-radius:50%;background:#fff;border:3px solid #00ff88;cursor:pointer;z-index:20;box-shadow:0 0 18px rgba(0,255,136,.9);display:grid;place-items:center;overflow:hidden;padding:0}
 #robotBtn img{width:100%;height:100%;object-fit:cover;display:block}
 #robotBtn.aktif{border-color:#ff4444;animation:blink 1s infinite}
 @keyframes blink{50%{opacity:.7}}

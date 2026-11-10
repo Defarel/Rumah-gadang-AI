@@ -6,7 +6,7 @@ export const HOME_HTML = `<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Rumah Gadang AI - Komunitas Minangkabau</title>
-<link rel="icon" href="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png">
+<link rel="icon" href="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/223beb00f24796f0f133e89feaf553cac18ed845/icon.png">
 <link rel="canonical" href="https://rumahgadang-ai.my.id/">
 <meta name="description" content="Komunitas Minangkabau - Rumah Gadang AI, tempat dunsanak berbagi cerita">
 
@@ -17,7 +17,7 @@ export const HOME_HTML = `<!DOCTYPE html>
   "@type": "Organization",
   "name": "Rumah Gadang AI",
   "url": "https://rumahgadang-ai.my.id",
-  "logo": "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png",
+  "logo": "https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/223beb00f24796f0f133e89feaf553cac18ed845/icon.png",
   "sameAs": [
     "https://rumahgadang-ai.my.id"
   ]

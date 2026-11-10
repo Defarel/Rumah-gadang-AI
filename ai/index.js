@@ -42,7 +42,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 #robotDot{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#00ff88;border:2px solid #000;display:none}
 #robotDot.on{display:block}
 /* PANEL MENU ROBOT */
-#robotPanel{position:absolute;bottom:255px;right:16px;left:16px;background:rgba(10,10,10,.97);border:2px solid #00ff88;border-radius:20px;padding:16px;z-index:30;display:none;box-shadow:0 0 20px rgba(0,255,136,.5)}
+#robotPanel{position:absolute;bottom:255px;right:16px;left:16px;max-height:calc(100vh - 290px);overflow-y:auto;background:rgba(10,10,10,.97);border:2px solid #00ff88;border-radius:20px;padding:16px;z-index:30;display:none;box-shadow:0 0 20px rgba(0,255,136,.5)}
 #robotPanel.open{display:block}
 .rp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .rp-head b{font-size:16px}
@@ -58,6 +58,16 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .rp-mode{display:flex;gap:8px}
 .rp-mode button{background:#222;color:#fff;border:1px solid #555;padding:9px 14px;border-radius:20px;font-size:13px;font-weight:900;cursor:pointer}
 .rp-mode button.on{background:#00ff88;color:#000;border-color:#00ff88}
+.hapus-wrap{flex-direction:column;align-items:stretch}
+.hapus-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hapus-list{display:none;max-height:170px;overflow-y:auto;margin-top:10px}
+.hapus-list.open{display:block}
+.hapus-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #222;font-size:12px}
+.hapus-item:last-child{border-bottom:none}
+.hapus-item .hi-txt{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hapus-item .hi-who{font-weight:900;color:#00ff88;flex-shrink:0}
+.hapus-item button{background:#ff4444;color:#fff;border:none;width:30px;height:30px;border-radius:50%;font-size:14px;font-weight:900;cursor:pointer;flex-shrink:0}
+.hapus-kosong{font-size:12px;opacity:.6;text-align:center;padding:8px 0}
 .rp-big{width:100%;background:#00ff88;color:#000;border:none;padding:14px;border-radius:16px;font-size:15px;font-weight:900;cursor:pointer;margin-top:12px}
 .rp-big.stop{background:#ff4444;color:#fff}
 .rp-status{text-align:center;font-size:12px;margin-top:10px;min-height:16px;color:#00ff88}
@@ -119,6 +129,14 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
       </div>
     </div>
 
+    <div class="rp-row hapus-wrap">
+      <div class="hapus-top">
+        <span>🗑️ Hapus Chat<small>Hapus satu-satu.</small></span>
+        <button class="rp-toggle" id="hapusToggle" onclick="toggleDaftarHapus()">Buka</button>
+      </div>
+      <div class="hapus-list" id="hapusList"></div>
+    </div>
+
     <button class="rp-big" id="bicaraBigBtn" onclick="klikBicaraUtama()">🎤 Klik Bicara</button>
     <div class="rp-status" id="rpStatus">Robot siap. Otomatis Bicara ON. Pilih mode, lalu Klik Bicara.</div>
   </div>
@@ -169,6 +187,8 @@ let audioCtx = null, analyser = null, micStream = null, silenceTimer = null, raf
 
 document.addEventListener('DOMContentLoaded', () => {
   loadVoices();
+  muatRiwayat();
+  jadwalHapusTengahMalam();
 });
 
 function setStatus(t){ document.getElementById('rpStatus').textContent = t; }
@@ -462,7 +482,7 @@ async function handleSend(){
               if(autoSpeak) ngomong('Gambarnyo sudah jadi, Dunsanak. Silakan dilihat.');
             } else if (hasil.gambar) { loadingDiv.textContent = hasil.gambar; }
             else { loadingDiv.textContent = 'Selesai Bos, tapi gambarnya kosong.'; loadingDiv.classList.add('error'); }
-            chatBox.scrollTop = chatBox.scrollHeight; setLoading(false);
+            chatBox.scrollTop = chatBox.scrollHeight; setLoading(false); simpanRiwayat();
           }
         } catch(e) {
           gagalBeruntun++;
@@ -491,12 +511,104 @@ async function handleSend(){
   } finally {
     if (!isImageRequest) setLoading(false);
     chatBox.scrollTop = chatBox.scrollHeight;
+    simpanRiwayat();
     if(!isImageRequest && sedangBicaraModeAktif && modeBicara==='otomatis' && !autoSpeak){
       setTimeout(()=>{ if(sedangBicaraModeAktif && !sedangBicara) startRekam(); }, 500);
     }
   }
 }
 function escapeHtml(s){ if (s == null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+// === RIWAYAT CHAT: KESIMPAN DI HP, OTOMATIS HAPUS JAM 00:00 WIB ===
+const KUNCI_RIWAYAT = 'rg_chat_riwayat';
+function tanggalWIB(){
+  return new Date(Date.now() + 7*3600000).toISOString().slice(0,10);
+}
+function simpanRiwayat(){
+  try{
+    const items = [];
+    document.querySelectorAll('#chatBox .chat-bubble').forEach(b=>{
+      const sender = b.classList.contains('user') ? 'user' : 'ai';
+      const img = b.querySelector('img');
+      let text = '';
+      if(img){ const d = b.querySelector('div'); text = d ? d.textContent : ''; }
+      else { text = (b.firstChild && b.firstChild.nodeType===3) ? b.firstChild.nodeValue : b.textContent; }
+      if(sender==='ai' && !img && (text.indexOf('Saratonyo mandengarkan')===0 || text.indexOf('Lagi diproses sistem')===0)) return;
+      items.push({ sender: sender, text: text, img: img ? img.src : '', error: b.classList.contains('error') });
+    });
+    localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify({ tgl: tanggalWIB(), items: items.slice(-100) }));
+    refreshDaftarHapus();
+  }catch(e){}
+}
+function muatRiwayat(){
+  try{
+    const raw = localStorage.getItem(KUNCI_RIWAYAT);
+    if(!raw) return;
+    const data = JSON.parse(raw);
+    if(!data || data.tgl !== tanggalWIB()){ localStorage.removeItem(KUNCI_RIWAYAT); return; }
+    data.items.forEach(it=>{
+      const msg = appendMessage(it.text, it.sender);
+      if(it.error) msg.classList.add('error');
+      if(it.img){
+        const safeUrl = escapeHtml(it.img); const safeText = escapeHtml(it.text);
+        msg.innerHTML = '<div>' + safeText + '</div><img src="' + safeUrl + '" onclick="bukaGambar(\\'' + safeUrl + '\\', \\'Gambar\\')"><div style="font-size:11px;opacity:0.7;margin-top:6px">Klik gambar buat liat full</div>';
+      } else if(it.sender==='ai' && !it.error){
+        const btn = document.createElement('button');
+        btn.className = 'speak-btn'; btn.textContent = '🔊 Dengarkan';
+        btn.onclick = ()=> ngomong(it.text, btn);
+        const wrap = document.createElement('div'); wrap.className = 'bubble-actions'; wrap.appendChild(btn);
+        msg.appendChild(wrap);
+      }
+    });
+  }catch(e){}
+}
+function jadwalHapusTengahMalam(){
+  const ms = 86400000 - ((Date.now() + 7*3600000) % 86400000);
+  setTimeout(()=>{
+    try{ localStorage.removeItem(KUNCI_RIWAYAT); }catch(e){}
+    document.getElementById('chatBox').innerHTML = '';
+    jadwalHapusTengahMalam();
+  }, ms + 1000);
+}
+
+// === MENU HAPUS CHAT SATU-SATU ===
+function teksBubble(b){
+  const img = b.querySelector('img');
+  if(img){ const d = b.querySelector('div'); return '🖼️ ' + (d ? d.textContent : 'Gambar'); }
+  return (b.firstChild && b.firstChild.nodeType===3) ? b.firstChild.nodeValue : b.textContent;
+}
+function refreshDaftarHapus(){
+  const list = document.getElementById('hapusList');
+  if(!list || !list.classList.contains('open')) return;
+  list.innerHTML = '';
+  let ada = false;
+  document.querySelectorAll('#chatBox .chat-bubble').forEach(b=>{
+    const teks = teksBubble(b);
+    if(teks.indexOf('Saratonyo mandengarkan')===0 || teks.indexOf('Lagi diproses sistem')===0) return;
+    ada = true;
+    const row = document.createElement('div'); row.className = 'hapus-item';
+    const who = document.createElement('span'); who.className = 'hi-who';
+    who.textContent = b.classList.contains('user') ? 'Kamu:' : 'AI:';
+    const t = document.createElement('span'); t.className = 'hi-txt'; t.textContent = teks;
+    const x = document.createElement('button'); x.textContent = '✕';
+    x.onclick = ()=>{ b.remove(); simpanRiwayat(); refreshDaftarHapus(); };
+    row.appendChild(who); row.appendChild(t); row.appendChild(x);
+    list.appendChild(row);
+  });
+  if(!ada){
+    const k = document.createElement('div'); k.className = 'hapus-kosong'; k.textContent = 'Belum ada chat.';
+    list.appendChild(k);
+  }
+}
+function toggleDaftarHapus(){
+  const list = document.getElementById('hapusList');
+  const btn = document.getElementById('hapusToggle');
+  const buka = !list.classList.contains('open');
+  list.classList.toggle('open', buka);
+  btn.textContent = buka ? 'Tutup' : 'Buka';
+  btn.classList.toggle('on', buka);
+  if(buka) refreshDaftarHapus();
+}
+
 function appendMessage(text, sender){
   const chatBox = document.getElementById('chatBox');
   const msg = document.createElement('div');

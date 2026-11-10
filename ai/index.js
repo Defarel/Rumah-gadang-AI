@@ -62,7 +62,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .rp-status{text-align:center;font-size:12px;margin-top:10px;min-height:16px;color:#00ff88}
 .bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99}
 .bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}
-.bot a.on{color:#fff}
+.bot a.on{color:#00ff88}
 .bot a img{width:22px;height:22px;border-radius:50%;object-fit:cover;display:block;margin:0 auto}
 #lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:9999;display:none;flex-direction:column}
 #lightbox.open{display:flex}

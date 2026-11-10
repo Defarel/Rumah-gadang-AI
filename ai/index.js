@@ -1,7 +1,7 @@
 // file: ./ai/index.js - SEMUA MENU PINDAH KE ROBOT, BOS
-// Musik ON. Robot di bawah kanan. Otomatis: diem -> AI balas.
+// Musik OFF dulu. Robot di bawah kanan. Otomatis: diem -> AI balas.
 // Tombol robot = logo_RG_asisten.png, Bos
-// UPDATE: TTS GRATIS Edge Neural (4 Suara Indo) + Fallback Suara HP + Auto Suara Fix
+// OTOMATIS BICARA: default ON, orang tanya -> AI balas langsung pakai suara
 export const AI_HTML = `<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
@@ -103,12 +103,12 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 
     <div class="rp-row">
       <span>🔊 Otomatis Bicara<small>AI langsung jawab pakai suara.</small></span>
-      <button class="rp-toggle" id="autoToggle" onclick="toggleAutoSpeak()">OFF</button>
+      <button class="rp-toggle on" id="autoToggle" onclick="toggleAutoSpeak()">ON</button>
     </div>
 
     <div class="rp-row">
       <span>🎙️ Nama Suara</span>
-      <select class="rp-select" id="voiceSelect"><option value="id-ID-ArdiNeural">Loading...</option></select>
+      <select class="rp-select" id="voiceSelect"><option value="21m00Tcm4TlvDq8ikWAM">Loading...</option></select>
     </div>
 
     <div class="rp-row">
@@ -120,7 +120,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
     </div>
 
     <button class="rp-big" id="bicaraBigBtn" onclick="klikBicaraUtama()">🎤 Klik Bicara</button>
-    <div class="rp-status" id="rpStatus">Robot siap. Pilih mode, lalu Klik Bicara.</div>
+    <div class="rp-status" id="rpStatus">Robot siap. Otomatis Bicara ON. Pilih mode, lalu Klik Bicara.</div>
   </div>
 
   <div class="bottom-chat-bar">
@@ -158,7 +158,7 @@ let judulAktif = 'Gambar dari Admin';
 let lightboxKebuka = false;
 
 // === STATE ROBOT, BOS ===
-let autoSpeak = false;
+let autoSpeak = true; // DEFAULT ON: orang tanya -> AI balas langsung bersuara
 let modeBicara = 'otomatis';
 let musikOn = false;
 let sedangBicara = false;
@@ -177,7 +177,6 @@ function toggleRobotPanel(){
   document.getElementById('robotPanel').classList.toggle('open');
 }
 
-// === RG MUSIK - JANGAN DIHAPUS, BOS. TETAP ADA ===
 function toggleMusikPanel(){
   musikOn = !musikOn;
   const btn = document.getElementById('musikToggle');
@@ -205,20 +204,12 @@ function setMode(m){
 
 function getVoiceId(){
   const sel = document.getElementById('voiceSelect');
-  return sel ? sel.value : 'id-ID-ArdiNeural';
+  return sel ? sel.value : '21m00Tcm4TlvDq8ikWAM';
 }
 
 async function loadVoices(){
   const sel = document.getElementById('voiceSelect');
-  // Nama baru untuk suara Neural Indo + Inggris
   const namaBaru = {
-    "id-ID-ArdiNeural": "Uda Ardi - Cowok Indo",
-    "id-ID-AndikaNeural": "Uda Andika - Cowok Indo 2",
-    "id-ID-GadisNeural": "Uni Gadis - Cewek Indo",
-    "id-ID-AnisaNeural": "Uni Anisa - Cewek Indo 2",
-    "en-US-ChristopherNeural": "Uda Christopher - Cowok English",
-    "en-US-AriaNeural": "Uni Aria - Cewek English",
-    // Mapping lama biar gak error kalau API lama masih kirim nama lama
     "Harry": "Uda Haris - Cowok Tegas",
     "Liam": "Uda Liam - Cowok Semangat",
     "Alice": "Uni Alis - Cewek Jelas",
@@ -242,52 +233,17 @@ async function loadVoices(){
       d.voices.slice(0,20).forEach(v=>{
         const o = document.createElement('option');
         o.value = v.voice_id;
-        // Kalau voice_id lama tanpa Neural, auto ganti ke Neural
-        let vid = v.voice_id;
-        if(vid === 'id-ID-Andika') vid = 'id-ID-AndikaNeural';
-        if(vid === 'id-ID-Gadis') vid = 'id-ID-GadisNeural';
-        if(vid === 'id-ID-Ardi') vid = 'id-ID-ArdiNeural';
-        if(vid === 'id-ID-Anisa') vid = 'id-ID-AnisaNeural';
-        o.value = vid;
-        o.textContent = namaBaru[vid] || namaBaru[v.name] || v.name || vid;
+        o.textContent = namaBaru[v.name] || v.name;
         sel.appendChild(o);
       });
     }
   }catch(e){
-    sel.innerHTML = '<option value="id-ID-ArdiNeural">Uda Ardi - Cowok Indo</option><option value="id-ID-AndikaNeural">Uda Andika - Cowok Indo 2</option><option value="id-ID-GadisNeural">Uni Gadis - Cewek Indo</option><option value="id-ID-AnisaNeural">Uni Anisa - Cewek Indo 2</option>';
-  }
-}
-
-// === FALLBACK SUARA HP - BIAR SELALU BUNYI WALAU EDGE GAGAL, BOS ===
-function ngomongHP(teks, btn, musikJalan){
-  try{
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(teks);
-    u.lang = 'id-ID';
-    u.rate = 1;
-    u.pitch = 1;
-    let voices = window.speechSynthesis.getVoices();
-    let indo = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('id'));
-    if(indo) u.voice = indo;
-    u.onend = ()=>{
-      sedangNgomongAI = false;
-      if(musikJalan && musikOn) audio.play().catch(()=>{});
-      if(btn){ btn.disabled = false; btn.classList.remove('playing'); btn.textContent = '🔊 Dengarkan'; }
-      if(modeBicara==='otomatis' && sedangBicaraModeAktif){
-        setTimeout(()=>{ if(sedangBicaraModeAktif) startRekam(); }, 300);
-      }
-    };
-    window.speechSynthesis.speak(u);
-  }catch(e){
-    sedangNgomongAI = false;
-    if(musikJalan && musikOn) audio.play().catch(()=>{});
-    if(btn){ btn.disabled = false; btn.classList.remove('playing'); btn.textContent = '🔊 Dengarkan'; }
+    sel.innerHTML = '<option value="21m00Tcm4TlvDq8ikWAM">Uni Rachel - Cewek Jernih</option><option value="pNInz6obpgDQGcFmaJgB">Uda Adam - Cowok Tegas</option>';
   }
 }
 
 async function ngomong(teks, btn){
   if(!teks) return;
-  // RG MUSIK: pause dulu pas AI ngomong, nanti lanjut lagi. JANGAN DIHAPUS.
   const musikJalan = !audio.paused;
   if(musikJalan) audio.pause();
   try{
@@ -300,16 +256,9 @@ async function ngomong(teks, btn){
     });
     if(!res.ok) throw new Error('Voice gagal Bos');
     const blob = await res.blob();
-    if(blob.size < 1000) throw new Error('Audio kosong Bos');
     const url = URL.createObjectURL(blob);
     voiceAudio.src = url;
-    try{
-      await voiceAudio.play();
-    }catch(playErr){
-      // Kalau autoplay di-block browser, pindah ke suara HP
-      ngomongHP(teks, btn, musikJalan);
-      return;
-    }
+    await voiceAudio.play();
     voiceAudio.onended = ()=>{
       sedangNgomongAI = false;
       if(musikJalan && musikOn) audio.play().catch(()=>{});
@@ -320,8 +269,9 @@ async function ngomong(teks, btn){
       }
     };
   }catch(e){
-    // Fallback: kalau Edge gagal, pakai suara HP biar tetap bunyi
-    ngomongHP(teks, btn, musikJalan);
+    sedangNgomongAI = false;
+    if(musikJalan && musikOn) audio.play().catch(()=>{});
+    if(btn){ btn.disabled = false; btn.classList.remove('playing'); btn.textContent = '🔊 Dengarkan'; }
   }
 }
 
@@ -531,10 +481,7 @@ async function handleSend(){
         btn.onclick = ()=> ngomong(data.reply, btn);
         const wrap = document.createElement('div'); wrap.className = 'bubble-actions'; wrap.appendChild(btn);
         loadingDiv.appendChild(wrap);
-        // === FIX: BALAS TEKS HARUS ADA SUARA, BOS ===
-        // Kalau AutoSpeak ON, langsung ngomong. Kalau OFF tapi lagi mode bicara, tetap ngomong biar nyambung.
-        if(autoSpeak) ngomong(data.reply);
-        else if(sedangBicaraModeAktif && modeBicara==='otomatis') setTimeout(()=>{ ngomong(data.reply); }, 200);
+        if(autoSpeak) ngomong(data.reply, btn);
         else if(sedangBicaraModeAktif && modeBicara==='otomatis') setTimeout(()=>startRekam(), 500);
       } else throw new Error(data.error || 'Respon tidak diketahui Bos.');
     }

@@ -33,7 +33,7 @@ export const KANTOR_LUAR_HTML = `<!DOCTYPE html>
         #gps { position:absolute; top:55px; left:10px; background:rgba(0,0,0,0.8); color:#00ff88; padding:6px 10px; border-radius:8px; font-size:10px; z-index:45; border:1px solid #00ff88; }
         .bot { position:fixed; bottom:0; left:0; right:0; height:58px; background:#000; border-top:1px solid #333; display:flex; z-index:99; }
         .bot a { flex:1; text-align:center; padding:7px 0; color:#888; text-decoration:none; font-size:15px; }
-        .bot a.on { color:#fff; }
+        .bot a.on{color:#00ff88}
     </style>
 </head>
 <body>
@@ -77,9 +77,9 @@ export const KANTOR_LUAR_HTML = `<!DOCTYPE html>
   <a href="/">🏠<br><span style="font-size:10px">Home</span></a>
   <a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a>
   <a href="/video">🎬<br><span style="font-size:10px">Video</span></a>
-  <a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a>
+  <a href="/kantor" class="on">🏢<br><span style="font-size:10px">Kantor</span></a>
   <a href="/ai">🤖<br><span style="font-size:10px">AI</span></a>
-  <a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a>
+  <a href="/akun">👤<br><span style="font-size:10px">Akun</span></a>
 </div>
 <script type="module">
 import * as THREE from 'three';

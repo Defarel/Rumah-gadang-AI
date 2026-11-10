@@ -48,7 +48,7 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .cardLogoFull img{width:100%;height:auto;display:block;object-fit:cover}
 .cardLogoFull video{width:100%;height:auto;display:block;object-fit:cover}
 .bot{position:fixed;bottom:0;left:0;width:100%;max-width:100%;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99}
-.bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#fff}
+.bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#00ff88}
 #toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:#00ff88;color:#000;padding:12px 18px;border-radius:22px;font-weight:900;display:none;z-index:9999;box-shadow:0 0 20px #00ff88}
 .private-card{background:#111;border:1.5px solid #00ff88;border-radius:14px;padding:10px;margin-bottom:12px}
 #editModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;place-items:center;padding:16px}

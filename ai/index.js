@@ -208,7 +208,6 @@ function getVoiceId(){
 }
 
 async function loadVoices(){
-async function loadVoices(){
   const sel = document.getElementById('voiceSelect');
   // NAMA BARU BUAT WEB LU, BOS. GANTI DI SINI AJA, BOS.
   const namaBaru = {
@@ -235,16 +234,13 @@ async function loadVoices(){
       d.voices.slice(0,20).forEach(v=>{
         const o = document.createElement('option');
         o.value = v.voice_id;
-        o.textContent = (v.name || 'Suara') + (v.labels && v.labels.gender ? ' - ' + v.labels.gender : '');
+        // Kalau nama ada di daftar di atas, pakai nama baru. Kalau gak ada, pakai nama asli.
+        o.textContent = namaBaru[v.name] || v.name;
         sel.appendChild(o);
       });
-      const rachel = [...sel.options].find(o=>o.text.toLowerCase().includes('rachel'));
-      if(rachel) sel.value = rachel.value;
-    } else {
-      sel.innerHTML = '<option value="21m00Tcm4TlvDq8ikWAM">Rachel - Cewek</option><option value="pNInz6obpgDQGcFmaJgB">Adam - Cowok</option>';
     }
   }catch(e){
-    sel.innerHTML = '<option value="21m00Tcm4TlvDq8ikWAM">Rachel - Cewek</option><option value="pNInz6obpgDQGcFmaJgB">Adam - Cowok</option>';
+    sel.innerHTML = '<option value="21m00Tcm4TlvDq8ikWAM">Uni Rachel - Cewek Jernih</option><option value="pNInz6obpgDQGcFmaJgB">Uda Adam - Cowok Tegas</option>';
   }
 }
 

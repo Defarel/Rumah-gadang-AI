@@ -58,16 +58,21 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .rp-mode{display:flex;gap:8px}
 .rp-mode button{background:#222;color:#fff;border:1px solid #555;padding:9px 14px;border-radius:20px;font-size:13px;font-weight:900;cursor:pointer}
 .rp-mode button.on{background:#00ff88;color:#000;border-color:#00ff88}
-.hapus-wrap{flex-direction:column;align-items:stretch}
-.hapus-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.hapus-list{display:none;max-height:170px;overflow-y:auto;margin-top:10px}
-.hapus-list.open{display:block}
-.hapus-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #222;font-size:12px}
-.hapus-item:last-child{border-bottom:none}
-.hapus-item .hi-txt{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hapus-item .hi-who{font-weight:900;color:#00ff88;flex-shrink:0}
-.hapus-item button{background:#ff4444;color:#fff;border:none;width:30px;height:30px;border-radius:50%;font-size:14px;font-weight:900;cursor:pointer;flex-shrink:0}
-.hapus-kosong{font-size:12px;opacity:.6;text-align:center;padding:8px 0}
+/* MODE PILIH PESAN - BULATAN CEKLIS DI KANAN */
+#pilihTop{position:absolute;top:0;left:0;width:100%;padding:16px;display:none;grid-template-columns:80px 1fr 80px;align-items:center;z-index:40;background:rgba(0,0,0,.92);border-bottom:1px solid #00ff88}
+#pilihTop b{text-align:center;font-size:16px}
+#pilihTop button{background:none;border:none;color:#00ff88;font-size:15px;font-weight:900;cursor:pointer;text-align:left}
+#pilihBar{position:absolute;bottom:125px;left:0;width:100%;padding:12px 16px;display:none;z-index:40;background:linear-gradient(to top, rgba(0,0,0,0.95), transparent)}
+#pilihHapusBtn{width:100%;background:#ff4444;color:#fff;border:none;padding:16px;border-radius:28px;font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 0 12px rgba(255,68,68,.6)}
+#pilihHapusBtn:disabled{background:#555;color:#999;box-shadow:none;cursor:not-allowed}
+.mode-pilih #pilihTop{display:grid}
+.mode-pilih #pilihBar{display:block}
+.mode-pilih .bottom-chat-bar,.mode-pilih #robotBtn,.mode-pilih #robotPanel{display:none!important}
+.mode-pilih .chat-bubble *{pointer-events:none}
+.pilih-row{display:flex;align-items:center;gap:10px;width:100%;cursor:pointer}
+.pilih-col{flex:1;min-width:0;display:flex;flex-direction:column}
+.pilih-circle{width:28px;height:28px;border-radius:50%;border:2px solid #fff;flex-shrink:0;display:grid;place-items:center;font-size:16px;font-weight:900;color:#000;background:rgba(0,0,0,.4)}
+.pilih-row.dipilih .pilih-circle{background:#00ff88;border-color:#00ff88}
 .rp-big{width:100%;background:#00ff88;color:#000;border:none;padding:14px;border-radius:16px;font-size:15px;font-weight:900;cursor:pointer;margin-top:12px}
 .rp-big.stop{background:#ff4444;color:#fff}
 .rp-status{text-align:center;font-size:12px;margin-top:10px;min-height:16px;color:#00ff88}
@@ -129,17 +134,17 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
       </div>
     </div>
 
-    <div class="rp-row hapus-wrap">
-      <div class="hapus-top">
-        <span>🗑️ Hapus Chat<small>Hapus satu-satu.</small></span>
-        <button class="rp-toggle" id="hapusToggle" onclick="toggleDaftarHapus()">Buka</button>
-      </div>
-      <div class="hapus-list" id="hapusList"></div>
+    <div class="rp-row">
+      <span>🗑️ Hapus Chat<small>Pilih pesan, lalu hapus.</small></span>
+      <button class="rp-toggle" onclick="mulaiPilih()">Pilih</button>
     </div>
 
     <button class="rp-big" id="bicaraBigBtn" onclick="klikBicaraUtama()">🎤 Klik Bicara</button>
     <div class="rp-status" id="rpStatus">Robot siap. Otomatis Bicara ON. Pilih mode, lalu Klik Bicara.</div>
   </div>
+
+  <div id="pilihTop"><button onclick="keluarPilih()">Batal</button><b>Pilih Pesan</b><span></span></div>
+  <div id="pilihBar"><button id="pilihHapusBtn" onclick="hapusTerpilih()" disabled>Hapus</button></div>
 
   <div class="bottom-chat-bar">
     <input type="text" id="userInput" class="chat-input" placeholder="Tanya atau gambarkan sesuatu..." onkeypress="handleKeyPress(event)">
@@ -535,9 +540,7 @@ function simpanRiwayat(){
       if(sender==='ai' && !img && (text.indexOf('Saratonyo mandengarkan')===0 || text.indexOf('Lagi diproses sistem')===0)) return;
       items.push({ sender: sender, text: text, img: img ? img.src : '', error: b.classList.contains('error') });
     });
-    localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify({ tgl: tanggalWIB(), items: items.slice(-100) }));
-    refreshDaftarHapus();
-  }catch(e){}
+    localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify({ tgl: tanggalWIB(), items: items.slice(-100) }));  }catch(e){}
 }
 function muatRiwayat(){
   try{
@@ -566,6 +569,8 @@ function jadwalHapusTengahMalam(){
   setTimeout(()=>{
     try{ localStorage.removeItem(KUNCI_RIWAYAT); }catch(e){}
     document.getElementById('chatBox').innerHTML = '';
+    document.getElementById('app').classList.remove('mode-pilih');
+    pilihAktif = false;
     jadwalHapusTengahMalam();
   }, ms + 1000);
 }

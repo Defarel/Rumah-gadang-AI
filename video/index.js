@@ -28,7 +28,7 @@ input:focus{border-color:#00ff88;box-shadow:0 0 8px rgba(0,255,136,0.5);outline:
 .btn{width:100%;margin-top:10px;padding:12px;border-radius:10px;border:0;font-weight:900;cursor:pointer}
 .btn-r{background:red;color:#fff}.btn-g{background:#00ff88;color:#000}
 .bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:2.5px solid #00ff88;display:flex;z-index:99;box-shadow:0 -4px 12px rgba(0,255,136,0.3)}
-.bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#fff}
+.bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}.bot a.on{color:#00ff88}
 </style></head><body>
 <div id=app>
 <div class=top><b>RG VIDEO</b><span style="font-size:11px;color:#00ff88"></span></div>

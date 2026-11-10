@@ -1,6 +1,6 @@
 // file: ./ai/api-ai/api.js
-// RUMAH GADANG AI - FULL AI API - AUTO ID + AUTO ANTRIAN
-// LU CUMA KIRIM GAMBAR AJA BOS. API YANG NGATUR SEMUA
+// RUMAH GADANG AI - FULL AI API - AUTO ID + AUTO ANTRIAN + ELEVENLABS
+// GROQ (teks) + ELEVENLABS (suara) + MANUAL GAMBAR
 
 // ============ HELPER TELEGRAM, BOS ============
 async function kirimTelegram(token, chat_id, text) {
@@ -42,9 +42,60 @@ async function panggilGroq(env, prompt, system) {
   return { ok: false, reply: "Groq gagal semua model Bos." };
 }
 
-// ============ BUAT WORKER.JS, BOS. BIAR ADMIN CUMA KIRIM GAMBAR AJA ============
+// ============ HELPER ELEVENLABS, BOS ============
+function getElevenKey(env) {
+  return (env.ELEVEN_KEY || env.ELEVEN_API_KEY || env.ELEVENLABS_API_KEY || "").trim();
+}
 
-// Admin kirim foto doang -> Otomatis ambil antrian paling lama menunggu, Bos. FIFO
+// Teks -> Suara, Bos. Balikin audio mp3
+async function panggilElevenTTS(env, text, voice_id) {
+  const KEY = getElevenKey(env);
+  if (!KEY) return { ok: false, error: "ELEVEN_KEY belum di-set di Cloudflare Bos." };
+  // Voice default: Rachel - cewek jernih, cocok buat Rumah Gadang. Bisa diganti dari web.
+  const vid = (voice_id || "21m00Tcm4TlvDq8ikWAM").trim();
+  try {
+    let r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${vid}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "xi-api-key": KEY },
+      body: JSON.stringify({
+        text: text,
+        model_id: "eleven_multilingual_v2",
+        voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+      })
+    });
+    if (!r.ok) {
+      let t = await r.text().catch(() => "");
+      return { ok: false, error: "ElevenLabs TTS gagal: " + r.status + " " + t.slice(0, 200) };
+    }
+    let buf = await r.arrayBuffer();
+    return { ok: true, audio: buf };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
+// Suara -> Teks, Bos. Terima file audio dari web
+async function panggilElevenSTT(env, audioBlob, filename) {
+  const KEY = getElevenKey(env);
+  if (!KEY) return { ok: false, error: "ELEVEN_KEY belum di-set di Cloudflare Bos." };
+  try {
+    let form = new FormData();
+    form.append("file", audioBlob, filename || "rekaman.webm");
+    form.append("model_id", "scribe_v1");
+    let r = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
+      method: "POST",
+      headers: { "xi-api-key": KEY },
+      body: form
+    });
+    let d = await r.json().catch(() => ({}));
+    if (!r.ok) return { ok: false, error: "ElevenLabs STT gagal: " + r.status + " " + JSON.stringify(d).slice(0, 200) };
+    return { ok: true, text: d.text || "", data: d };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
+// ============ BUAT WORKER.JS, BOS. BIAR ADMIN CUMA KIRIM GAMBAR AJA ============
 export async function balasOtomatis(env, gambar) {
   if (!env.DB || !gambar) return null;
   try {
@@ -55,7 +106,6 @@ export async function balasOtomatis(env, gambar) {
   } catch (e) { return null; }
 }
 
-// Kalau admin masih mau pakai /balas ID, masih bisa Bos. Tapi gak wajib
 export async function setHasilManual(env, id, gambar) {
   if (!env.DB || !id) return false;
   try {
@@ -71,7 +121,6 @@ export async function getHasilManual(env, id) {
   } catch (e) { return null; }
 }
 
-// Bikin ID orang itu otomatis, Bos. Kalau Web gak kirim user_id, API yang bikinin
 function bikinUserId() {
   return "user-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6);
 }
@@ -104,14 +153,63 @@ export const AI_API = {
         ok: true,
         service: "Rumah Gadang AI",
         TEXT: "GROQ_API_KEY: " + !!env.GROQ_API_KEY,
+        VOICE: "ELEVEN_KEY: " + !!getElevenKey(env),
         IMAGE: "MANUAL AUTO - Admin cuma kirim gambar aja",
         DB: "D1: " + !!env.DB,
         TELE_BOT: "TELE_BOT_GAMBAR: " + !!env.TELE_BOT_GAMBAR,
         ADMIN: "ADMIN_TELE_ID: " + !!(env.ADMIN_TELE_ID || env.TELE_ADMIN_ID),
         antrian_menunggu: antrian,
         total_request: total,
-        endpoints: ["/api/ai (POST prompt)", "/api/ai-request (POST prompt, user_id)", "/api/ai-status?id=xxx (GET)"]
+        endpoints: ["/api/ai (POST prompt)", "/api/ai-request (POST prompt, user_id)", "/api/ai-status?id=xxx (GET)", "/api/voices (GET)", "/api/voice (POST text)", "/api/stt (POST audio)"]
       }), { headers: cors });
+    }
+
+    // --- ELEVENLABS: LIAT DAFTAR SUARA, BOS ---
+    if (p === "/api/voices" && req.method === "GET") {
+      const KEY = getElevenKey(env);
+      if (!KEY) return new Response(JSON.stringify({ ok: false, error: "ELEVEN_KEY belum di-set Bos" }), { headers: cors, status: 500 });
+      try {
+        let r = await fetch("https://api.elevenlabs.io/v1/voices", { headers: { "xi-api-key": KEY } });
+        let d = await r.json();
+        return new Response(JSON.stringify({ ok: true, voices: d.voices || [] }), { headers: cors });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
+      }
+    }
+
+    // --- ELEVENLABS: TEKS JADI SUARA, BOS ---
+    // Web kirim: { text: "Selamat datang Dunsanak", voice_id: "xxx" (opsional) }
+    // Balik: file audio mp3
+    if (p === "/api/voice" && req.method === "POST") {
+      try {
+        let body = await req.json().catch(() => ({}));
+        let text = (body.text || body.prompt || "").trim();
+        if (!text) return new Response(JSON.stringify({ ok: false, error: "Text kosong Bos" }), { headers: cors, status: 400 });
+        if (text.length > 1000) text = text.slice(0, 1000);
+        let hasil = await panggilElevenTTS(env, text, body.voice_id);
+        if (!hasil.ok) return new Response(JSON.stringify({ ok: false, error: hasil.error }), { headers: cors, status: 500 });
+        return new Response(hasil.audio, {
+          headers: { ...cors, "Content-Type": "audio/mpeg", "Cache-Control": "no-cache" }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
+      }
+    }
+
+    // --- ELEVENLABS: SUARA JADI TEKS, BOS ---
+    // Web kirim: FormData dengan field "audio" (file rekaman)
+    if (p === "/api/stt" && req.method === "POST") {
+      try {
+        let form = await req.formData().catch(() => null);
+        if (!form) return new Response(JSON.stringify({ ok: false, error: "Kirim FormData audio Bos" }), { headers: cors, status: 400 });
+        let file = form.get("audio") || form.get("file");
+        if (!file) return new Response(JSON.stringify({ ok: false, error: "File audio kosong Bos" }), { headers: cors, status: 400 });
+        let hasil = await panggilElevenSTT(env, file, file.name || "rekaman.webm");
+        if (!hasil.ok) return new Response(JSON.stringify({ ok: false, error: hasil.error }), { headers: cors, status: 500 });
+        return new Response(JSON.stringify({ ok: true, text: hasil.text }), { headers: cors });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });
+      }
     }
 
     // --- T2I UDAH DIHAPUS ---
@@ -125,21 +223,15 @@ export const AI_API = {
         let body = await req.json().catch(() => ({}));
         let prompt = (body.prompt || "").trim();
         if (!prompt) return new Response(JSON.stringify({ ok: false, error: "Prompt kosong Bos" }), { headers: cors, status: 400 });
-
-        // ID REQUEST OTOMATIS, BOS. LU GAK USAH BIKIN
         let id = Date.now().toString();
-        // ID ORANGNYA OTOMATIS, BOS. Kalau Web kirim user_id pakai itu, kalau gak API yang bikinin
         let user_id = (body.user_id || "").trim() || bikinUserId();
-
         if (env.DB) {
           try {
             await env.DB.prepare("INSERT INTO manual_hasil (id, status, gambar, created_at, user_id) VALUES (?, 'menunggu', '', ?, ?)").bind(id, Date.now(), user_id).run();
           } catch (e) {
-            // Kalau tabel lama belum ada kolom user_id, pakai cara lama, Bos
             await env.DB.prepare("INSERT INTO manual_hasil (id, status, gambar, created_at) VALUES (?, 'menunggu', '', ?)").bind(id, Date.now()).run();
           }
         }
-
         let token = (env.TELE_BOT_GAMBAR || "").trim();
         let adminId = (env.ADMIN_TELE_ID || env.TELE_ADMIN_ID || "").trim();
         if (token && adminId) {
@@ -149,7 +241,6 @@ export const AI_API = {
         } else {
           return new Response(JSON.stringify({ ok: false, error: "TELE_BOT_GAMBAR / ADMIN_TELE_ID belum di-set Bos" }), { headers: cors, status: 500 });
         }
-
         return new Response(JSON.stringify({ ok: true, id, user_id, status: 'menunggu' }), { headers: cors });
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: cors, status: 500 });

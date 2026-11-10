@@ -145,8 +145,8 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
   <a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a>
   <a href="/video">🎬<br><span style="font-size:10px">Video</span></a>
   <a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a>
-  <a href="/ai">🤖<br><span style="font-size:10px">AI</span></a>
-  <a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a>
+  <a href="/ai" class="on">🤖<br><span style="font-size:10px">AI</span></a>
+  <a href="/akun">👤<br><span style="font-size:10px">Akun</span></a>
 </div>
 <script>
 const audio = document.getElementById('bgMusic');

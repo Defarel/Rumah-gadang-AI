@@ -208,7 +208,25 @@ function getVoiceId(){
 }
 
 async function loadVoices(){
+async function loadVoices(){
   const sel = document.getElementById('voiceSelect');
+  // NAMA BARU BUAT WEB LU, BOS. GANTI DI SINI AJA, BOS.
+  const namaBaru = {
+    "Harry": "Uda Haris - Cowok Tegas",
+    "Liam": "Uda Liam - Cowok Semangat",
+    "Alice": "Uni Alis - Cewek Jelas",
+    "Matilda": "Uni Tilda - Cewek Pintar",
+    "Will": "Uda Will - Cowok Santai",
+    "Jessica": "Uni Jessi - Cewek Ceria",
+    "Eric": "Uda Erik - Cowok Halus",
+    "Bella": "Uni Bela - Cewek Lembut",
+    "Chris": "Uda Kris - Cowok Ramah",
+    "Brian": "Uda Brian - Cowok Dalam",
+    "Daniel": "Uda Daniel - Cowok Penyiar",
+    "Lily": "Uni Lily - Cewek Halus",
+    "Adam": "Uda Adam - Cowok Tegas",
+    "Rachel": "Uni Rachel - Cewek Jernih"
+  };
   try{
     const r = await fetch('/api/voices');
     const d = await r.json();

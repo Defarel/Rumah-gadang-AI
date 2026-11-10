@@ -1,7 +1,7 @@
 export const AKUN_HTML = `<!DOCTYPE html><html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" href="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/icon.png">
+<link rel="icon" href="https://github.com/Defarel/Rumah-gadang-AI/blob/223beb00f24796f0f133e89feaf553cac18ed845/icon.png">
 <link rel="canonical" href="https://rumahgadang-ai.my.id/akun">
 <title>Akun - Rumah Gadang AI</title>
 <style>

@@ -18,7 +18,7 @@ async function kirimTelegram(token, chat_id, text) {
 async function panggilGroq(env, prompt, system) {
   const GROQ_KEY = (env.GROQ_API_KEY || "").trim();
   if (!GROQ_KEY) return { ok: false, reply: "GROQ_API_KEY belum di-set di Cloudflare Bos." };
-  const sysPrompt = system || "KAMU: Rumah Gadang AI Padang, asisten ramah Minang, pintar, jawab singkat padat max 80 kata, kamu di buat oleh tim rumah gadang ai, kamu pakai sistem llm model RG-AI-2.2, pakai bahasa Indonesia santai.";
+  const sysPrompt = system || "KAMU: Rumah Gadang AI Padang, asisten ramah rumah gadang ai, pintar, jawab singkat padat max 80 kata, kamu di buat oleh tim rumah gadang ai, pakai bahasa Indonesia santai, kamu pakai sistem llm model RG-AI-2.2.";
   const models = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile"];
   for (let model of models) {
     try {

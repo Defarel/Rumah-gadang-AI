@@ -102,13 +102,13 @@ body{background:#000;color:#fff;font-family:system-ui,sans-serif}
 </div>
 <div id=homeFeed><div class=empty>Tunggu sanak...</div></div>
 </div>
-<div class=bot>
-<a href="/" class=on>🏠<br><span>Home</span></a>
-<a href="/foto">🖼️<br><span>Foto</span></a>
-<a href="/video">🎬<br><span>Video</span></a>
-<a href="/kantor">🏢<br><span>Kantor</span></a>
-<a href="/ai">🤖<br><span>AI</span></a>
-<a href="/akun">👤<br><span>Akun</span></a>
+<div class="bot">
+  <a href="/">🏠<br><span style="font-size:10px">Home</span></a>
+  <a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a>
+  <a href="/video">🎬<br><span style="font-size:10px">Video</span></a>
+  <a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a>
+  <a href="/ai">🤖<br><span style="font-size:10px">AI</span></a>
+  <a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a>
 </div>
 
 <div id=komenSheet onclick="if(event.target.id==='komenSheet') closeKomen()">

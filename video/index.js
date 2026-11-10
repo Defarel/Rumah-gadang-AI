@@ -48,8 +48,14 @@ input:focus{border-color:#00ff88;box-shadow:0 0 8px rgba(0,255,136,0.5);outline:
 </div>
 </div>
 
-<div class=bot><a href="/">🏠</a><a href="/foto">🖼️</a><a href="/video" class=on>🎬</a><a href="/kantor">🏢</a><a href="/ai">🤖</a><a href="/akun">👤</a></div>
-
+<div class="bot">
+  <a href="/">🏠<br><span style="font-size:10px">Home</span></a>
+  <a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a>
+  <a href="/video">🎬<br><span style="font-size:10px">Video</span></a>
+  <a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a>
+  <a href="/ai">🤖<br><span style="font-size:10px">AI</span></a>
+  <a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a>
+</div>
 <script>
 let videos=[]; let curPlaying=null; let soundOn=false;
 function toggleUp(){ let p=document.getElementById('upPanel'); p.style.display=p.style.display==='block'?'none':'block'; }

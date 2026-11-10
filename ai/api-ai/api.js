@@ -1,7 +1,7 @@
 // file: ./ai/api-ai/api.js
 // RUMAH GADANG AI - FULL AI API - AUTO ID + AUTO ANTRIAN + GRATIS 100%
-// GROQ (teks) + TTS GRATIS (suara) + GROQ WHISPER (stt) + MANUAL GAMBAR
-// NO ELEVENLABS - NO TOKEN HABIS
+// GROQ (teks) + EDGE TTS GRATIS (suara Indo 4 suara) + GROQ WHISPER (stt) + MANUAL GAMBAR
+// NO ELEVENLABS - NO TOKEN HABIS - FIX SUARA CUMA 1 CEWEK
 
 // ============ HELPER TELEGRAM, BOS ============
 async function kirimTelegram(token, chat_id, text) {
@@ -43,45 +43,66 @@ async function panggilGroq(env, prompt, system) {
   return { ok: false, reply: "Groq gagal semua model Bos." };
 }
 
-// ============ HELPER TTS GRATIS - TANPA TOKEN, BOS ============
-// StreamElements (Edge/Polly) + Google TTS fallback
-// 100% gratis, tanpa API key, jalan di Cloudflare Workers
+// ============ HELPER TTS GRATIS - FIX 4 SUARA INDO, BOS ============
+// Sumber utama: Edge TTS API (【entity-Microsoft¦canonical_name=Microsoft】 Neural) - Gratis, Tanpa Token
+// Punya suara Indo cowok/cewek beneran, bukan 1 cewek doang
 
 const SUARA_GRATIS = [
-  { voice_id: "id-ID-Andika", name: "Andika - Cowok Indonesia", lang: "id-ID", gender: "male" },
-  { voice_id: "id-ID-Gadis", name: "Gadis - Cewek Indonesia", lang: "id-ID", gender: "female" },
-  { voice_id: "id-ID-Ardi", name: "Ardi - Cowok Indonesia 2", lang: "id-ID", gender: "male" },
-  { voice_id: "id-ID-Anisa", name: "Anisa - Cewek Indonesia 2", lang: "id-ID", gender: "female" },
-  { voice_id: "Brian", name: "Brian - Cowok English", lang: "en-US", gender: "male" },
-  { voice_id: "Amy", name: "Amy - Cewek English", lang: "en-US", gender: "female" },
+  { voice_id: "id-ID-ArdiNeural", name: "Ardi - Cowok Indonesia", lang: "id-ID", gender: "male" },
+  { voice_id: "id-ID-AndikaNeural", name: "Andika - Cowok Indonesia 2", lang: "id-ID", gender: "male" },
+  { voice_id: "id-ID-GadisNeural", name: "Gadis - Cewek Indonesia", lang: "id-ID", gender: "female" },
+  { voice_id: "id-ID-AnisaNeural", name: "Anisa - Cewek Indonesia 2", lang: "id-ID", gender: "female" },
+  { voice_id: "en-US-ChristopherNeural", name: "Christopher - Cowok English", lang: "en-US", gender: "male" },
+  { voice_id: "en-US-AriaNeural", name: "Aria - Cewek English", lang: "en-US", gender: "female" },
 ];
 
 function getElevenKey(env) {
-  // Biar status VOICE di /api/ai tetap true, padahal udah gratis tanpa key
   return "GRATIS";
 }
 
 // Teks -> Suara GRATIS. Balikin audio mp3
 async function panggilGratisTTS(env, text, voice_id) {
-  let voice = "id-ID-Andika";
-  // Kalau dari web kirim voice_id yang udah ada di list, pakai itu
+  // Default ke Ardi biar cowok, bukan cewek terus
+  let voice = "id-ID-ArdiNeural";
   if (voice_id) {
     let v = voice_id.trim();
-    // Kalau voice_id lama ElevenLabs (21m00Tcm...), ganti ke Gadis biar cewek jernih
-    if (v === "21m00Tcm4TlvDq8ikWAM") voice = "id-ID-Gadis";
-    else if (v.startsWith("id-ID") || v === "Brian" || v === "Amy") voice = v;
+    // Mapping dari nama lama ke Neural baru, biar frontend lama gak error
+    if (v === "21m00Tcm4TlvDq8ikWAM") voice = "id-ID-GadisNeural";
+    else if (v === "id-ID-Andika") voice = "id-ID-AndikaNeural";
+    else if (v === "id-ID-Gadis") voice = "id-ID-GadisNeural";
+    else if (v === "id-ID-Ardi") voice = "id-ID-ArdiNeural";
+    else if (v === "id-ID-Anisa") voice = "id-ID-AnisaNeural";
+    else if (v === "Brian") voice = "en-US-ChristopherNeural";
+    else if (v === "Amy") voice = "en-US-AriaNeural";
+    else if (v.endsWith("Neural")) voice = v;
   }
 
-  // Cara 1: StreamElements - Kualitas paling bagus, gratis, tanpa key
+  // Cara 1: Edge TTS API Gratis - Ini yang punya suara Indo beneran
+  const edgeUrls = [
+    `https://edge-tts-api.vercel.app/api/tts?text=${encodeURIComponent(text)}&voice=${voice}`,
+    `https://edge-tts-api-production.up.railway.app/api/tts?text=${encodeURIComponent(text)}&voice=${voice}`,
+  ];
+  for (let url of edgeUrls) {
+    try {
+      let r = await fetch(url);
+      if (r.ok) {
+        let buf = await r.arrayBuffer();
+        if (buf.byteLength > 1000) return { ok: true, audio: buf };
+      }
+    } catch (e) {}
+  }
+
+  // Cara 2: StreamElements - Cadangan, cuma buat suara Inggris
   try {
-    let r = await fetch(`https://api.streamelements.com/kappa/v2/speech?voice=${voice}&text=${encodeURIComponent(text)}`);
+    let seVoice = (voice.includes("Ardi") || voice.includes("Andika") || voice.includes("Christopher")) ? "Brian" : "Amy";
+    let r = await fetch(`https://api.streamelements.com/kappa/v2/speech?voice=${seVoice}&text=${encodeURIComponent(text)}`);
     if (r.ok) {
       let buf = await r.arrayBuffer();
       if (buf.byteLength > 1000) return { ok: true, audio: buf };
     }
   } catch (e) {}
 
-  // Cara 2: Fallback Google Translate TTS - Selalu jalan, tanpa key
+  // Cara 3: Google TTS - Paling terakhir, suaranya 1 cewek doang
   try {
     let r = await fetch(`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=id&client=tw-ob`, {
       headers: { "User-Agent": "Mozilla/5.0" }
@@ -118,7 +139,7 @@ async function panggilGratisSTT(env, audioBlob, filename) {
   }
 }
 
-// Alias biar kode lama gak error, Bos. Nama fungsi tetap sama.
+// Alias biar kode lama gak error
 const panggilElevenTTS = panggilGratisTTS;
 const panggilElevenSTT = panggilGratisSTT;
 
@@ -180,7 +201,7 @@ export const AI_API = {
         ok: true,
         service: "Rumah Gadang AI",
         TEXT: "GROQ_API_KEY: " + !!env.GROQ_API_KEY,
-        VOICE: "GRATIS - TTS StreamElements + Google (No Token): " + !!getElevenKey(env),
+        VOICE: "GRATIS - Edge TTS 4 Suara Indo (No Token): " + !!getElevenKey(env),
         STT: "GROQ WHISPER GRATIS: " + !!env.GROQ_API_KEY,
         IMAGE: "MANUAL AUTO - Admin cuma kirim gambar aja",
         DB: "D1: " + !!env.DB,
@@ -198,7 +219,7 @@ export const AI_API = {
     }
 
     // --- GRATIS: TEKS JADI SUARA, BOS ---
-    // Web kirim: { text: "Selamat datang Dunsanak", voice_id: "id-ID-Gadis" (opsional) }
+    // Web kirim: { text: "Selamat datang Dunsanak", voice_id: "id-ID-ArdiNeural" }
     // Balik: file audio mp3
     if (p === "/api/voice" && req.method === "POST") {
       try {
@@ -217,7 +238,6 @@ export const AI_API = {
     }
 
     // --- GRATIS: SUARA JADI TEKS, BOS ---
-    // Web kirim: FormData dengan field "audio" (file rekaman)
     if (p === "/api/stt" && req.method === "POST") {
       try {
         let form = await req.formData().catch(() => null);

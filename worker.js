@@ -458,6 +458,11 @@ Host: https://rumahgadang-ai.my.id`;
         if (path.startsWith('/api/akun') || path.startsWith('/api/follow') || path.startsWith('/api/followers') || path.startsWith('/api/following') || path.startsWith('/api/photo') || path.startsWith('/api/users') || path.startsWith('/api/search-users') || path.startsWith('/api/chat')) {
           let m = getApi(AKUN_API_M); if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
         }
+                // === ELEVENLABS SUARA, BOS. HARUS DITAMBAH, SOALNYA GAK DIAWALI /api/ai, BOS ===
+        if (path === '/api/voice' || path === '/api/voices' || path === '/api/stt' || path.startsWith('/api/voice')) {
+          let m = getApi(AI_API_M);
+          if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }
+        }
         if (path.startsWith('/api/ai')) {
           let m = getApi(AI_API_M);
           if (m?.handle) { let r = await m.handle(req, env, url, cors); if (r) return r; }

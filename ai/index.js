@@ -1,4 +1,6 @@
-// file: ./ai/index.js - BACK DARI FOTO CUMA NUTUP FOTO, GAK PINDAH MENU, BOS
+// file: ./ai/index.js - AI BISA NGOMONG + DENGER, BOS
+// Teks -> Suara via /api/voice (ElevenLabs)
+// Suara -> Teks via /api/stt (ElevenLabs)
 export const AI_HTML = `<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
@@ -12,9 +14,12 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .bg-container{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1}
 .bg-container img{width:100%;height:100%;object-fit:cover;display:block}
 .overlay-dark{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);z-index:2}
-.top-bar{position:absolute;top:0;left:0;width:100%;padding:16px;display:flex;justify-content:space-between;align-items:center;z-index:10}
+.top-bar{position:absolute;top:0;left:0;width:100%;padding:16px;display:flex;justify-content:space-between;align-items:center;z-index:10;gap:8px}
 .app-title{font-size:18px;font-weight:900;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.8)}
 .floating-btn{background:rgba(0,0,0,0.75);color:#fff;border:1px solid #00ff88;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;backdrop-filter:blur(4px);box-shadow:0 0 8px rgba(0,255,136,0.4)}
+.floating-btn.on{background:#00ff88;color:#000}
+.floating-btn.rec{background:#ff4444;color:#fff;border-color:#ff4444;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.6}}
 .chat-container{position:relative;z-index:5;flex:1;overflow-y:auto;padding:70px 16px 150px 16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
 .chat-bubble{max-width:85%;padding:12px 16px;border-radius:18px;font-size:14px;line-height:1.4;word-wrap:break-word;backdrop-filter:blur(6px);white-space:pre-wrap}
 .chat-bubble.user{align-self:flex-end;background:rgba(0,255,136,0.85);color:#000;font-weight:600;border-bottom-right-radius:4px;box-shadow:0 0 10px rgba(0,255,136,0.4)}
@@ -22,13 +27,22 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .chat-bubble.ai.error{border-color:#ff4444;background:rgba(40,10,10,0.9)}
 .chat-bubble.ai img{max-width:100%;border-radius:12px;margin-top:8px;display:block;cursor:zoom-in}
 .chat-bubble.ai a{color:#00ff88}
-.bottom-chat-bar{position:absolute;bottom:125px;left:0;width:100%;padding:12px 16px;display:flex;gap:10px;z-index:10;background:linear-gradient(to top, rgba(0,0,0,0.95), transparent)}
+.bubble-actions{margin-top:8px;display:flex;gap:8px}
+.speak-btn{background:rgba(0,255,136,.15);border:1px solid #00ff88;color:#00ff88;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer}
+.speak-btn:disabled{opacity:.5}
+.speak-btn.playing{background:#00ff88;color:#000}
+.voice-row{position:relative;z-index:5;padding:62px 16px 0;display:flex;gap:8px;align-items:center}
+.voice-row select{flex:1;background:rgba(20,20,20,.9);border:1px solid #00ff88;color:#fff;padding:8px 10px;border-radius:12px;font-size:12px;outline:none}
+.voice-row label{font-size:11px;opacity:.8;white-space:nowrap}
+.bottom-chat-bar{position:absolute;bottom:125px;left:0;width:100%;padding:12px 16px;display:flex;gap:8px;z-index:10;background:linear-gradient(to top, rgba(0,0,0,0.95), transparent)}
 .chat-input{flex:1;background:rgba(20,20,20,0.85);border:1px solid #333;border-radius:16px;padding:14px 16px;color:#fff;font-size:14px;outline:none;backdrop-filter:blur(6px)}
 .chat-input:focus{border-color:#00ff88}
 .chat-input:disabled{opacity:0.6}
 .chat-input::placeholder{color:#aaa}
-.btn-kirim{background:#00ff88;color:#000;border:none;padding:0 20px;border-radius:16px;font-weight:900;font-size:14px;cursor:pointer;box-shadow:0 0 10px rgba(0,255,136,0.6);display:grid;place-items:center;transition:0.2s}
+.btn-kirim{background:#00ff88;color:#000;border:none;padding:0 16px;border-radius:16px;font-weight:900;font-size:14px;cursor:pointer;box-shadow:0 0 10px rgba(0,255,136,0.6);display:grid;place-items:center;transition:0.2s}
 .btn-kirim:disabled{background:#555;color:#888;cursor:not-allowed;box-shadow:none}
+.btn-mic{background:#222;color:#fff;border:1px solid #00ff88;border-radius:16px;padding:0 14px;font-size:18px;cursor:pointer}
+.btn-mic.rec{background:#ff4444;border-color:#ff4444;animation:blink 1s infinite}
 .bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#000;border-top:2px solid #00ff88;display:flex;z-index:99}
 .bot a{flex:1;text-align:center;padding:10px 0;color:#666;text-decoration:none;font-size:20px}
 .bot a.on{color:#fff}
@@ -47,17 +61,24 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 <body>
 <div id="app">
   <audio id="bgMusic" src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/19966ec207201871dcc41fb70cbe82365d42d07d/ai/RumahGadangV1.m4a" loop></audio>
+  <audio id="voiceAudio" style="display:none"></audio>
   <div class="bg-container">
     <img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg" alt="Rumah Gadang AI Background">
     <div class="overlay-dark"></div>
   </div>
   <div class="top-bar">
     <div class="app-title">Rumah Gadang AI</div>
+    <button class="floating-btn" id="autoSpeakBtn" onclick="toggleAutoSpeak()">🔊 Auto Ngomong: OFF</button>
     <button class="floating-btn" id="musicBtn" onclick="toggleMusic()">🔊 RG Musik</button>
+  </div>
+  <div class="voice-row">
+    <label>🎙️ Suara AI:</label>
+    <select id="voiceSelect"><option value="21m00Tcm4TlvDq8ikWAM">Loading suara...</option></select>
   </div>
   <div class="chat-container" id="chatBox"></div>
   <div class="bottom-chat-bar">
-    <input type="text" id="userInput" class="chat-input" placeholder="Tanya atau gambarkan sesuatu..." onkeypress="handleKeyPress(event)">
+    <button class="btn-mic" id="micBtn" onclick="toggleMic()" title="Ngomong">🎤</button>
+    <input type="text" id="userInput" class="chat-input" placeholder="Tanya, ngomong, atau gambarkan..." onkeypress="handleKeyPress(event)">
     <button class="btn-kirim" id="sendBtn" onclick="handleSend()">KIRIM &rarr;</button>
   </div>
 </div>
@@ -87,16 +108,25 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 <script>
 const audio = document.getElementById('bgMusic');
 const musicBtn = document.getElementById('musicBtn');
+const voiceAudio = document.getElementById('voiceAudio');
 let sedangKirim = false;
 let gambarAktif = '';
 let judulAktif = 'Gambar dari Admin';
 let lightboxKebuka = false;
+let autoSpeak = false;
+let mediaRecorder = null;
+let rekamanChunks = [];
+let sedangRekam = false;
+let sedangNgomong = false;
 
 document.addEventListener('DOMContentLoaded', () => {
   audio.play().catch(() => {
     const playOnInteraction = () => { audio.play().catch(()=>{}); document.removeEventListener('click', playOnInteraction); };
     document.addEventListener('click', playOnInteraction);
   });
+  loadVoices();
+  // Sapaan awal, Bos. Tapi jangan auto-play sebelum user klik, biar gak diblok browser.
+  appendMessage('Halo Dunsanak! Selamat datang di Rumah Gadang AI. Pencet 🎤 buat ngomong, atau ketik aja. Pencet 🔊 Auto Ngomong biar AI langsung jawab pakai suara.', 'ai');
 });
 
 function toggleMusic(){
@@ -105,7 +135,121 @@ function toggleMusic(){
 }
 function handleKeyPress(e){ if(e.key === 'Enter') handleSend(); }
 
-// === BUKA FULL + TAMBAH 1 HISTORY PALSU, BOS. BIAR BACK HP CUMA NUTUP FOTO ===
+function toggleAutoSpeak(){
+  autoSpeak = !autoSpeak;
+  const btn = document.getElementById('autoSpeakBtn');
+  btn.textContent = autoSpeak ? '🔊 Auto Ngomong: ON' : '🔊 Auto Ngomong: OFF';
+  btn.classList.toggle('on', autoSpeak);
+  if(autoSpeak) ngomong('Auto ngomong aktif, Dunsanak. Sekarang AI akan jawab pakai suara.');
+}
+
+function getVoiceId(){
+  const sel = document.getElementById('voiceSelect');
+  return sel ? sel.value : '21m00Tcm4TlvDq8ikWAM';
+}
+
+async function loadVoices(){
+  const sel = document.getElementById('voiceSelect');
+  try{
+    const r = await fetch('/api/voices');
+    const d = await r.json();
+    if(d.ok && d.voices && d.voices.length){
+      sel.innerHTML = '';
+      d.voices.slice(0,20).forEach(v=>{
+        const o = document.createElement('option');
+        o.value = v.voice_id;
+        o.textContent = (v.name || 'Suara') + (v.labels && v.labels.gender ? ' - ' + v.labels.gender : '');
+        sel.appendChild(o);
+      });
+      // Default: cari Rachel / cewek, Bos.
+      const rachel = [...sel.options].find(o=>o.text.toLowerCase().includes('rachel'));
+      if(rachel) sel.value = rachel.value;
+    } else {
+      sel.innerHTML = '<option value="21m00Tcm4TlvDq8ikWAM">Rachel - Cewek (Default)</option><option value="pNInz6obpgDQGcFmaJgB">Adam - Cowok</option><option value="EXAVITQu4vr4xnSDxMaL">Bella - Cewek</option>';
+    }
+  }catch(e){
+    sel.innerHTML = '<option value="21m00Tcm4TlvDq8ikWAM">Rachel - Cewek (Default)</option><option value="pNInz6obpgDQGcFmaJgB">Adam - Cowok</option>';
+  }
+}
+
+// === AI NGOMONG, BOS ===
+async function ngomong(teks, btn){
+  if(!teks || sedangNgomong) return;
+  // Matikan musik latar biar suara AI jelas, Bos.
+  const musikJalan = !audio.paused;
+  if(musikJalan) audio.pause();
+  try{
+    if(btn){ btn.disabled = true; btn.classList.add('playing'); btn.textContent = '⏸️ Lagi Ngomong...'; }
+    sedangNgomong = true;
+    const res = await fetch('/api/voice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: teks.slice(0,1000), voice_id: getVoiceId() })
+    });
+    if(!res.ok) throw new Error('Voice gagal Bos');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    voiceAudio.src = url;
+    await voiceAudio.play();
+    voiceAudio.onended = ()=>{
+      sedangNgomong = false;
+      if(musikJalan) audio.play().catch(()=>{});
+      if(btn){ btn.disabled = false; btn.classList.remove('playing'); btn.textContent = '🔊 Dengarkan'; }
+      URL.revokeObjectURL(url);
+    };
+  }catch(e){
+    sedangNgomong = false;
+    if(musikJalan) audio.play().catch(()=>{});
+    if(btn){ btn.disabled = false; btn.classList.remove('playing'); btn.textContent = '🔊 Dengarkan'; }
+    alert('Gagal ngomong Bos: ' + e.message);
+  }
+}
+
+// === MIC - NGOMONG JADI TEKS, BOS ===
+async function toggleMic(){
+  const micBtn = document.getElementById('micBtn');
+  if(sedangRekam){
+    // Stop, Bos.
+    try{ mediaRecorder.stop(); }catch(e){}
+    sedangRekam = false;
+    micBtn.classList.remove('rec');
+    micBtn.textContent = '🎤';
+    return;
+  }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    rekamanChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e=>{ if(e.data.size>0) rekamanChunks.push(e.data); };
+    mediaRecorder.onstop = async ()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      const blob = new Blob(rekamanChunks, { type: 'audio/webm' });
+      if(blob.size < 1000){ alert('Suaranya kekecilan Bos, coba lagi agak lama.'); return; }
+      micBtn.textContent = '⏳';
+      try{
+        const form = new FormData();
+        form.append('audio', blob, 'rekaman.webm');
+        const r = await fetch('/api/stt', { method: 'POST', body: form });
+        const d = await r.json();
+        if(d.ok && d.text){
+          document.getElementById('userInput').value = d.text;
+          handleSend();
+        } else {
+          alert('Gagal denger Bos: ' + (d.error || 'coba lagi'));
+        }
+      }catch(e){ alert('Gagal kirim suara Bos: ' + e.message); }
+      micBtn.textContent = '🎤';
+    };
+    mediaRecorder.start();
+    sedangRekam = true;
+    micBtn.classList.add('rec');
+    micBtn.textContent = '⏹️';
+  }catch(e){
+    alert('Mic gak bisa dibuka Bos. Izinin mic di browser dulu ya. ' + e.message);
+  }
+}
+
+// === BUKA FULL + TAMBAH 1 HISTORY PALSU, BOS ===
 function bukaGambar(url, judul){
   gambarAktif = url || '';
   judulAktif = judul || 'Gambar dari Admin';
@@ -121,16 +265,9 @@ function bukaGambar(url, judul){
     try { history.pushState({ lightbox: true }, '', location.href); } catch(e) {}
   }
 }
-// === TUTUP FOTO, BOS. KALAU DARI TOMBOL TUTUP, BALIKIN HISTORY-NYA BIAR GAK NUMPUK ===
 function tutupGambar(){
   if (!lightboxKebuka) return;
-  // Kalau kita yang nutup lewat tombol / klik luar, kita mundur 1 history, Bos.
-  // Nanti popstate yang beneran nutup layarnya, Bos. Biar Back HP & Tombol Tutup sama aja.
-  if (history.state && history.state.lightbox) {
-    history.back();
-    return;
-  }
-  // Kalau udah dari Back HP, langsung tutup aja, Bos.
+  if (history.state && history.state.lightbox) { history.back(); return; }
   tutupGambarLangsung();
 }
 function tutupGambarLangsung(){
@@ -140,12 +277,7 @@ function tutupGambarLangsung(){
   document.getElementById('lbImg').src = '';
   document.body.style.overflow = '';
 }
-// === INI KUNCINYA, BOS. BACK HP CUMA NUTUP FOTO, GAK PINDAH MENU ===
-window.addEventListener('popstate', () => {
-  if (lightboxKebuka) {
-    tutupGambarLangsung();
-  }
-});
+window.addEventListener('popstate', () => { if (lightboxKebuka) tutupGambarLangsung(); });
 
 async function downloadGambar(){
   if (!gambarAktif) return;
@@ -159,9 +291,7 @@ async function downloadGambar(){
     a.click();
     a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
-  } catch(e) {
-    window.open(gambarAktif, '_blank');
-  }
+  } catch(e) { window.open(gambarAktif, '_blank'); }
 }
 document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') tutupGambar(); });
 
@@ -173,9 +303,7 @@ function getUserId(){
       localStorage.setItem('rg_user_id', uid);
     }
     return uid;
-  } catch(e) {
-    return 'user-' + Date.now().toString(36);
-  }
+  } catch(e) { return 'user-' + Date.now().toString(36); }
 }
 
 function setLoading(isLoading){
@@ -193,13 +321,11 @@ async function handleSend(){
   const chatBox = document.getElementById('chatBox');
   const prompt = inputEl.value.trim();
   if(!prompt) return;
-
   appendMessage(prompt, 'user');
   inputEl.value = '';
   setLoading(true);
   const loadingDiv = appendMessage('Saratonyo mandengarkan...', 'ai');
   const isImageRequest = /(gambarkan|buatkan gambar|bikin gambar|lukis|foto|image|generate|gambar|desain|buatkan|bikinin)/i.test(prompt);
-
   try {
     if (isImageRequest) {
       let res;
@@ -209,17 +335,12 @@ async function handleSend(){
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt: prompt, user_id: getUserId() })
         });
-      } catch(e) {
-        throw new Error('Server gak bisa dihubungi Bos. Cek internet lu.');
-      }
+      } catch(e) { throw new Error('Server gak bisa dihubungi Bos. Cek internet lu.'); }
       let data = {};
       try { data = await res.json(); } catch(e) { throw new Error('Server ngasih respon aneh Bos. Coba lagi.'); }
-      if (!res.ok || !data.ok || !data.id) {
-        throw new Error(data.error || 'Gagal kirim ke admin Bos. Coba lagi.');
-      }
+      if (!res.ok || !data.ok || !data.id) throw new Error(data.error || 'Gagal kirim ke admin Bos. Coba lagi.');
       loadingDiv.textContent = 'Lagi diproses sistem, tunggu 30 - 40 detik';
       const id = data.id;
-
       let sudahDapat = false;
       let gagalBeruntun = 0;
       const cek = setInterval(async () => {
@@ -236,6 +357,7 @@ async function handleSend(){
               const safeUrl = escapeHtml(hasil.gambar);
               const safePrompt = escapeHtml(prompt);
               loadingDiv.innerHTML = '<div>Gambar: ' + safePrompt + '</div><img src="' + safeUrl + '" alt="Gambar dari admin" onclick="bukaGambar(\\'' + safeUrl + '\\', \\'Gambar: ' + safePrompt + '\\')"><div style="font-size:11px;opacity:0.7;margin-top:6px">Klik gambar buat liat full</div>';
+              if(autoSpeak) ngomong('Gambarnyo sudah jadi, Dunsanak. Silakan dilihat.');
             } else if (hasil.gambar) {
               loadingDiv.textContent = hasil.gambar;
             } else {
@@ -262,7 +384,6 @@ async function handleSend(){
           }
         }
       }, 3000);
-
       const timeoutPolling = setTimeout(() => {
         clearInterval(cek);
         if (!sudahDapat) {
@@ -280,13 +401,21 @@ async function handleSend(){
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt: prompt })
         });
-      } catch(e) {
-        throw new Error('Server gak bisa dihubungi Bos. Cek internet lu.');
-      }
+      } catch(e) { throw new Error('Server gak bisa dihubungi Bos. Cek internet lu.'); }
       let data = {};
       try { data = await res.json(); } catch(e) { throw new Error('Server ngasih respon aneh Bos.'); }
       if (data.reply) {
         loadingDiv.textContent = data.reply;
+        // Tombol dengarkan, Bos.
+        const btn = document.createElement('button');
+        btn.className = 'speak-btn';
+        btn.textContent = '🔊 Dengarkan';
+        btn.onclick = ()=> ngomong(data.reply, btn);
+        const wrap = document.createElement('div');
+        wrap.className = 'bubble-actions';
+        wrap.appendChild(btn);
+        loadingDiv.appendChild(wrap);
+        if(autoSpeak) ngomong(data.reply);
       } else {
         throw new Error(data.error || 'Respon tidak diketahui Bos.');
       }

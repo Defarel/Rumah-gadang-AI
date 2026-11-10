@@ -51,10 +51,10 @@ input:focus{border-color:#00ff88;box-shadow:0 0 8px rgba(0,255,136,0.5);outline:
 <div class="bot">
   <a href="/">🏠<br><span style="font-size:10px">Home</span></a>
   <a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a>
-  <a href="/video">🎬<br><span style="font-size:10px">Video</span></a>
+  <a href="/video" class="on">🎬<br><span style="font-size:10px">Video</span></a>
   <a href="/kantor">🏢<br><span style="font-size:10px">Kantor</span></a>
   <a href="/ai">🤖<br><span style="font-size:10px">AI</span></a>
-  <a href="/akun" class="on">👤<br><span style="font-size:10px">Akun</span></a>
+  <a href="/akun">👤<br><span style="font-size:10px">Akun</span></a>
 </div>
 <script>
 let videos=[]; let curPlaying=null; let soundOn=false;

@@ -34,12 +34,14 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .chat-input::placeholder{color:#aaa}
 .btn-kirim{background:#00ff88;color:#000;border:none;padding:0 20px;border-radius:16px;font-weight:900;font-size:14px;cursor:pointer;box-shadow:0 0 10px rgba(0,255,136,0.6);display:grid;place-items:center}
 .btn-kirim:disabled{background:#555;color:#888;cursor:not-allowed;box-shadow:none}
+/* ROBOT ASISTEN - DI ATAS KIRIM, KANAN BAWAH, BOS - UDAH PAKE LOGO RG ASISTEN, BOS */
 #robotBtn{position:absolute;bottom:215px;right:16px;width:68px;height:68px;border-radius:50%;background:#fff;border:3px solid #00ff88;cursor:pointer;z-index:20;box-shadow:0 0 18px rgba(0,255,136,.9);display:grid;place-items:center;overflow:hidden;padding:0}
 #robotBtn img{width:100%;height:100%;object-fit:cover;display:block}
 #robotBtn.aktif{border-color:#ff4444;animation:blink 1s infinite}
 @keyframes blink{50%{opacity:.7}}
 #robotDot{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#00ff88;border:2px solid #000;display:none}
 #robotDot.on{display:block}
+/* PANEL MENU ROBOT */
 #robotPanel{position:absolute;bottom:255px;right:16px;left:16px;max-height:calc(100vh - 290px);overflow-y:auto;background:rgba(10,10,10,.97);border:2px solid #00ff88;border-radius:20px;padding:16px;z-index:30;display:none;box-shadow:0 0 20px rgba(0,255,136,.5)}
 #robotPanel.open{display:block}
 .rp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
@@ -56,11 +58,10 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .rp-mode{display:flex;gap:8px}
 .rp-mode button{background:#222;color:#fff;border:1px solid #555;padding:9px 14px;border-radius:20px;font-size:13px;font-weight:900;cursor:pointer}
 .rp-mode button.on{background:#00ff88;color:#000;border-color:#00ff88}
-/* MODE PILIH PESAN - CEKLIS DI KANAN KAYAK FOTO 1, BOS */
+/* MODE PILIH PESAN - BULATAN CEKLIS DI KANAN */
 #pilihTop{position:absolute;top:0;left:0;width:100%;padding:16px;display:none;grid-template-columns:80px 1fr 80px;align-items:center;z-index:40;background:rgba(0,0,0,.92);border-bottom:1px solid #00ff88}
 #pilihTop b{text-align:center;font-size:16px}
 #pilihTop button{background:none;border:none;color:#00ff88;font-size:15px;font-weight:900;cursor:pointer;text-align:left}
-#pilihTop span{font-size:11px;opacity:.6;text-align:right;line-height:1.3}
 #pilihBar{position:absolute;bottom:125px;left:0;width:100%;padding:12px 16px;display:none;z-index:40;background:linear-gradient(to top, rgba(0,0,0,0.95), transparent)}
 #pilihHapusBtn{width:100%;background:#ff4444;color:#fff;border:none;padding:16px;border-radius:28px;font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 0 12px rgba(255,68,68,.6)}
 #pilihHapusBtn:disabled{background:#555;color:#999;box-shadow:none;cursor:not-allowed}
@@ -68,15 +69,10 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
 .mode-pilih #pilihBar{display:block}
 .mode-pilih .bottom-chat-bar,.mode-pilih #robotBtn,.mode-pilih #robotPanel{display:none!important}
 .mode-pilih .chat-bubble *{pointer-events:none}
-/* BUBBLE + CEKLIS 1 BARIS, CEKLIS DI KANAN BUBBLE */
-.pilih-row{display:flex;align-items:flex-start;gap:10px;width:100%;cursor:pointer}
-.pilih-row .chat-bubble{flex:1;min-width:0;max-width:calc(100% - 38px)}
-.pilih-row.user-row{flex-direction:row-reverse}
-.pilih-row.user-row .chat-bubble{align-self:flex-end}
-.pilih-circle{width:28px;height:28px;border-radius:50%;border:2px solid #fff;flex-shrink:0;display:none;place-items:center;font-size:16px;font-weight:900;color:transparent;background:rgba(0,0,0,.4);margin-top:6px}
-.mode-pilih .pilih-circle{display:grid}
-.pilih-row.dipilih .pilih-circle{background:#00ff88;border-color:#00ff88;color:#000}
-.pilih-row.dipilih .chat-bubble{opacity:.7}
+.pilih-row{display:flex;align-items:center;gap:10px;width:100%;cursor:pointer}
+.pilih-col{flex:1;min-width:0;display:flex;flex-direction:column}
+.pilih-circle{width:28px;height:28px;border-radius:50%;border:2px solid #fff;flex-shrink:0;display:grid;place-items:center;font-size:16px;font-weight:900;color:#000;background:rgba(0,0,0,.4)}
+.pilih-row.dipilih .pilih-circle{background:#00ff88;border-color:#00ff88}
 .rp-big{width:100%;background:#00ff88;color:#000;border:none;padding:14px;border-radius:16px;font-size:15px;font-weight:900;cursor:pointer;margin-top:12px}
 .rp-big.stop{background:#ff4444;color:#fff}
 .rp-status{text-align:center;font-size:12px;margin-top:10px;min-height:16px;color:#00ff88}
@@ -106,22 +102,30 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
   </div>
   <div class="top-bar"><div class="app-title">Rumah Gadang AI</div></div>
   <div class="chat-container" id="chatBox"></div>
+
+  <!-- ROBOT ASISTEN, BOS - UDAH PAKE LOGO RG ASISTEN, BUKAN UNGU LAGI, BOS -->
   <button id="robotBtn" onclick="toggleRobotPanel()"><img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/aset/logo_RG_asisten.png" alt="RG Asisten"><span id="robotDot"></span></button>
+
+  <!-- MENU DALAM ROBOT, BOS. SEMUA FOLDER PINDAH KE SINI, BOS -->
   <div id="robotPanel">
     <img class="rp-logo" src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/main/aset/logo_RG_asisten.png" alt="RG Asisten">
     <div class="rp-head"><b>Asisten Rumah Gadang</b><button class="rp-close" onclick="toggleRobotPanel()">✕</button></div>
+
     <div class="rp-row">
       <span>🎵 RG Musik<small>Lagu OFF dulu. Klik ON baru bunyi.</small></span>
       <button class="rp-toggle" id="musikToggle" onclick="toggleMusikPanel()">OFF</button>
     </div>
+
     <div class="rp-row">
       <span>🔊 Otomatis Bicara<small>AI langsung jawab pakai suara.</small></span>
       <button class="rp-toggle on" id="autoToggle" onclick="toggleAutoSpeak()">ON</button>
     </div>
+
     <div class="rp-row">
       <span>🎙️ Nama Suara</span>
       <select class="rp-select" id="voiceSelect"><option value="21m00Tcm4TlvDq8ikWAM">Loading...</option></select>
     </div>
+
     <div class="rp-row">
       <span>🗣️ Mode Bicara<small>Otomatis: diem 1,5 dtk -> AI balas.<br>Manual: klik bicara / klik berhenti.</small></span>
       <div class="rp-mode">
@@ -129,20 +133,25 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
         <button id="modeManualBtn" onclick="setMode('manual')">Manual</button>
       </div>
     </div>
+
     <div class="rp-row">
       <span>🗑️ Hapus Chat<small>Pilih pesan, lalu hapus.</small></span>
       <button class="rp-toggle" onclick="mulaiPilih()">Pilih</button>
     </div>
+
     <button class="rp-big" id="bicaraBigBtn" onclick="klikBicaraUtama()">🎤 Klik Bicara</button>
     <div class="rp-status" id="rpStatus">Robot siap. Otomatis Bicara ON. Pilih mode, lalu Klik Bicara.</div>
   </div>
-  <div id="pilihTop"><button onclick="keluarPilih()">Batal</button><b>Pilih Pesan</b><span id="pilihCount"></span></div>
+
+  <div id="pilihTop"><button onclick="keluarPilih()">Batal</button><b>Pilih Pesan</b><span></span></div>
   <div id="pilihBar"><button id="pilihHapusBtn" onclick="hapusTerpilih()" disabled>Hapus</button></div>
+
   <div class="bottom-chat-bar">
     <input type="text" id="userInput" class="chat-input" placeholder="Tanya atau gambarkan sesuatu..." onkeypress="handleKeyPress(event)">
     <button class="btn-kirim" id="sendBtn" onclick="handleSend()">⬆️</button>
   </div>
 </div>
+
 <div id="lightbox">
   <div class="lb-top">
     <div class="lb-title" id="lbTitle">Gambar dari Admin</div>
@@ -154,6 +163,7 @@ body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Se
   <div class="lb-body" onclick="tutupGambar()"><img id="lbImg" src="" alt="Gambar full" onclick="event.stopPropagation()"></div>
   <div class="lb-hint">rumah gadang AI</div>
 </div>
+
 <div class="bot">
   <a href="/">🏠<br><span style="font-size:10px">Home</span></a>
   <a href="/foto">🖼️<br><span style="font-size:10px">Foto</span></a>
@@ -169,7 +179,9 @@ let sedangKirim = false;
 let gambarAktif = '';
 let judulAktif = 'Gambar dari Admin';
 let lightboxKebuka = false;
-let autoSpeak = true;
+
+// === STATE ROBOT, BOS ===
+let autoSpeak = true; // DEFAULT ON: orang tanya -> AI balas langsung bersuara
 let modeBicara = 'otomatis';
 let musikOn = false;
 let sedangBicara = false;
@@ -177,15 +189,19 @@ let sedangNgomongAI = false;
 let mediaRecorder = null;
 let rekamanChunks = [];
 let audioCtx = null, analyser = null, micStream = null, silenceTimer = null, rafId = null;
-let sedangBicaraModeAktif = false;
-let pilihAktif = false;
+
 document.addEventListener('DOMContentLoaded', () => {
   loadVoices();
   muatRiwayat();
   jadwalHapusTengahMalam();
 });
+
 function setStatus(t){ document.getElementById('rpStatus').textContent = t; }
-function toggleRobotPanel(){ document.getElementById('robotPanel').classList.toggle('open'); }
+
+function toggleRobotPanel(){
+  document.getElementById('robotPanel').classList.toggle('open');
+}
+
 function toggleMusikPanel(){
   musikOn = !musikOn;
   const btn = document.getElementById('musikToggle');
@@ -194,6 +210,7 @@ function toggleMusikPanel(){
   if(musikOn){ audio.play().catch(()=>{}); setStatus('🎵 Musik ON.'); }
   else { audio.pause(); setStatus('🎵 Musik OFF.'); }
 }
+
 function toggleAutoSpeak(){
   autoSpeak = !autoSpeak;
   const btn = document.getElementById('autoToggle');
@@ -201,6 +218,7 @@ function toggleAutoSpeak(){
   btn.classList.toggle('on', autoSpeak);
   setStatus(autoSpeak ? '🔊 Otomatis Bicara ON. AI akan jawab pakai suara.' : '🔊 Otomatis Bicara OFF.');
 }
+
 function setMode(m){
   modeBicara = m;
   document.getElementById('modeOtomatisBtn').classList.toggle('on', m==='otomatis');
@@ -208,14 +226,30 @@ function setMode(m){
   setStatus(m==='otomatis' ? 'Mode Otomatis: ngomong aja, diem -> AI balas.' : 'Mode Manual: Klik Bicara, ngomong, Klik Berhenti.');
   if(sedangBicara) stopRekam(false);
 }
+
 function getVoiceId(){
   const sel = document.getElementById('voiceSelect');
   return sel ? sel.value : '21m00Tcm4TlvDq8ikWAM';
 }
+
 async function loadVoices(){
   const sel = document.getElementById('voiceSelect');
-  if(!sel) return;
-  const namaBaru = { 'Rachel':'Uni Rachel - Cewek Jernih', 'Adam':'Uda Adam - Cowok Tegas' };
+  const namaBaru = {
+    "Harry": "Uda Haris - Cowok Tegas",
+    "Liam": "Uda Liam - Cowok Semangat",
+    "Alice": "Uni Alis - Cewek Jelas",
+    "Matilda": "Uni Tilda - Cewek Pintar",
+    "Will": "Uda Will - Cowok Santai",
+    "Jessica": "Uni Jessi - Cewek Ceria",
+    "Eric": "Uda Erik - Cowok Halus",
+    "Bella": "Uni Bela - Cewek Lembut",
+    "Chris": "Uda Kris - Cowok Ramah",
+    "Brian": "Uda Brian - Cowok Dalam",
+    "Daniel": "Uda Daniel - Cowok Penyiar",
+    "Lily": "Uni Lily - Cewek Halus",
+    "Adam": "Uda Adam - Cowok Tegas",
+    "Rachel": "Uni Rachel - Cewek Jernih"
+  };
   try{
     const r = await fetch('/api/voices');
     const d = await r.json();
@@ -232,6 +266,7 @@ async function loadVoices(){
     sel.innerHTML = '<option value="21m00Tcm4TlvDq8ikWAM">Uni Rachel - Cewek Jernih</option><option value="pNInz6obpgDQGcFmaJgB">Uda Adam - Cowok Tegas</option>';
   }
 }
+
 async function ngomong(teks, btn){
   if(!teks) return;
   const musikJalan = !audio.paused;
@@ -264,6 +299,9 @@ async function ngomong(teks, btn){
     if(btn){ btn.disabled = false; btn.classList.remove('playing'); btn.textContent = '🔊 Dengarkan'; }
   }
 }
+
+let sedangBicaraModeAktif = false;
+
 function klikBicaraUtama(){
   const big = document.getElementById('bicaraBigBtn');
   if(sedangBicaraModeAktif){
@@ -285,6 +323,7 @@ function klikBicaraUtama(){
   setStatus(modeBicara==='otomatis' ? '🎤 Dengerin... Ngomong aja, diem dikit AI langsung balas.' : '🎤 Dengerin... Ngomong, lalu Klik OFF.');
   startRekam();
 }
+
 async function startRekam(){
   if(sedangBicara) return;
   try{
@@ -312,12 +351,14 @@ async function startRekam(){
     document.getElementById('bicaraBigBtn').textContent = '🎤 Klik Bicara';
   }
 }
+
 function stopRekam(kirim){
   if(!sedangBicara) return;
   sedangBicara = false;
   stopAnalyser();
   try{ if(mediaRecorder && mediaRecorder.state!=='inactive') mediaRecorder.stop(); }catch(e){}
 }
+
 function mulaiDeteksiDiem(){
   try{
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -334,7 +375,10 @@ function mulaiDeteksiDiem(){
       for(let i=0;i<data.length;i++){ let v = (data[i]-128)/128; sum += v*v; }
       let vol = Math.sqrt(sum / data.length);
       if(vol > 0.02) lastSuara = Date.now();
-      if(Date.now() - lastSuara > 1500){ stopRekam(true); return; }
+      if(Date.now() - lastSuara > 1500){
+        stopRekam(true);
+        return;
+      }
       rafId = requestAnimationFrame(cek);
     };
     rafId = requestAnimationFrame(cek);
@@ -344,6 +388,7 @@ function stopAnalyser(){
   if(rafId) cancelAnimationFrame(rafId);
   if(audioCtx) { try{ audioCtx.close(); }catch(e){} audioCtx = null; }
 }
+
 async function kirimSuaraKeAI(blob){
   setStatus('⏳ Dengerin... AI lagi mikir...');
   try{
@@ -363,7 +408,9 @@ async function kirimSuaraKeAI(blob){
     if(sedangBicaraModeAktif && modeBicara==='otomatis') setTimeout(()=>startRekam(), 500);
   }
 }
+
 function handleKeyPress(e){ if(e.key === 'Enter') handleSend(); }
+
 function bukaGambar(url, judul){
   gambarAktif = url || ''; judulAktif = judul || 'Gambar dari Admin';
   const lb = document.getElementById('lightbox');
@@ -476,8 +523,11 @@ async function handleSend(){
   }
 }
 function escapeHtml(s){ if (s == null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+// === RIWAYAT CHAT: KESIMPAN DI HP, OTOMATIS HAPUS JAM 00:00 WIB ===
 const KUNCI_RIWAYAT = 'rg_chat_riwayat';
-function tanggalWIB(){ return new Date(Date.now() + 7*3600000).toISOString().slice(0,10); }
+function tanggalWIB(){
+  return new Date(Date.now() + 7*3600000).toISOString().slice(0,10);
+}
 function simpanRiwayat(){
   try{
     const items = [];
@@ -490,8 +540,7 @@ function simpanRiwayat(){
       if(sender==='ai' && !img && (text.indexOf('Saratonyo mandengarkan')===0 || text.indexOf('Lagi diproses sistem')===0)) return;
       items.push({ sender: sender, text: text, img: img ? img.src : '', error: b.classList.contains('error') });
     });
-    localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify({ tgl: tanggalWIB(), items: items.slice(-100) }));
-  }catch(e){}
+    localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify({ tgl: tanggalWIB(), items: items.slice(-100) }));  }catch(e){}
 }
 function muatRiwayat(){
   try{
@@ -525,6 +574,7 @@ function jadwalHapusTengahMalam(){
     jadwalHapusTengahMalam();
   }, ms + 1000);
 }
+
 // === HAPUS CHAT - CEKLIS DI KANAN KAYAK FOTO 1 ===
 function appendMessage(text, sender){
   const chatBox = document.getElementById('chatBox');

@@ -1,7 +1,7 @@
 export const AKUN_HTML = `<!DOCTYPE html><html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" href="https://github.com/Defarel/Rumah-gadang-AI/blob/223beb00f24796f0f133e89feaf553cac18ed845/icon.png">
+<link rel="icon" type="image/jpeg" href="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/223beb00f24796f0f133e89feaf553cac18ed845/icon.png">
 <link rel="canonical" href="https://rumahgadang-ai.my.id/akun">
 <title>Akun - Rumah Gadang AI</title>
 <style>
@@ -68,7 +68,7 @@ body{background:#000;color:#fff;font-family:sans-serif}
 .commentSheetInput { padding:12px 16px; background:#080808; border-top:1px solid #222; display:flex; gap:8px; align-items:center; }
 </style></head><body>
 <div id="app">
-  <div class="top"><div style="display:flex;gap:10px;align-items:center"><img src="https://i.ibb.co/WQg0cwp/Rumah-Gadang-AI1.jpg" class="logo"><b>RUMAH GADANG AI</b></div><button class="btn-home" onclick="location.href='/'">HOME</button></div>
+  <div class="top"><div style="display:flex;gap:10px;align-items:center"><img src="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/223beb00f24796f0f133e89feaf553cac18ed845/icon.png" class="logo"><b>RUMAH GADANG AI</b></div><button class="btn-home" onclick="location.href='/'">HOME</button></div>
   <div id="viewContainer"></div>
 </div>
 <div class="bot">
@@ -114,8 +114,8 @@ body{background:#000;color:#fff;font-family:sans-serif}
 </div>
 
 <script>
-const LOGO_INNER="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
-const LOGO_LOGIN="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/b1cf285a7cc7b1fb782a1de136685f108adec877/ai/RumahGadangAI1.jpg";
+const LOGO_INNER="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/223beb00f24796f0f133e89feaf553cac18ed845/icon.png";
+const LOGO_LOGIN="https://raw.githubusercontent.com/Defarel/Rumah-gadang-AI/223beb00f24796f0f133e89feaf553cac18ed845/icon.png";
 const LOGO_VIDEO = "https://cdn.jsdelivr.net/gh/Defarel/Rumah-gadang-AI@9fa479e6634ebcb2f1dfcde85fb106ac77d2b122/akun/RumahGadangV2.mp4";
 
 let activeMainTab="teman"; 
